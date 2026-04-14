@@ -212,6 +212,16 @@ final class WordExtractorTests: XCTestCase {
         XCTAssertEqual(result.words.map(\.word), ["hello", "world"])
     }
 
+    func testSpecialCharactersActAsWordBoundaries() {
+        // +, =, ~, @, #, $, %, ^, &, *, \, |, /, <, > should all be boundaries
+        for char in ["+", "=", "~", "@", "#", "$", "%", "^", "&", "*", "\\", "|", "/", "<", ">"] {
+            let events = keyDownEvents(for: "ab") + [keyDown(char)] + keyDownEvents(for: "cd") + [keyDown(" ")]
+            let result = extractor.extract(from: events, at: fixedDate)
+
+            XCTAssertEqual(result.words.map(\.word), ["ab", "cd"], "Character '\(char)' should act as word boundary")
+        }
+    }
+
     func testStandaloneNumbersAreNotExtracted() {
         let events = keyDownEvents(for: "42") + [keyDown(" ")] +
             keyDownEvents(for: "hi") + [keyDown(" ")]

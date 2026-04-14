@@ -35,13 +35,11 @@ Process events in `seq` order. Only `keyDown` events build/modify the word buffe
 | `"\t"` (tab) | Finalize current word |
 | `"\u{1B}"` (escape) | Finalize current word |
 | `"\u{7F}"` (DEL / backspace) | Pop last char from buffer, increment mistake count |
-| `>= \u{F700}` (arrow keys, function keys) | Finalize current word |
-| `.` `,` `?` `!` `"` `;` `:` `(` `)` `[` `]` `{` `}` | Finalize current word (punctuation boundary) |
-| `—` (em dash), `–` (en dash), `-` (hyphen) | Finalize current word |
-| `"` `"` (smart double quotes) | Finalize current word |
-| `0`–`9` (digits) | Finalize current word |
 | `'` (apostrophe / smart apostrophe) | Append to word buffer (trimmed from edges on finalize) |
-| Any other printable character | Append to word buffer |
+| Letters (any script) | Append to word buffer |
+| **Everything else** (digits, punctuation, symbols, etc.) | Finalize current word (word boundary) |
+
+**Whitelist approach**: Only Unicode letters and apostrophes are allowed inside words. All other characters — digits, punctuation (`.` `,` `?` `!` `"` `;` `:` etc.), symbols (`+` `=` `~` `@` `#` `$` `%` `^` `&` `*` `\` `|` `/` `<` `>`), dashes (`-` `–` `—`), quotes (`"` `"` `"`), brackets (`(` `)` `[` `]` `{` `}`) — act as word boundaries and are never included in output words.
 
 ### Additional word boundary rules
 

@@ -2,15 +2,16 @@ import Foundation
 
 struct WordExtractor {
     private static let timeGapThresholdSeconds: TimeInterval = 2.0
-    private static let wordBoundaryCharacters: Set<String> = [" ", "\t", "\r", "\n"]
-    private static let punctuationBoundaryCharacters: Set<String> = [
-        ".", ",", "?", "!", "\"",
-        "\u{201C}", "\u{201D}",  // smart double quotes
-        "\u{2014}", "\u{2013}", "-",  // em dash, en dash, hyphen
-        ";", ":", "(", ")", "[", "]", "{", "}",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-    ]
-    private static let discardCharacters: Set<String> = ["\u{1B}"]
+    /// Characters allowed inside a word buffer. Everything else acts as a word boundary.
+    private static let allowedWordCharacters: CharacterSet = {
+        var set = CharacterSet.letters
+        set.insert(charactersIn: "'\u{2019}")  // apostrophe + smart apostrophe for contractions
+        return set
+    }()
+
+    private static func isAllowedInWord(_ characters: String) -> Bool {
+        !characters.isEmpty && characters.unicodeScalars.allSatisfy { allowedWordCharacters.contains($0) }
+    }
 
     func extract(from events: [TranscriptEvent], at extractionDate: Date = Date()) -> WordExtractionResult {
         var words: [ExtractedWord] = []
@@ -51,16 +52,7 @@ struct WordExtractor {
                 }
             }
 
-            if Self.wordBoundaryCharacters.contains(characters) ||
-               Self.punctuationBoundaryCharacters.contains(characters) ||
-               Self.discardCharacters.contains(characters) {
-                if let word = buffer.finalize() {
-                    words.append(word)
-                }
-                buffer = WordBuffer()
-                continue
-            }
-
+            // Backspace → remove last character, increment mistakes
             if characters == "\u{7F}" || characters == "\u{08}" {
                 buffer.handleBackspace()
                 if let ts = iso.date(from: event.ts) {
@@ -69,12 +61,9 @@ struct WordExtractor {
                 continue
             }
 
-            if characters.isEmpty || characters.unicodeScalars.allSatisfy({
-                !CharacterSet.letters.contains($0) &&
-                !CharacterSet.decimalDigits.contains($0) &&
-                !CharacterSet.punctuationCharacters.contains($0) &&
-                !CharacterSet.symbols.contains($0)
-            }) {
+            // Only letters and apostrophes are allowed in words.
+            // Everything else (spaces, punctuation, digits, symbols) is a word boundary.
+            guard Self.isAllowedInWord(characters) else {
                 if let word = buffer.finalize() {
                     words.append(word)
                 }
