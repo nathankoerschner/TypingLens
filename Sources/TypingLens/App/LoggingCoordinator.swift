@@ -116,6 +116,21 @@ final class LoggingCoordinator {
         }
     }
 
+    func exportRankedWordsRequested() {
+        let service = RankedExportService(fileLocations: fileLocations)
+
+        do {
+            let result = try service.run()
+            if result.totalUniqueWords == 0 {
+                appState.rankedExportStatus = "No words to rank in transcript"
+            } else {
+                appState.rankedExportStatus = "Ranked \(result.totalUniqueWords) unique words to ranked-words.json"
+            }
+        } catch {
+            appState.rankedExportStatus = "Ranked export failed: \(error.localizedDescription)"
+        }
+    }
+
     func openSystemSettingsRequested() {
         permissionManager.openSystemSettings()
     }

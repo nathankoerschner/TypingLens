@@ -45,7 +45,7 @@ Process events in `seq` order. Only `keyDown` events build/modify the word buffe
 
 - **Time gap > 2 seconds** between consecutive `keyDown` events → implicit word boundary (catches app/context switches).
 - **Modifier-delete** (`option+backspace` or `command+backspace`) → **drop the current word entirely**. We cannot know the scope of the deletion, so the word is discarded.
-- **Command/control-modified keys** → skip entirely. These are shortcuts (Cmd+C, Cmd+V, Cmd+Z), not typing.
+- **Command/control-modified keys** → break and discard the current in-progress word buffer, then continue. These are shortcuts (Cmd+C, Ctrl+C, Cmd+V, Cmd+Z), not typing, and they should not be allowed to glue two typed fragments together.
 - **Shift-modified keys** are kept — they represent normal capitalized typing.
 
 ### Apostrophe handling

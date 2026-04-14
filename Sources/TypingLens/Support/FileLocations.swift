@@ -26,4 +26,8 @@ struct FileLocations {
     var extractedWordsURL: URL {
         appDirectoryURL.appendingPathComponent("extracted-words.json", isDirectory: false)
     }
+
+    var rankedWordsURL: URL {
+        appDirectoryURL.appendingPathComponent("ranked-words.json", isDirectory: false)
+    }
 }

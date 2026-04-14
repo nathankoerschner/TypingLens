@@ -16,6 +16,7 @@ struct WordExtractor {
     func extract(from events: [TranscriptEvent], at extractionDate: Date = Date()) -> WordExtractionResult {
         var words: [ExtractedWord] = []
         var buffer = WordBuffer()
+        var previousEventWasWordBoundary = false
         let iso = TimestampFormatter.iso8601WithFractionalSeconds
 
         for event in events {
@@ -33,10 +34,8 @@ struct WordExtractor {
             let modifiers = Set(event.modifiers)
 
             if modifiers.contains("command") || modifiers.contains("control") {
-                let chars = event.characters ?? event.charactersIgnoringModifiers ?? ""
-                if chars == "\u{7F}" || chars == "\u{08}" {
-                    buffer = WordBuffer()
-                }
+                buffer = WordBuffer()
+                previousEventWasWordBoundary = true
                 continue
             }
 
@@ -49,15 +48,19 @@ struct WordExtractor {
                         words.append(word)
                     }
                     buffer = WordBuffer()
+                    previousEventWasWordBoundary = false
                 }
             }
 
             // Backspace → remove last character, increment mistakes
             if characters == "\u{7F}" || characters == "\u{08}" {
-                buffer.handleBackspace()
+                let crossedWordBoundary = previousEventWasWordBoundary
+                    || (buffer.leadingBoundaryBackspaceCount > 0 && buffer.text.isEmpty)
+                buffer.handleBackspace(crossedWordBoundary: crossedWordBoundary)
                 if let ts = iso.date(from: event.ts) {
                     buffer.lastKeyDownTime = ts
                 }
+                previousEventWasWordBoundary = false
                 continue
             }
 
@@ -68,6 +71,7 @@ struct WordExtractor {
                     words.append(word)
                 }
                 buffer = WordBuffer()
+                previousEventWasWordBoundary = true
                 continue
             }
 
@@ -77,7 +81,8 @@ struct WordExtractor {
                 }
                 buffer.lastKeyDownTime = ts
             }
-            buffer.text.append(characters)
+            buffer.append(characters)
+            previousEventWasWordBoundary = false
         }
 
         if let word = buffer.finalize() {
@@ -104,23 +109,35 @@ struct WordExtractor {
 private struct WordBuffer {
     var text: String = ""
     var mistakeCount: Int = 0
+    var removedCharacterCount: Int = 0
+    var leadingBoundaryBackspaceCount: Int = 0
     var firstKeyDownTime: Date?
     var lastKeyDownTime: Date?
     var lastKeyUpTime: Date?
 
     var hasContent: Bool { !text.isEmpty || mistakeCount > 0 }
 
-    mutating func handleBackspace() {
+    mutating func handleBackspace(crossedWordBoundary: Bool = false) {
+        if crossedWordBoundary && text.isEmpty {
+            leadingBoundaryBackspaceCount += 1
+        }
         if !text.isEmpty {
             text.removeLast()
+            removedCharacterCount += 1
         }
         mistakeCount += 1
+    }
+
+    mutating func append(_ characters: String) {
+        text.append(characters)
     }
 
     func finalize() -> ExtractedWord? {
         // Trim leading/trailing apostrophes (keep internal ones like don't)
         let trimmed = text.trimmingCharacters(in: CharacterSet(charactersIn: "'\u{2019}"))
         guard !trimmed.isEmpty else { return nil }
+
+        guard !shouldDrop() else { return nil }
 
         let endTime = lastKeyUpTime ?? lastKeyDownTime
         let durationMs: Double
@@ -136,5 +153,12 @@ private struct WordBuffer {
             durationMs: durationMs,
             mistakeCount: mistakeCount
         )
+    }
+
+    private func shouldDrop() -> Bool {
+        let characterCount = text.count
+        let droppedByCrossBoundaryBackspace = leadingBoundaryBackspaceCount >= 2 && characterCount <= 3
+        let droppedBySubstantialSuffixDeletion = removedCharacterCount >= characterCount
+        return droppedByCrossBoundaryBackspace || droppedBySubstantialSuffixDeletion
     }
 }

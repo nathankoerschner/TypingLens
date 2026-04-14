@@ -11,6 +11,7 @@ final class SettingsViewModelTests: XCTestCase {
             launchAtLoginEnabled: true
         )
         appState.extractionStatus = "Extracted 5 words"
+        appState.rankedExportStatus = "Ranked 3 unique words"
 
         let state = viewModel.state(for: appState)
 
@@ -20,6 +21,7 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(state.currentErrorMessage, "Disk full")
         XCTAssertEqual(state.transcriptPath, "/tmp/transcript.jsonl")
         XCTAssertEqual(state.extractionStatus, "Extracted 5 words")
+        XCTAssertEqual(state.rankedExportStatus, "Ranked 3 unique words")
     }
 
     func testActionCallbacksAreForwarded() {
@@ -29,6 +31,7 @@ final class SettingsViewModelTests: XCTestCase {
         var didClear = false
         var didToggle: Bool?
         var didExtractWords = false
+        var didExportRankedWords = false
 
         let viewModel = SettingsViewModel(
             onRefreshPermissionStatus: { didRefresh = true },
@@ -36,7 +39,8 @@ final class SettingsViewModelTests: XCTestCase {
             onRevealTranscript: { didReveal = true },
             onClearTranscript: { didClear = true },
             onToggleLaunchAtLogin: { didToggle = $0 },
-            onExtractWords: { didExtractWords = true }
+            onExtractWords: { didExtractWords = true },
+            onExportRankedWords: { didExportRankedWords = true }
         )
 
         viewModel.refreshPermissionStatus()
@@ -45,6 +49,7 @@ final class SettingsViewModelTests: XCTestCase {
         viewModel.clearTranscript()
         viewModel.toggleLaunchAtLogin(false)
         viewModel.extractWords()
+        viewModel.exportRankedWords()
 
         XCTAssertTrue(didRefresh)
         XCTAssertTrue(didOpenSystemSettings)
@@ -52,6 +57,7 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertTrue(didClear)
         XCTAssertEqual(didToggle, false)
         XCTAssertTrue(didExtractWords)
+        XCTAssertTrue(didExportRankedWords)
     }
 
     private func makeViewModel() -> SettingsViewModel {
@@ -61,7 +67,8 @@ final class SettingsViewModelTests: XCTestCase {
             onRevealTranscript: {},
             onClearTranscript: {},
             onToggleLaunchAtLogin: { _ in },
-            onExtractWords: {}
+            onExtractWords: {},
+            onExportRankedWords: {}
         )
     }
 }

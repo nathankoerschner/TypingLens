@@ -56,6 +56,35 @@ final class WordExtractorTests: XCTestCase {
         XCTAssertEqual(result.words.first?.word, "hi")
     }
 
+    func testBackspacingThroughBoundaryDoesNotCreateFragmentWord() {
+        let events = keyDownEvents(for: "hello") +
+            [keyDown(" "), keyDown("\u{7F}"), keyDown("\u{7F}"), keyDown("\u{7F}")] +
+            keyDownEvents(for: "orl") +
+            [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.map(\.word), ["hello"])
+    }
+
+    func testRemovingExtraSpaceWithSingleBackspaceKeepsNextWord() {
+        let events = keyDownEvents(for: "hello") +
+            [keyDown(" "), keyDown(" "), keyDown("\u{7F}")] +
+            keyDownEvents(for: "world") +
+            [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 2)
+        XCTAssertEqual(result.words.map(\.word), ["hello", "world"])
+    }
+
+    func testSubstantialSuffixBackspacingDoesNotEmitRemainder() {
+        let events = keyDownEvents(for: "abandoning") + Array(repeating: keyDown("\u{7F}"), count: 5) + [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 0)
+    }
+
     // MARK: - Time Gap Boundary
 
     func testTimeGapGreaterThan2SecondsForcesWordBoundary() {
@@ -79,23 +108,44 @@ final class WordExtractorTests: XCTestCase {
 
     // MARK: - Modifier Handling
 
-    func testCommandModifiedKeysAreSkipped() {
+    func testCommandModifiedKeyDropsCurrentPartialWord() {
         let events = keyDownEvents(for: "hello") +
             [makeKeyDown("a", ts: nil, modifiers: ["command"])] +
             [keyDown(" ")]
         let result = extractor.extract(from: events, at: fixedDate)
 
-        XCTAssertEqual(result.totalWords, 1)
-        XCTAssertEqual(result.words.first?.word, "hello")
+        XCTAssertEqual(result.totalWords, 0)
     }
 
-    func testControlModifiedKeysAreSkipped() {
+    func testControlModifiedKeyDropsCurrentPartialWord() {
         let events = keyDownEvents(for: "test") +
             [makeKeyDown("c", ts: nil, modifiers: ["control"])] +
             [keyDown(" ")]
         let result = extractor.extract(from: events, at: fixedDate)
 
-        XCTAssertEqual(result.words.first?.word, "test")
+        XCTAssertEqual(result.totalWords, 0)
+    }
+
+    func testControlModifiedShortcutBreaksCurrentWord() {
+        let events = keyDownEvents(for: "su") +
+            [makeKeyDown("c", ts: nil, modifiers: ["control"])] +
+            keyDownEvents(for: "superbuilders") +
+            [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.map(\.word), ["superbuilders"])
+    }
+
+    func testCommandModifiedShortcutBreaksCurrentWord() {
+        let events = keyDownEvents(for: "he") +
+            [makeKeyDown("v", ts: nil, modifiers: ["command"])] +
+            keyDownEvents(for: "world") +
+            [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.map(\.word), ["world"])
     }
 
     func testOptionBackspaceDiscardsCurrentWord() {

@@ -44,10 +44,16 @@ struct SettingsRootView: View {
                 Button("Reveal in Finder", action: viewModel.revealTranscript)
                 Button("Clear Transcript", role: .destructive, action: viewModel.clearTranscript)
                 Button("Extract Words", action: viewModel.extractWords)
+                Button("Export Ranked Words", action: viewModel.exportRankedWords)
             }
 
             if let extractionStatus = state.extractionStatus {
                 Text(extractionStatus)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let rankedExportStatus = state.rankedExportStatus {
+                Text(rankedExportStatus)
                     .foregroundStyle(.secondary)
             }
         }

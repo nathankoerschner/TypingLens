@@ -64,6 +64,9 @@ struct TypingLensApp: App {
             },
             onExtractWords: {
                 loggingCoordinator.extractWordsRequested()
+            },
+            onExportRankedWords: {
+                loggingCoordinator.exportRankedWordsRequested()
             }
         )
 
@@ -109,6 +112,9 @@ struct TypingLensApp: App {
                     },
                     onExtractWords: {
                         loggingCoordinator.extractWordsRequested()
+                    },
+                    onExportRankedWords: {
+                        loggingCoordinator.exportRankedWordsRequested()
                     }
                 )
             )
