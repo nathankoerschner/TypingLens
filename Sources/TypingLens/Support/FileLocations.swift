@@ -22,4 +22,8 @@ struct FileLocations {
     var transcriptURL: URL {
         appDirectoryURL.appendingPathComponent("transcript.jsonl", isDirectory: false)
     }
+
+    var extractedWordsURL: URL {
+        appDirectoryURL.appendingPathComponent("extracted-words.json", isDirectory: false)
+    }
 }
