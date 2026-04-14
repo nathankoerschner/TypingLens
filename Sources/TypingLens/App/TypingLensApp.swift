@@ -6,6 +6,7 @@ struct TypingLensApp: App {
     @StateObject private var appState: AppState
     private let loggingCoordinator: LoggingCoordinator
     private let menuBarController: MenuBarController
+    private let practiceWindowController: PracticeWindowController
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
 
@@ -24,6 +25,9 @@ struct TypingLensApp: App {
             launchAtLoginEnabled: launchAtLoginManager.isEnabled()
         )
         let keyboardMonitor = KeyboardMonitor()
+        let practiceWindowController = PracticeWindowController()
+        self.practiceWindowController = practiceWindowController
+
         let loggingCoordinator: LoggingCoordinator
         do {
             loggingCoordinator = try LoggingCoordinator(
@@ -31,7 +35,10 @@ struct TypingLensApp: App {
                 fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
-                transcriptWriter: transcriptWriter
+                transcriptWriter: transcriptWriter,
+                onOpenPractice: { prompt in
+                    practiceWindowController.show(prompt: prompt)
+                }
             )
         } catch {
             state.loggingStatus = .error(message: error.localizedDescription)
@@ -41,8 +48,15 @@ struct TypingLensApp: App {
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter,
+                onOpenPractice: { prompt in
+                    practiceWindowController.show(prompt: prompt)
+                },
                 initialSequence: 1
             )
+        }
+
+        practiceWindowController.onRequestNewPrompt = {
+            loggingCoordinator.practiceNowRequested()
         }
         var menuBarController: MenuBarController!
         let settingsWindowController = SettingsWindowController(
@@ -67,6 +81,9 @@ struct TypingLensApp: App {
             },
             onExportRankedWords: {
                 loggingCoordinator.exportRankedWordsRequested()
+            },
+            onPracticeNow: {
+                loggingCoordinator.practiceNowRequested()
             }
         )
 
@@ -115,6 +132,9 @@ struct TypingLensApp: App {
                     },
                     onExportRankedWords: {
                         loggingCoordinator.exportRankedWordsRequested()
+                    },
+                    onPracticeNow: {
+                        loggingCoordinator.practiceNowRequested()
                     }
                 )
             )

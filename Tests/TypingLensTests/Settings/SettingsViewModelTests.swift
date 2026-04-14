@@ -12,6 +12,7 @@ final class SettingsViewModelTests: XCTestCase {
         )
         appState.extractionStatus = "Extracted 5 words"
         appState.rankedExportStatus = "Ranked 3 unique words"
+        appState.practiceStatus = "No words available for practice"
 
         let state = viewModel.state(for: appState)
 
@@ -22,6 +23,7 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(state.transcriptPath, "/tmp/transcript.jsonl")
         XCTAssertEqual(state.extractionStatus, "Extracted 5 words")
         XCTAssertEqual(state.rankedExportStatus, "Ranked 3 unique words")
+        XCTAssertEqual(state.practiceStatus, "No words available for practice")
     }
 
     func testActionCallbacksAreForwarded() {
@@ -32,6 +34,7 @@ final class SettingsViewModelTests: XCTestCase {
         var didToggle: Bool?
         var didExtractWords = false
         var didExportRankedWords = false
+        var didPracticeNow = false
 
         let viewModel = SettingsViewModel(
             onRefreshPermissionStatus: { didRefresh = true },
@@ -40,7 +43,8 @@ final class SettingsViewModelTests: XCTestCase {
             onClearTranscript: { didClear = true },
             onToggleLaunchAtLogin: { didToggle = $0 },
             onExtractWords: { didExtractWords = true },
-            onExportRankedWords: { didExportRankedWords = true }
+            onExportRankedWords: { didExportRankedWords = true },
+            onPracticeNow: { didPracticeNow = true }
         )
 
         viewModel.refreshPermissionStatus()
@@ -50,6 +54,7 @@ final class SettingsViewModelTests: XCTestCase {
         viewModel.toggleLaunchAtLogin(false)
         viewModel.extractWords()
         viewModel.exportRankedWords()
+        viewModel.practiceNow()
 
         XCTAssertTrue(didRefresh)
         XCTAssertTrue(didOpenSystemSettings)
@@ -58,6 +63,7 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(didToggle, false)
         XCTAssertTrue(didExtractWords)
         XCTAssertTrue(didExportRankedWords)
+        XCTAssertTrue(didPracticeNow)
     }
 
     private func makeViewModel() -> SettingsViewModel {
@@ -68,7 +74,8 @@ final class SettingsViewModelTests: XCTestCase {
             onClearTranscript: {},
             onToggleLaunchAtLogin: { _ in },
             onExtractWords: {},
-            onExportRankedWords: {}
+            onExportRankedWords: {},
+            onPracticeNow: {}
         )
     }
 }

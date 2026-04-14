@@ -37,6 +37,13 @@ final class MenuBarControllerTests: XCTestCase {
         )
         try assertActionItem(
             in: menu,
+            title: "Practice Now",
+            expectedAction: "practiceNow",
+            target: target,
+            isEnabled: true
+        )
+        try assertActionItem(
+            in: menu,
             title: "Reveal Transcript in Finder",
             expectedAction: "revealTranscript",
             target: target,
@@ -78,6 +85,7 @@ private final class StubMenuActionTarget: NSObject {
     @objc func enableLogging() {}
     @objc func disableLogging() {}
     @objc func openSettings() {}
+    @objc func practiceNow() {}
     @objc func revealTranscript() {}
     @objc func clearTranscript() {}
     @objc func quit() {}

@@ -18,6 +18,31 @@ final class WordExtractionServiceTests: XCTestCase {
         XCTAssertEqual(decoded.words.map(\.word), result.words.map(\.word))
     }
 
+    func testExtractInMemoryDoesNotCreateOutputFile() throws {
+        let (locations, _) = try setupTempTranscript(events: sampleEvents())
+        let service = WordExtractionService(fileLocations: locations)
+
+        let result = try service.extractInMemory()
+
+        XCTAssertGreaterThan(result.totalWords, 0)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: locations.extractedWordsURL.path))
+    }
+
+    func testWriteToFilePersistsProvidedExtractionResult() throws {
+        let (locations, _) = try setupTempTranscript(events: sampleEvents())
+        let service = WordExtractionService(fileLocations: locations)
+        let result = try service.extractInMemory()
+
+        try service.writeToFile(result)
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: locations.extractedWordsURL.path))
+
+        let outputData = try Data(contentsOf: locations.extractedWordsURL)
+        let decoded = try JSONDecoder().decode(WordExtractionResult.self, from: outputData)
+        XCTAssertEqual(decoded.totalWords, result.totalWords)
+        XCTAssertEqual(decoded.words.map(\.word), result.words.map(\.word))
+    }
+
     func testRunWithEmptyTranscriptProducesZeroWords() throws {
         let (locations, _) = try setupTempTranscript(events: [])
         let service = WordExtractionService(fileLocations: locations)

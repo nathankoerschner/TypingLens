@@ -141,6 +141,90 @@ final class LoggingCoordinatorTests: XCTestCase {
         XCTAssertEqual(appState.permissionStatus, .needsRetry)
     }
 
+    func testPracticeNowOpensPracticePromptFromTranscript() {
+        var openedPrompts: [PracticePrompt] = []
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinatorWithOpenCallback(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter(),
+            transcriptEvents: samplePracticeEvents(),
+            onOpenPractice: { openedPrompts.append($0) }
+        )
+
+        coordinator.practiceNowRequested()
+
+        XCTAssertEqual(openedPrompts.count, 1)
+        XCTAssertEqual(openedPrompts.first?.words.count, 50)
+        XCTAssertNil(appState.practiceStatus)
+    }
+
+    func testPracticeNowSetsEmptyStatusAndDoesNotOpenWindowWhenNoWordsExist() {
+        var openedPrompts: [PracticePrompt] = []
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinatorWithOpenCallback(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter(),
+            transcriptEvents: sampleWhitespaceEvents(),
+            onOpenPractice: { openedPrompts.append($0) }
+        )
+
+        coordinator.practiceNowRequested()
+
+        XCTAssertTrue(openedPrompts.isEmpty)
+        XCTAssertEqual(appState.practiceStatus, "No words available for practice")
+    }
+
+    func testPracticeNowSetsFailureStatusWhenTranscriptIsMissing() {
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinator(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter()
+        )
+
+        coordinator.practiceNowRequested()
+
+        XCTAssertEqual(appState.practiceStatus, "Practice generation failed: Transcript file not found.")
+    }
+
+    private func makeCoordinatorWithOpenCallback(
+        appState: AppState,
+        permissionManager: PermissionManaging,
+        keyboardMonitor: StubKeyboardMonitor,
+        transcriptWriter: TranscriptWriting,
+        transcriptEvents: [TranscriptEvent],
+        onOpenPractice: @escaping (PracticePrompt) -> Void
+    ) -> LoggingCoordinator {
+        do {
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            let fileLocations = FileLocations(appSupportBaseURL: tempDir)
+            try createTranscript(at: fileLocations, events: transcriptEvents)
+
+            return try LoggingCoordinator(
+                appState: appState,
+                fileLocations: fileLocations,
+                permissionManager: permissionManager,
+                keyboardMonitor: keyboardMonitor,
+                transcriptWriter: transcriptWriter,
+                onOpenPractice: onOpenPractice
+            )
+        } catch {
+            fatalError("Unexpected coordinator initialization failure: \(error.localizedDescription)")
+        }
+    }
+
     private func makeCoordinator(
         appState: AppState,
         permissionManager: PermissionManaging,
@@ -172,6 +256,19 @@ final class LoggingCoordinatorTests: XCTestCase {
         }
     }
 
+    private func createTranscript(at fileLocations: FileLocations, events: [TranscriptEvent]) throws {
+        try FileManager.default.createDirectory(at: fileLocations.appDirectoryURL, withIntermediateDirectories: true)
+
+        let encoder = JSONEncoder.transcriptEncoder()
+        let lines = try events.map { event in
+            let data = try encoder.encode(event)
+            return String(data: data, encoding: .utf8)!
+        }
+
+        let content = lines.joined(separator: "\n") + (lines.isEmpty ? "" : "\n")
+        try content.write(to: fileLocations.transcriptURL, atomically: true, encoding: .utf8)
+    }
+
     private func makeAppState() -> AppState {
         AppState(
             transcriptPath: "/tmp/transcript.jsonl",
@@ -191,6 +288,45 @@ final class LoggingCoordinatorTests: XCTestCase {
             isRepeat: false,
             keyboardLayout: nil
         )
+    }
+
+    private func samplePracticeEvents() -> [TranscriptEvent] {
+        var seq: Int64 = 1
+        let timestamp = "2026-04-14T12:00:00.000000Z"
+
+        func keyDown(_ char: String) -> TranscriptEvent {
+            defer { seq += 1 }
+            return TranscriptEvent(
+                seq: seq,
+                ts: timestamp,
+                type: .keyDown,
+                keyCode: 0,
+                characters: char,
+                charactersIgnoringModifiers: char,
+                modifiers: [],
+                isRepeat: false,
+                keyboardLayout: nil
+            )
+        }
+
+        return "hello".map { keyDown(String($0)) } + [keyDown(" ")] +
+            "world".map { keyDown(String($0)) } + [keyDown(" ")]
+    }
+
+    private func sampleWhitespaceEvents() -> [TranscriptEvent] {
+        return [
+            TranscriptEvent(
+                seq: 1,
+                ts: "2026-04-14T12:00:00.000000Z",
+                type: .keyDown,
+                keyCode: 0,
+                characters: " ",
+                charactersIgnoringModifiers: " ",
+                modifiers: [],
+                isRepeat: false,
+                keyboardLayout: nil
+            )
+        ]
     }
 }
 

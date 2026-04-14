@@ -17,6 +17,16 @@ final class RankedExportServiceTests: XCTestCase {
         XCTAssertEqual(decoded.totalUniqueWords, result.totalUniqueWords)
     }
 
+    func testRunDoesNotWriteExtractedWordsFileAsSideEffect() throws {
+        let (locations, _) = try setupTempTranscript(events: sampleTypingEvents())
+        let service = RankedExportService(fileLocations: locations)
+
+        _ = try service.run()
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: locations.rankedWordsURL.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: locations.extractedWordsURL.path))
+    }
+
     func testOutputIsSortedByDescendingCompositeScore() throws {
         let (locations, _) = try setupTempTranscript(events: sampleTypingEvents())
         let service = RankedExportService(fileLocations: locations)

@@ -56,6 +56,11 @@ struct SettingsRootView: View {
                 Text(rankedExportStatus)
                     .foregroundStyle(.secondary)
             }
+
+            if let practiceStatus = state.practiceStatus {
+                Text(practiceStatus)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding()
         .frame(width: 560)

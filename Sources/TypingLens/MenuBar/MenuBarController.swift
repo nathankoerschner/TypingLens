@@ -101,6 +101,7 @@ final class MenuBarController: NSObject {
         menu.addItem(actionItem(title: "Disable Logging", action: #selector(disableLogging), keyEquivalent: "", target: target, isEnabled: state.disableLoggingEnabled))
         menu.addItem(.separator())
         menu.addItem(actionItem(title: "Open Settings…", action: #selector(openSettings), keyEquivalent: ",", target: target))
+        menu.addItem(actionItem(title: "Practice Now", action: #selector(practiceNow), keyEquivalent: "", target: target))
         if state.showOpenSystemSettings {
             menu.addItem(actionItem(title: "Open System Settings", action: #selector(openSystemSettings), keyEquivalent: "", target: target))
         }
@@ -152,6 +153,10 @@ final class MenuBarController: NSObject {
     @objc func openSystemSettings() {
         loggingCoordinator.openSystemSettingsRequested()
         rebuildMenu()
+    }
+
+    @objc func practiceNow() {
+        loggingCoordinator.practiceNowRequested()
     }
 
     @objc func revealTranscript() {

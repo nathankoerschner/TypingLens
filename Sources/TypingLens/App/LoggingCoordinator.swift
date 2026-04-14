@@ -6,6 +6,7 @@ final class LoggingCoordinator {
     private let permissionManager: PermissionManaging
     private let keyboardMonitor: KeyboardMonitoring
     private let transcriptWriter: TranscriptWriting
+    private let onOpenPractice: (PracticePrompt) -> Void
     private var nextSeq: Int64 = 1
 
     init(
@@ -13,13 +14,15 @@ final class LoggingCoordinator {
         fileLocations: FileLocations,
         permissionManager: PermissionManaging,
         keyboardMonitor: KeyboardMonitoring,
-        transcriptWriter: TranscriptWriting
+        transcriptWriter: TranscriptWriting,
+        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in }
     ) throws {
         self.appState = appState
         self.fileLocations = fileLocations
         self.permissionManager = permissionManager
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
+        self.onOpenPractice = onOpenPractice
         self.nextSeq = try transcriptWriter.initializeNextSequence()
     }
 
@@ -29,6 +32,7 @@ final class LoggingCoordinator {
         permissionManager: PermissionManaging,
         keyboardMonitor: KeyboardMonitoring,
         transcriptWriter: TranscriptWriting,
+        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in },
         initialSequence: Int64
     ) {
         self.appState = appState
@@ -36,6 +40,7 @@ final class LoggingCoordinator {
         self.permissionManager = permissionManager
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
+        self.onOpenPractice = onOpenPractice
         self.nextSeq = initialSequence
     }
 
@@ -128,6 +133,28 @@ final class LoggingCoordinator {
             }
         } catch {
             appState.rankedExportStatus = "Ranked export failed: \(error.localizedDescription)"
+        }
+    }
+
+    func practiceNowRequested() {
+        let extractionService = WordExtractionService(fileLocations: fileLocations)
+        let ranker = WordRanker()
+        let builder = PracticePromptBuilder()
+
+        do {
+            let extraction = try extractionService.extractInMemory()
+            let ranked = ranker.rank(extraction.words)
+            let prompt = builder.build(from: ranked, wordCount: 50)
+
+            guard !prompt.words.isEmpty else {
+                appState.practiceStatus = "No words available for practice"
+                return
+            }
+
+            appState.practiceStatus = nil
+            onOpenPractice(prompt)
+        } catch {
+            appState.practiceStatus = "Practice generation failed: \(error.localizedDescription)"
         }
     }
 

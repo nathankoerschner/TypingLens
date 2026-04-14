@@ -26,7 +26,7 @@ struct WordExtractionService {
         self.extractor = extractor
     }
 
-    func run() throws -> WordExtractionResult {
+    func extractInMemory() throws -> WordExtractionResult {
         let transcriptURL = fileLocations.transcriptURL
         guard FileManager.default.fileExists(atPath: transcriptURL.path) else {
             throw WordExtractionError.transcriptNotFound
@@ -40,8 +40,10 @@ struct WordExtractionService {
         }
 
         let events = parseTranscriptEvents(from: data)
-        let result = extractor.extract(from: events)
+        return extractor.extract(from: events)
+    }
 
+    func writeToFile(_ result: WordExtractionResult) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let outputData = try encoder.encode(result)
@@ -51,7 +53,11 @@ struct WordExtractionService {
         } catch {
             throw WordExtractionError.outputWriteFailed(error.localizedDescription)
         }
+    }
 
+    func run() throws -> WordExtractionResult {
+        let result = try extractInMemory()
+        try writeToFile(result)
         return result
     }
 

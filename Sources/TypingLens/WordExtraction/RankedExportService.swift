@@ -28,9 +28,7 @@ struct RankedExportService {
     }
 
     func run() throws -> RankedWordResult {
-        // Fallback to the existing extraction implementation if in-memory extraction
-        // is not yet exposed via WordExtractionService.
-        let extraction = try extractionService.run()
+        let extraction = try extractionService.extractInMemory()
         let result = ranker.rank(extraction.words)
 
         let encoder = JSONEncoder()
