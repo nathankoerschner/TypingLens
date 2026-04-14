@@ -3,6 +3,13 @@ import Foundation
 struct WordExtractor {
     private static let timeGapThresholdSeconds: TimeInterval = 2.0
     private static let wordBoundaryCharacters: Set<String> = [" ", "\t", "\r", "\n"]
+    private static let punctuationBoundaryCharacters: Set<String> = [
+        ".", ",", "?", "!", "\"",
+        "\u{201C}", "\u{201D}",  // smart double quotes
+        "\u{2014}", "\u{2013}", "-",  // em dash, en dash, hyphen
+        ";", ":", "(", ")", "[", "]", "{", "}",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+    ]
     private static let discardCharacters: Set<String> = ["\u{1B}"]
 
     func extract(from events: [TranscriptEvent], at extractionDate: Date = Date()) -> WordExtractionResult {
@@ -44,7 +51,9 @@ struct WordExtractor {
                 }
             }
 
-            if Self.wordBoundaryCharacters.contains(characters) || Self.discardCharacters.contains(characters) {
+            if Self.wordBoundaryCharacters.contains(characters) ||
+               Self.punctuationBoundaryCharacters.contains(characters) ||
+               Self.discardCharacters.contains(characters) {
                 if let word = buffer.finalize() {
                     words.append(word)
                 }
@@ -120,7 +129,9 @@ private struct WordBuffer {
     }
 
     func finalize() -> ExtractedWord? {
-        guard !text.isEmpty else { return nil }
+        // Trim leading/trailing apostrophes (keep internal ones like don't)
+        let trimmed = text.trimmingCharacters(in: CharacterSet(charactersIn: "'\u{2019}"))
+        guard !trimmed.isEmpty else { return nil }
 
         let endTime = lastKeyUpTime ?? lastKeyDownTime
         let durationMs: Double
@@ -131,8 +142,8 @@ private struct WordBuffer {
         }
 
         return ExtractedWord(
-            word: text,
-            characters: text.count,
+            word: trimmed,
+            characters: trimmed.count,
             durationMs: durationMs,
             mistakeCount: mistakeCount
         )

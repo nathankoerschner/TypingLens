@@ -121,7 +121,99 @@ final class WordExtractorTests: XCTestCase {
     }
 
     func testPunctuationOnlyWordsAreFiltered() {
+        // Each period is a boundary, so no "word" is built from punctuation
         let events = keyDownEvents(for: "...") + [keyDown(" ")] +
+            keyDownEvents(for: "hi") + [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.first?.word, "hi")
+    }
+
+    // MARK: - Punctuation as Word Boundaries
+
+    func testPeriodsActAsWordBoundaries() {
+        let events = keyDownEvents(for: "hello") + [keyDown(".")] +
+            keyDownEvents(for: "world") + [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 2)
+        XCTAssertEqual(result.words.map(\.word), ["hello", "world"])
+    }
+
+    func testQuestionMarksActAsWordBoundaries() {
+        let events = keyDownEvents(for: "what") + [keyDown("?")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.first?.word, "what")
+    }
+
+    func testExclamationMarksActAsWordBoundaries() {
+        let events = keyDownEvents(for: "wow") + [keyDown("!")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.first?.word, "wow")
+    }
+
+    func testDashesActAsWordBoundaries() {
+        let events = keyDownEvents(for: "well") + [keyDown("-")] +
+            keyDownEvents(for: "known") + [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 2)
+        XCTAssertEqual(result.words.map(\.word), ["well", "known"])
+    }
+
+    func testEmDashActsAsWordBoundary() {
+        let events = keyDownEvents(for: "hello") + [keyDown("\u{2014}")] +
+            keyDownEvents(for: "world") + [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 2)
+        XCTAssertEqual(result.words.map(\.word), ["hello", "world"])
+    }
+
+    func testDoubleQuotesActAsWordBoundaries() {
+        let events = [keyDown("\"")] + keyDownEvents(for: "hi") + [keyDown("\""), keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.first?.word, "hi")
+    }
+
+    // MARK: - Apostrophes
+
+    func testInternalApostrophesArePreserved() {
+        let events = keyDownEvents(for: "don't") + [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.first?.word, "don't")
+    }
+
+    func testLeadingTrailingApostrophesAreTrimmed() {
+        let events = [keyDown("'")] + keyDownEvents(for: "hello") + [keyDown("'"), keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 1)
+        XCTAssertEqual(result.words.first?.word, "hello")
+    }
+
+    // MARK: - Numbers
+
+    func testDigitsActAsWordBoundaries() {
+        let events = keyDownEvents(for: "hello") + keyDownEvents(for: "123") +
+            keyDownEvents(for: "world") + [keyDown(" ")]
+        let result = extractor.extract(from: events, at: fixedDate)
+
+        XCTAssertEqual(result.totalWords, 2)
+        XCTAssertEqual(result.words.map(\.word), ["hello", "world"])
+    }
+
+    func testStandaloneNumbersAreNotExtracted() {
+        let events = keyDownEvents(for: "42") + [keyDown(" ")] +
             keyDownEvents(for: "hi") + [keyDown(" ")]
         let result = extractor.extract(from: events, at: fixedDate)
 
@@ -139,14 +231,15 @@ final class WordExtractorTests: XCTestCase {
 
         let events = [
             makeKeyDown("h", ts: t1),
-            makeKeyDown("i", ts: t2),
-            makeKeyDown("!", ts: t3),
-            makeEvent(type: .keyUp, characters: "!", ts: tUp),
+            makeKeyDown("e", ts: t2),
+            makeKeyDown("y", ts: t3),
+            makeEvent(type: .keyUp, characters: "y", ts: tUp),
             makeKeyDown(" ", ts: "2026-04-14T12:00:00.300000Z"),
         ]
         let result = extractor.extract(from: events, at: fixedDate)
 
         XCTAssertEqual(result.totalWords, 1)
+        // Duration: t1 (0.000) to tUp (0.250) = 250ms
         XCTAssertEqual(result.words.first?.durationMs ?? 0, 250.0, accuracy: 1.0)
     }
 
