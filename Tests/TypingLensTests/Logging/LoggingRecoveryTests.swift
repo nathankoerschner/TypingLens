@@ -141,9 +141,14 @@ final class LoggingRecoveryTests: XCTestCase {
         keyboardMonitor: StubKeyboardMonitor,
         transcriptWriter: TranscriptWriting
     ) -> LoggingCoordinator {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let fileLocations = FileLocations(appSupportBaseURL: tempDir)
+
         do {
             return try LoggingCoordinator(
                 appState: appState,
+                fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter
@@ -152,6 +157,7 @@ final class LoggingRecoveryTests: XCTestCase {
             XCTFail("Unexpected coordinator initialization failure: \(error.localizedDescription)")
             return LoggingCoordinator(
                 appState: appState,
+                fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter,

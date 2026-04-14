@@ -43,6 +43,12 @@ struct SettingsRootView: View {
             HStack {
                 Button("Reveal in Finder", action: viewModel.revealTranscript)
                 Button("Clear Transcript", role: .destructive, action: viewModel.clearTranscript)
+                Button("Extract Words", action: viewModel.extractWords)
+            }
+
+            if let extractionStatus = state.extractionStatus {
+                Text(extractionStatus)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding()

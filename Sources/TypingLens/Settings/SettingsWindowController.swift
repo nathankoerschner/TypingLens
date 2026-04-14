@@ -8,7 +8,8 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
         onOpenSystemSettings: @escaping () -> Void,
         onRevealTranscript: @escaping () -> Void,
         onClearTranscript: @escaping () -> Void,
-        onToggleLaunchAtLogin: @escaping (Bool) -> Void
+        onToggleLaunchAtLogin: @escaping (Bool) -> Void,
+        onExtractWords: @escaping () -> Void
     ) {
         let rootView = SettingsRootView(
             appState: appState,
@@ -17,12 +18,13 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
                 onOpenSystemSettings: onOpenSystemSettings,
                 onRevealTranscript: onRevealTranscript,
                 onClearTranscript: onClearTranscript,
-                onToggleLaunchAtLogin: onToggleLaunchAtLogin
+                onToggleLaunchAtLogin: onToggleLaunchAtLogin,
+                onExtractWords: onExtractWords
             )
         )
         let hostingController = NSHostingController(rootView: rootView)
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 260),
+            contentRect: NSRect(x: 0, y: 0, width: 560, height: 300),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -32,7 +34,7 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
         window.center()
         window.isReleasedWhenClosed = false
         window.contentViewController = hostingController
-        window.setContentSize(NSSize(width: 560, height: 260))
+        window.setContentSize(NSSize(width: 560, height: 300))
 
         super.init(window: window)
         shouldCascadeWindows = false

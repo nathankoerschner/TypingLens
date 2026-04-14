@@ -21,6 +21,7 @@ final class AppState: ObservableObject {
     @Published var loggingStatus: LoggingStatus
     @Published var transcriptPath: String
     @Published var launchAtLoginEnabled: Bool
+    @Published var extractionStatus: String?
 
     init(
         transcriptPath: String,
@@ -32,6 +33,7 @@ final class AppState: ObservableObject {
         self.permissionStatus = permissionStatus
         self.loggingStatus = loggingStatus
         self.launchAtLoginEnabled = launchAtLoginEnabled
+        self.extractionStatus = nil
     }
 
     var isLoggingEnabled: Bool {

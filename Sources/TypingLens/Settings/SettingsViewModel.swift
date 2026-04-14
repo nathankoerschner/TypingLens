@@ -6,6 +6,7 @@ struct SettingsViewState: Equatable {
     let launchAtLoginEnabled: Bool
     let transcriptPath: String
     let currentErrorMessage: String?
+    let extractionStatus: String?
 }
 
 struct SettingsViewModel {
@@ -14,6 +15,7 @@ struct SettingsViewModel {
     let onRevealTranscript: () -> Void
     let onClearTranscript: () -> Void
     let onToggleLaunchAtLogin: (Bool) -> Void
+    let onExtractWords: () -> Void
 
     func state(for appState: AppState) -> SettingsViewState {
         SettingsViewState(
@@ -21,7 +23,8 @@ struct SettingsViewModel {
             loggingStatus: loggingStatusLabel(for: appState),
             launchAtLoginEnabled: appState.launchAtLoginEnabled,
             transcriptPath: appState.transcriptPath,
-            currentErrorMessage: appState.currentErrorMessage
+            currentErrorMessage: appState.currentErrorMessage,
+            extractionStatus: appState.extractionStatus
         )
     }
 
@@ -43,6 +46,10 @@ struct SettingsViewModel {
 
     func clearTranscript() {
         onClearTranscript()
+    }
+
+    func extractWords() {
+        onExtractWords()
     }
 
     private func loggingStatusLabel(for appState: AppState) -> String {

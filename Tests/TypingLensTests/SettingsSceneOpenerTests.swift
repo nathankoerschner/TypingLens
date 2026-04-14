@@ -97,9 +97,14 @@ private func makeCoordinator(
     permissionManager: PermissionManaging,
     transcriptWriter: TranscriptWriting
 ) -> LoggingCoordinator {
+    let tempDir = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    let fileLocations = FileLocations(appSupportBaseURL: tempDir)
+
     do {
         return try LoggingCoordinator(
             appState: appState,
+            fileLocations: fileLocations,
             permissionManager: permissionManager,
             keyboardMonitor: StubKeyboardMonitor(),
             transcriptWriter: transcriptWriter
@@ -107,6 +112,7 @@ private func makeCoordinator(
     } catch {
         return LoggingCoordinator(
             appState: appState,
+            fileLocations: fileLocations,
             permissionManager: permissionManager,
             keyboardMonitor: StubKeyboardMonitor(),
             transcriptWriter: transcriptWriter,

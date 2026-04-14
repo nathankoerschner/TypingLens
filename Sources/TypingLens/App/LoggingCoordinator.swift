@@ -2,6 +2,7 @@ import Foundation
 
 final class LoggingCoordinator {
     private let appState: AppState
+    private let fileLocations: FileLocations
     private let permissionManager: PermissionManaging
     private let keyboardMonitor: KeyboardMonitoring
     private let transcriptWriter: TranscriptWriting
@@ -9,11 +10,13 @@ final class LoggingCoordinator {
 
     init(
         appState: AppState,
+        fileLocations: FileLocations,
         permissionManager: PermissionManaging,
         keyboardMonitor: KeyboardMonitoring,
         transcriptWriter: TranscriptWriting
     ) throws {
         self.appState = appState
+        self.fileLocations = fileLocations
         self.permissionManager = permissionManager
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
@@ -22,12 +25,14 @@ final class LoggingCoordinator {
 
     init(
         appState: AppState,
+        fileLocations: FileLocations,
         permissionManager: PermissionManaging,
         keyboardMonitor: KeyboardMonitoring,
         transcriptWriter: TranscriptWriting,
         initialSequence: Int64
     ) {
         self.appState = appState
+        self.fileLocations = fileLocations
         self.permissionManager = permissionManager
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
@@ -93,6 +98,21 @@ final class LoggingCoordinator {
         } catch {
             appState.loggingStatus = .error(message: "Unable to clear transcript: \(error.localizedDescription)")
             return false
+        }
+    }
+
+    func extractWordsRequested() {
+        let service = WordExtractionService(fileLocations: fileLocations)
+
+        do {
+            let result = try service.run()
+            if result.totalWords == 0 {
+                appState.extractionStatus = "No words found in transcript"
+            } else {
+                appState.extractionStatus = "Extracted \(result.totalWords) words to extracted-words.json"
+            }
+        } catch {
+            appState.extractionStatus = "Extraction failed: \(error.localizedDescription)"
         }
     }
 

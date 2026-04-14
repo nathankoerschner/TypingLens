@@ -28,6 +28,7 @@ struct TypingLensApp: App {
         do {
             loggingCoordinator = try LoggingCoordinator(
                 appState: state,
+                fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter
@@ -36,6 +37,7 @@ struct TypingLensApp: App {
             state.loggingStatus = .error(message: error.localizedDescription)
             loggingCoordinator = LoggingCoordinator(
                 appState: state,
+                fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter,
@@ -59,6 +61,9 @@ struct TypingLensApp: App {
                 } catch {
                     state.loggingStatus = .error(message: error.localizedDescription)
                 }
+            },
+            onExtractWords: {
+                loggingCoordinator.extractWordsRequested()
             }
         )
 
@@ -101,6 +106,9 @@ struct TypingLensApp: App {
                         } catch {
                             appState.loggingStatus = .error(message: error.localizedDescription)
                         }
+                    },
+                    onExtractWords: {
+                        loggingCoordinator.extractWordsRequested()
                     }
                 )
             )
