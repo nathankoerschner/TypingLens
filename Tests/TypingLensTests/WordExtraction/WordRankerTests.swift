@@ -95,7 +95,7 @@ final class WordRankerTests: XCTestCase {
     // MARK: - Edge Cases
 
     func testEmptyInputReturnsEmptyResult() {
-        let result = ranker.rank([], at: fixedDate)
+        let result = ranker.rank([] as [ExtractedWord], at: fixedDate)
 
         XCTAssertEqual(result.totalUniqueWords, 0)
         XCTAssertTrue(result.words.isEmpty)

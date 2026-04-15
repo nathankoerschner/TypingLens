@@ -36,6 +36,23 @@ struct WordRanker {
         )
     }
 
+    func rank(
+        _ words: [InterpretedWord],
+        weights: Weights = Weights(),
+        at analysisDate: Date = Date()
+    ) -> RankedWordResult {
+        let reconstructed = words.map { word in
+            ExtractedWord(
+                word: word.normalizedWord,
+                characters: word.characters,
+                durationMs: word.durationMs,
+                mistakeCount: word.transcriptMistakeCount + word.inferredSpellingPenalty
+            )
+        }
+
+        return rank(reconstructed, weights: weights, at: analysisDate)
+    }
+
     // MARK: - Pipeline Steps
 
     private func groupByWord(_ words: [ExtractedWord]) -> [String: [ExtractedWord]] {

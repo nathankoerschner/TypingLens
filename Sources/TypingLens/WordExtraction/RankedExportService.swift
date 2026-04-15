@@ -15,21 +15,25 @@ struct RankedExportService {
     let fileLocations: FileLocations
     let extractionService: WordExtractionService
     let ranker: WordRanker
+    let interpreter: WordInterpreter
 
     init(
         fileLocations: FileLocations,
         extractionService: WordExtractionService? = nil,
-        ranker: WordRanker = WordRanker()
+        ranker: WordRanker = WordRanker(),
+        interpreter: WordInterpreter = WordInterpreter()
     ) {
         self.fileLocations = fileLocations
         self.extractionService = extractionService
             ?? WordExtractionService(fileLocations: fileLocations)
         self.ranker = ranker
+        self.interpreter = interpreter
     }
 
     func run() throws -> RankedWordResult {
         let extraction = try extractionService.extractInMemory()
-        let result = ranker.rank(extraction.words)
+        let interpretation = interpreter.interpret(extraction.words)
+        let result = ranker.rank(interpretation.words)
 
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

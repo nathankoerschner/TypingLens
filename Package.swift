@@ -12,7 +12,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "TypingLens",
-            path: "Sources/TypingLens"
+            path: "Sources/TypingLens",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "TypingLensTests",
