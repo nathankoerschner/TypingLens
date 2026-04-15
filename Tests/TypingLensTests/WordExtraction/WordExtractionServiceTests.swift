@@ -28,6 +28,15 @@ final class WordExtractionServiceTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: locations.extractedWordsURL.path))
     }
 
+    func testExtractInMemoryReturnsRawTokensWithoutInterpretation() throws {
+        let (locations, _) = try setupTempTranscript(events: transcriptEvents(for: ["teh"]))
+        let service = WordExtractionService(fileLocations: locations)
+
+        let result = try service.extractInMemory()
+
+        XCTAssertEqual(result.words.map(\.word), ["teh"])
+    }
+
     func testWriteToFilePersistsProvidedExtractionResult() throws {
         let (locations, _) = try setupTempTranscript(events: sampleEvents())
         let service = WordExtractionService(fileLocations: locations)
@@ -119,5 +128,33 @@ final class WordExtractionServiceTests: XCTestCase {
         // "hello world"
         return "hello".map { keyDown(String($0)) } + [keyDown(" ")] +
                "world".map { keyDown(String($0)) } + [keyDown(" ")]
+    }
+
+    private func transcriptEvents(for words: [String]) -> [TranscriptEvent] {
+        var seq: Int64 = 0
+        let ts = "2026-04-14T12:00:00.000000Z"
+
+        func next() -> Int64 { seq += 1; return seq }
+        func keyDown(_ char: String) -> TranscriptEvent {
+            TranscriptEvent(
+                seq: next(),
+                ts: ts,
+                type: .keyDown,
+                keyCode: 0,
+                characters: char,
+                charactersIgnoringModifiers: char,
+                modifiers: [],
+                isRepeat: false,
+                keyboardLayout: nil
+            )
+        }
+
+        var events: [TranscriptEvent] = []
+        for word in words {
+            events += word.map { keyDown(String($0)) }
+            events.append(keyDown(" "))
+        }
+
+        return events
     }
 }

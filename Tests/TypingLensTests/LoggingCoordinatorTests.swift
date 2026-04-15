@@ -162,6 +162,47 @@ final class LoggingCoordinatorTests: XCTestCase {
         XCTAssertNil(appState.practiceStatus)
     }
 
+    func testPracticeNowUsesCorrectedWordsInPrompt() {
+        var openedPrompts: [PracticePrompt] = []
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinatorWithOpenCallback(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter(),
+            transcriptEvents: transcriptEvents(for: ["teh", "the", "teh"]),
+            onOpenPractice: { openedPrompts.append($0) }
+        )
+
+        coordinator.practiceNowRequested()
+
+        XCTAssertEqual(openedPrompts.count, 1)
+        XCTAssertFalse(openedPrompts[0].words.isEmpty)
+        XCTAssertTrue(openedPrompts[0].words.allSatisfy { $0 == "the" })
+    }
+
+    func testPracticeNowDropsUnknownTokensBeforePromptBuild() {
+        var openedPrompts: [PracticePrompt] = []
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinatorWithOpenCallback(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter(),
+            transcriptEvents: transcriptEvents(for: ["xqplm", "jjjjkjj"]),
+            onOpenPractice: { openedPrompts.append($0) }
+        )
+
+        coordinator.practiceNowRequested()
+
+        XCTAssertTrue(openedPrompts.isEmpty)
+        XCTAssertEqual(appState.practiceStatus, "No words available for practice")
+    }
+
     func testPracticeNowSetsEmptyStatusAndDoesNotOpenWindowWhenNoWordsExist() {
         var openedPrompts: [PracticePrompt] = []
         let appState = makeAppState()
@@ -311,6 +352,40 @@ final class LoggingCoordinatorTests: XCTestCase {
 
         return "hello".map { keyDown(String($0)) } + [keyDown(" ")] +
             "world".map { keyDown(String($0)) } + [keyDown(" ")]
+    }
+
+    private func transcriptEvents(for words: [String]) -> [TranscriptEvent] {
+        var seq: Int64 = 0
+        var timeOffset: Double = 0
+        let baseTime = Date(timeIntervalSince1970: 1_000_000)
+
+        func next() -> Int64 { seq += 1; return seq }
+        func ts() -> String {
+            timeOffset += 0.05
+            return TimestampFormatter.string(from: baseTime.addingTimeInterval(timeOffset))
+        }
+
+        func keyDown(_ char: String) -> TranscriptEvent {
+            TranscriptEvent(
+                seq: next(),
+                ts: ts(),
+                type: .keyDown,
+                keyCode: 0,
+                characters: char,
+                charactersIgnoringModifiers: char,
+                modifiers: [],
+                isRepeat: false,
+                keyboardLayout: nil
+            )
+        }
+
+        var events: [TranscriptEvent] = []
+        for word in words {
+            events += word.map { keyDown(String($0)) }
+            events.append(keyDown(" "))
+        }
+
+        return events
     }
 
     private func sampleWhitespaceEvents() -> [TranscriptEvent] {

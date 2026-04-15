@@ -138,12 +138,15 @@ final class LoggingCoordinator {
 
     func practiceNowRequested() {
         let extractionService = WordExtractionService(fileLocations: fileLocations)
+        let interpreter = WordInterpreter()
         let ranker = WordRanker()
         let builder = PracticePromptBuilder()
 
         do {
             let extraction = try extractionService.extractInMemory()
-            let ranked = ranker.rank(extraction.words)
+            // Practice uses the same extract -> interpret -> rank pipeline as ranked export.
+            let interpretation = interpreter.interpret(extraction.words)
+            let ranked = ranker.rank(interpretation.words)
             let prompt = builder.build(from: ranked, wordCount: 50)
 
             guard !prompt.words.isEmpty else {

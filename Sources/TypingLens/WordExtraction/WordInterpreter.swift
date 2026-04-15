@@ -1,27 +1,61 @@
 import Foundation
 
 struct WordInterpreter {
-    private struct CandidateMatch {
-        let word: String
-        let distance: Int
-        let commonnessRank: Int
-        let isConfident: Bool
-    }
-
     let lexicon: WordLexicon
+    let typoResolver: TypoResolver?
 
-    init(lexicon: WordLexicon = try! WordLexicon()) {
+    init(
+        lexicon: WordLexicon = try! WordLexicon(),
+        typoResolver: TypoResolver? = MapTypoResolver()
+    ) {
         self.lexicon = lexicon
+        self.typoResolver = typoResolver
     }
 
     func interpret(_ words: [ExtractedWord]) -> WordInterpretationResult {
+        // Pass 1: normalize and classify exact lexicon matches.
+        var decisionCache: [String: WordDecision] = [:]
+        decisionCache.reserveCapacity(min(words.count, 128))
+
+        var unknownTokens = Set<String>()
+        var normalizedWords: [(ExtractedWord, String)] = []
+        normalizedWords.reserveCapacity(words.count)
+
+        for word in words {
+            let normalized = normalize(word.word)
+            normalizedWords.append((word, normalized))
+
+            if decisionCache[normalized] != nil {
+                continue
+            }
+
+            if normalized.isEmpty {
+                decisionCache[normalized] = .dropped(original: "", reason: .notInLexicon)
+            } else if lexicon.contains(normalized) {
+                decisionCache[normalized] = .accepted(word: normalized)
+            } else {
+                unknownTokens.insert(normalized)
+            }
+        }
+
+        // Pass 2: resolve unknown tokens through a dedicated resolver.
+        let unknownDecisions = resolveUnknownTokens(for: unknownTokens)
+        decisionCache.merge(unknownDecisions) { current, _ in
+            current
+        }
+
+        // Pass 3: build interpreted words from the resolved decision cache.
         var interpreted: [InterpretedWord] = []
+        interpreted.reserveCapacity(words.count)
+
         var correctedCount = 0
         var droppedCount = 0
 
-        for word in words {
-            switch interpret(word) {
-            case let .accepted(normalized):
+        for (word, normalized) in normalizedWords {
+            let cachedDecision = decisionCache[normalized] ?? .dropped(original: "", reason: .notInLexicon)
+
+            switch cachedDecision {
+            case let .accepted(word: normalized):
                 interpreted.append(
                     InterpretedWord(
                         originalWord: word.word,
@@ -46,7 +80,8 @@ struct WordInterpreter {
                         wasCorrected: true
                     )
                 )
-            case .dropped:
+            case let .dropped(_, reason):
+                _ = reason
                 droppedCount += 1
             }
         }
@@ -60,84 +95,62 @@ struct WordInterpreter {
 
     func interpret(_ word: ExtractedWord) -> WordDecision {
         let normalized = normalize(word.word)
+        let decision = decision(for: normalized)
 
+        switch decision {
+        case let .accepted(word: word):
+            return .accepted(word: word)
+        case let .corrected(_, corrected, inferredPenalty):
+            return .corrected(
+                original: word.word,
+                corrected: corrected,
+                inferredPenalty: inferredPenalty
+            )
+        case let .dropped(_, reason):
+            return .dropped(original: word.word, reason: reason)
+        }
+    }
+
+    private func decision(for normalized: String) -> WordDecision {
         if normalized.isEmpty {
-            return .dropped(original: word.word, reason: .notInLexicon)
+            return .dropped(original: "", reason: .notInLexicon)
         }
 
         if lexicon.contains(normalized) {
             return .accepted(word: normalized)
         }
 
-        if shouldDropAsGibberish(normalized) {
-            return .dropped(original: word.word, reason: .gibberishHeuristic)
-        }
-
-        guard let match = bestCandidate(for: normalized) else {
-            return .dropped(original: word.word, reason: .notInLexicon)
-        }
-
-        guard match.isConfident else {
-            return .dropped(original: word.word, reason: .lowConfidenceCorrection)
-        }
-
-        return .corrected(
-            original: word.word,
-            corrected: match.word,
-            inferredPenalty: 1
-        )
+        return resolveUnknownTokens(for: [normalized])[normalized]
+            ?? .dropped(original: "", reason: .notInLexicon)
     }
 
-    private func bestCandidate(for token: String) -> CandidateMatch? {
-        let maxDistance = allowedEditDistance(for: token)
+    private func resolveUnknownTokens(for tokens: Set<String>) -> [String: WordDecision] {
+        var decisions: [String: WordDecision] = [:]
 
-        let candidates = lexicon.words.compactMap { candidate -> CandidateMatch? in
-            guard let distance = DamerauLevenshtein.distance(
-                between: token,
-                and: candidate,
-                maxDistance: maxDistance
-            ) else {
-                return nil
+        for token in tokens {
+            if shouldDropAsGibberish(token) {
+                decisions[token] = .dropped(original: "", reason: .gibberishHeuristic)
+                continue
             }
 
-            return CandidateMatch(
-                word: candidate,
-                distance: distance,
-                commonnessRank: lexicon.commonnessRank(for: candidate),
-                isConfident: false
-            )
-        }
-        .sorted {
-            if $0.distance != $1.distance {
-                return $0.distance < $1.distance
+            guard let typoResolver else {
+                decisions[token] = .dropped(original: "", reason: .notInLexicon)
+                continue
             }
-            return $0.commonnessRank < $1.commonnessRank
+
+            switch typoResolver.resolve(token) {
+            case let .corrected(corrected, inferredPenalty: inferredPenalty):
+                decisions[token] = .corrected(
+                    original: "",
+                    corrected: corrected,
+                    inferredPenalty: inferredPenalty
+                )
+            case let .dropped(reason):
+                decisions[token] = .dropped(original: "", reason: reason)
+            }
         }
 
-        guard let best = candidates.first else { return nil }
-
-        let secondBest = candidates.dropFirst().first
-        let isUniqueBest = secondBest == nil
-            || secondBest!.distance > best.distance
-            || secondBest!.commonnessRank == best.commonnessRank
-
-        return CandidateMatch(
-            word: best.word,
-            distance: best.distance,
-            commonnessRank: best.commonnessRank,
-            isConfident: isUniqueBest
-        )
-    }
-
-    private func allowedEditDistance(for token: String) -> Int {
-        switch token.count {
-        case 0...1:
-            return 0
-        case 2...4:
-            return 1
-        default:
-            return 2
-        }
+        return decisions
     }
 
     private func normalize(_ raw: String) -> String {
@@ -202,7 +215,7 @@ struct WordInterpreter {
             guard chunkLength > 0 else { continue }
 
             if characters.count >= chunkLength * 2 {
-                for start in 0...characters.count - (chunkLength * 2) {
+                for start in 0...(characters.count - (chunkLength * 2)) {
                     let firstChunk = characters[start..<start + chunkLength]
                     let secondChunk = characters[start + chunkLength..<start + chunkLength * 2]
                     if firstChunk == secondChunk {

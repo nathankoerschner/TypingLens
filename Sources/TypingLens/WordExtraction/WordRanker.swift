@@ -7,8 +7,10 @@ struct WordRanker {
         var frequency: Double = 1.0
     }
 
+    // Ranking expects interpreted words (post-interpretation).
+    // Interpretation, correction, and drop decisions must already be resolved upstream.
     func rank(
-        _ words: [ExtractedWord],
+        _ words: [InterpretedWord],
         weights: Weights = Weights(),
         at analysisDate: Date = Date()
     ) -> RankedWordResult {
@@ -36,30 +38,13 @@ struct WordRanker {
         )
     }
 
-    func rank(
-        _ words: [InterpretedWord],
-        weights: Weights = Weights(),
-        at analysisDate: Date = Date()
-    ) -> RankedWordResult {
-        let reconstructed = words.map { word in
-            ExtractedWord(
-                word: word.normalizedWord,
-                characters: word.characters,
-                durationMs: word.durationMs,
-                mistakeCount: word.transcriptMistakeCount + word.inferredSpellingPenalty
-            )
-        }
-
-        return rank(reconstructed, weights: weights, at: analysisDate)
-    }
-
     // MARK: - Pipeline Steps
 
-    private func groupByWord(_ words: [ExtractedWord]) -> [String: [ExtractedWord]] {
-        Dictionary(grouping: words) { $0.word.lowercased() }
+    private func groupByWord(_ words: [InterpretedWord]) -> [String: [InterpretedWord]] {
+        Dictionary(grouping: words) { $0.normalizedWord }
     }
 
-    private func removeOutliers(from group: [ExtractedWord]) -> [ExtractedWord] {
+    private func removeOutliers(from group: [InterpretedWord]) -> [InterpretedWord] {
         guard group.count >= 3 else { return group }
 
         let durations = group.map(\.durationMs)
@@ -72,8 +57,9 @@ struct WordRanker {
         let durationCutoff = min(mean + 2 * stddev, secondLargestDuration * 2)
 
         return group.filter { word in
+            let totalMistakes = word.transcriptMistakeCount + word.inferredSpellingPenalty
             let durationOk = word.durationMs <= durationCutoff
-            let mistakeOk = word.mistakeCount <= 2 * word.characters
+            let mistakeOk = totalMistakes <= 2 * word.characters
             return durationOk && mistakeOk
         }
     }
@@ -86,17 +72,17 @@ struct WordRanker {
         let errorRate: Double
     }
 
-    private func aggregate(key: String, group: [ExtractedWord]) -> AggregatedWord {
+    private func aggregate(key: String, group: [InterpretedWord]) -> AggregatedWord {
         let frequency = group.count
         let totalMsPerChar = group.map { $0.durationMs / Double($0.characters) }.reduce(0, +)
         let avgMsPerChar = totalMsPerChar / Double(frequency)
-        let totalMistakes = group.map(\.mistakeCount).reduce(0, +)
+        let totalMistakes = group.map { $0.transcriptMistakeCount + $0.inferredSpellingPenalty }.reduce(0, +)
         let totalChars = group.map(\.characters).reduce(0, +)
         let errorRate = totalChars > 0 ? Double(totalMistakes) / Double(totalChars) : 0
 
         return AggregatedWord(
             word: key,
-            characters: group[0].characters,
+            characters: key.count,
             frequency: frequency,
             avgMsPerChar: avgMsPerChar,
             errorRate: errorRate

@@ -57,6 +57,28 @@ final class RankedExportServiceTests: XCTestCase {
         XCTAssertThrowsError(try service.run())
     }
 
+    func testRunMergesCorrectableTyposIntoCorrectWord() throws {
+        let (locations, _) = try setupTempTranscript(events: transcriptEvents(for: ["the", "teh", "the"]))
+        let service = RankedExportService(fileLocations: locations)
+
+        let result = try service.run()
+
+        XCTAssertEqual(result.totalUniqueWords, 1)
+        XCTAssertEqual(result.words.first?.word, "the")
+        XCTAssertEqual(result.words.first?.frequency, 3)
+    }
+
+    func testRunDropsGibberishFromRankedOutput() throws {
+        let (locations, _) = try setupTempTranscript(events: transcriptEvents(for: ["hello", "jjjjkjj", "world"]))
+        let service = RankedExportService(fileLocations: locations)
+
+        let result = try service.run()
+
+        let words = result.words.map(\.word)
+        XCTAssertEqual(Set(words), ["hello", "world"])
+        XCTAssertFalse(words.contains("jjjjkjj"))
+    }
+
     // MARK: - Helpers
 
     private func setupTempTranscript(events: [TranscriptEvent]) throws -> (FileLocations, URL) {
@@ -117,6 +139,40 @@ final class RankedExportServiceTests: XCTestCase {
             events.append(keyDown("\u{7F}")) // backspace = mistake
             events += [keyDown("d"), keyDown(" ")]
         }
+        return events
+    }
+
+    private func transcriptEvents(for words: [String]) -> [TranscriptEvent] {
+        var seq: Int64 = 0
+        var timeOffset: Double = 0
+        let baseTime = Date(timeIntervalSince1970: 1_000_000)
+
+        func next() -> Int64 { seq += 1; return seq }
+        func ts() -> String {
+            timeOffset += 0.05
+            return TimestampFormatter.string(from: baseTime.addingTimeInterval(timeOffset))
+        }
+
+        func keyDown(_ char: String) -> TranscriptEvent {
+            TranscriptEvent(
+                seq: next(),
+                ts: ts(),
+                type: .keyDown,
+                keyCode: 0,
+                characters: char,
+                charactersIgnoringModifiers: char,
+                modifiers: [],
+                isRepeat: false,
+                keyboardLayout: nil
+            )
+        }
+
+        var events: [TranscriptEvent] = []
+        for word in words {
+            events += word.map { keyDown(String($0)) }
+            events.append(keyDown(" "))
+        }
+
         return events
     }
 }
