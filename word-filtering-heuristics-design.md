@@ -1,52 +1,40 @@
-# Word Filtering & Spelling Heuristics — Design
+# Word Filtering & Typo Resolution — Revised Design
 
 ## Overview
 
-Add a local deterministic interpretation stage between raw word extraction and ranking.
+Revise the word interpretation pipeline so it is explicitly split into two stages:
 
-Its job is to take each extracted token and decide whether to:
+1. **Exact lexicon pass** — fast membership-only classification
+2. **Unknown-token resolution pass** — typo correction or drop, applied only to tokens that failed exact lookup
 
-1. **accept** it as a common English word
-2. **correct** it to the most likely common English word and add an inferred spelling penalty
-3. **drop** it as gibberish, uncommon, non-English, proper-noun-like, or too ambiguous to trust
-
-This stage is intentionally **not** LLM-based. It uses a local lexicon, typo-distance scoring, and explicit heuristics for dropping gibberish.
+This design keeps the common case cheap and isolates more expensive typo logic to a much smaller set of tokens.
 
 ---
 
 ## Goals
 
-- Run **completely locally**
-- Keep only **common English words**
-- Drop **uncommon words**
-- Drop **names / proper nouns**
-- Never rewrite a token that is already a valid lexicon word
-- Correct obvious misspellings like `teh -> the`
-- Drop obvious garbage like `jjjjkjj`
-- Keep transcript-derived mistakes separate from inferred spelling penalties
+- Make the primary interpretation path very fast
+- Use exact lexicon membership as the default acceptance rule
+- Avoid expensive fuzzy matching on already-valid words
+- Restrict typo handling to unknown tokens only
+- Preserve deterministic offline behavior
+- Keep ranking and practice generation based on the same interpreted vocabulary
 
 ---
 
 ## Non-Goals
 
-- Context-aware sentence correction
-- Semantic disambiguation
-- Proper noun support
+- Context-aware spelling correction
+- Sentence-level disambiguation
+- LLM-backed interpretation
 - Multilingual support
-- Recovering rare technical words, product names, or slang
-- Using a local or remote LLM
+- Full-dictionary fuzzy search in the hot path
 
 ---
 
-## Pipeline Placement
+## Revised Pipeline
 
-Current pipeline:
-
-```text
-Transcript -> WordExtractor -> [ExtractedWord] -> WordRanker
-```
-
-New pipeline:
+Current intended pipeline:
 
 ```text
 Transcript
@@ -57,320 +45,187 @@ Transcript
   -> WordRanker
 ```
 
-The interpretation stage runs before grouping/ranking so that:
-
-- corrected spellings merge into the intended target word
-- dropped gibberish never affects rankings
-- inferred spelling penalties can contribute to difficulty scoring
-
----
-
-## Lexicon
-
-### Source format
-
-Use a simple local newline-delimited text file of common English words.
-
-Example:
+Revised internal structure of `WordInterpreter`:
 
 ```text
-the
-and
-to
-of
-a
-in
-is
-that
-because
-...
+[ExtractedWord]
+  -> normalization
+  -> Pass 1: Exact lexicon classification
+      -> accepted words
+      -> unknown words
+  -> Pass 2: Unknown-token resolution
+      -> corrected words
+      -> dropped words
+  -> [InterpretedWord]
 ```
 
-### Lexicon policy
-
-- English only
-- Lowercase only
-- No names / proper nouns
-- No uncommon words
-- No technical vocabulary unless it is also common English
-- Target size: **~30,000 words**
-
-### Lexicon semantics
-
-A token is considered a valid word only if its lowercase normalized form exists in this lexicon.
-
-Because the lexicon is intentionally limited to common words:
-
-- uncommon words are dropped
-- names are dropped
-- many technical terms are dropped
-
-This is expected and desired for V1.
+The key change is that typo logic is no longer part of the default path for every token.
 
 ---
 
-## Interpretation Outcomes
+## Pass 1: Exact Lexicon Classification
 
-Each extracted token resolves to one of three outcomes.
+### Rule
 
-### 1. Accepted
+After normalization, check whether the token exists in the lexicon.
 
-The token is already a valid lexicon word.
+```text
+if lexicon.contains(normalizedToken)
+    accept
+else
+    mark as unknown
+```
 
-Examples:
+### Data structure
 
-- `the` -> accept `the`
-- `because` -> accept `because`
+Exact lookup should use a hash-based membership structure:
+
+```swift
+Set<String>
+```
+
+This is the primary performance path.
+
+### Notes
+
+- This pass should be extremely cheap
+- This is expected to handle the majority of normal transcript tokens
+- Valid words must short-circuit here and never enter typo resolution
+
+### Examples
+
+- `the` -> accepted
+- `because` -> accepted
+- `form` -> accepted
+- `from` -> accepted
+
+---
+
+## Pass 2: Unknown-Token Resolution
+
+Only tokens that failed exact lexicon lookup should be processed here.
+
+### Input
+
+A smaller set of normalized unknown tokens.
+
+### Output
+
+Each unknown token resolves to one of:
+
+- corrected
+- dropped
+
+### Important design constraint
+
+This pass should preferably run on **unique unknown tokens**, not every occurrence.
+
+That means:
+
+- `teh` appearing 50 times should be analyzed once
+- `jjjjkjj` appearing 20 times should be analyzed once
+- the decision is then reused for all occurrences
+
+This dramatically reduces cost.
+
+---
+
+## Typo Resolution Strategies
+
+The second-stage typo resolver can evolve independently from the exact lexicon pass.
+
+### Acceptable strategies
+
+#### Option A: Curated typo map
+
+```text
+teh -> the
+becuase -> because
+wrod -> word
+```
 
 Behavior:
 
-- keep the word as-is after normalization
-- inferred spelling penalty = `0`
-- do not attempt correction
+```text
+if typoMap[unknownToken] exists
+    correct
+else
+    drop
+```
 
-### 2. Corrected
+Pros:
+- very fast
+- deterministic
+- low complexity
 
-The token is not a lexicon word, but it is a high-confidence misspelling of a lexicon word.
+Cons:
+- limited coverage
 
-Examples:
+#### Option B: Indexed spell correction
 
-- `teh` -> correct to `the`
-- `becuase` -> correct to `because`
+If broader correction is needed, use an index designed for typo lookup, such as:
 
-Behavior:
+- SymSpell-style delete index
+- BK-tree
 
-- replace token with corrected lexicon word
-- inferred spelling penalty = **`1`**
-- keep transcript-derived mistake count separate internally
+This should be implemented as a separate resolver behind the unknown-token stage, not as an inline full-lexicon scan.
 
-### 3. Dropped
+Pros:
+- broader typo coverage
 
-The token is not accepted or corrected with enough confidence.
+Cons:
+- more implementation complexity
 
-Examples:
+### Strategy explicitly discouraged
 
+Avoid full lexicon approximate matching for every unknown token in the ranking/export hot path.
+
+That approach caused the performance issues observed in practice.
+
+---
+
+## Suggested V1 Behavior
+
+Recommended V1 behavior:
+
+1. exact lexicon acceptance
+2. optional small typo map for common misspellings
+3. otherwise drop unknown tokens
+
+This gives:
+
+- good performance
+- deterministic behavior
+- support for very common typos
+- no large fuzzy-search cost
+
+### Examples
+
+- `the` -> accept
+- `teh` -> correct via typo map
+- `because` -> accept
+- `becuase` -> correct via typo map
 - `jjjjkjj` -> drop
-- uncommon word not in lexicon -> drop
-- proper name not in lexicon -> drop
-- ambiguous low-confidence non-word -> drop
-
-Behavior:
-
-- exclude from downstream ranking entirely
+- `xqplm` -> drop
+- uncommon token not in lexicon -> drop
 
 ---
 
 ## Normalization
 
-Before interpretation, normalize each token:
+Normalization should still happen before any pass:
 
-1. lowercase it
+1. lowercase
 2. normalize smart apostrophes to `'`
-3. trim leading/trailing apostrophes defensively
+3. trim leading/trailing apostrophes
 
-The extractor already performs some cleanup, but the interpretation layer should normalize again to make lexicon lookup stable.
-
----
-
-## Hard Rule: Never Correct Valid Words
-
-If a normalized token is already in the lexicon, it must be accepted immediately.
-
-Do **not** attempt to reinterpret valid words as other words.
-
-Examples:
-
-- `form` stays `form`
-- `from` stays `from`
-
-This prevents false positives caused by lack of sentence context.
-
----
-
-## Candidate Search
-
-For tokens not found in the lexicon, search for candidate corrections among lexicon words.
-
-### Distance metric
-
-Use **Damerau-Levenshtein distance** so common typing transpositions are handled naturally.
-
-This is important for cases like:
-
-- `teh` -> `the`
-- `wrod` -> `word`
-
-### Candidate constraints
-
-Only consider candidates within a conservative edit-distance threshold.
-
-Suggested V1 thresholds:
-
-- token length `2...4` -> max distance `1`
-- token length `5...10` -> max distance `2`
-- token length `11+` -> max distance `2`
-
-These thresholds are intentionally conservative.
-
-### Candidate selection
-
-Among matching candidates, choose the best one using:
-
-1. lowest edit distance
-2. earlier appearance in the lexicon file as a proxy for commonness
-
-Because the lexicon file is ordered by commonness, earlier words win ties.
-
----
-
-## Confidence Gate
-
-A token should be corrected only if the best candidate is sufficiently trustworthy.
-
-### Correct if all are true
-
-1. token is **not** already in the lexicon
-2. at least one candidate exists within allowed edit distance
-3. best candidate is clearly the strongest available match
-4. token does not trip gibberish-drop heuristics strongly enough to force rejection
-
-### Drop otherwise
-
-If confidence is weak or ambiguous, drop the token rather than guessing.
-
-### Aggressiveness
-
-V1 uses **moderate** correction aggressiveness:
-
-- common typos should correct
-- borderline or ambiguous cases should drop
-
-The system should prefer **false negatives over false positives**.
-
----
-
-## Gibberish-Dropping Heuristics
-
-These heuristics exist specifically to identify tokens that look like garbage rather than failed attempts at a real word.
-
-They are **drop heuristics**, not general scoring features.
-
-They should be implemented and documented as such.
-
-### Principle
-
-Use **light explicit heuristics** for nonsense patterns, then rely on candidate confidence for the rest.
-
-We do **not** want a large complicated rule engine. We only want a few cheap checks that catch obviously bad tokens early.
-
-### V1 heuristic categories
-
-#### 1. Repetition-based gibberish
-
-Drop tokens with extreme repeated-character behavior.
-
-Examples:
-
-- `jjjjkjj`
-- `aaaaaaa`
-- `zzzzxzz`
-
-Possible signals:
-
-- very long run of the same character
-- extremely low unique-character count relative to length
-- one character dominating most of the token
-
-#### 2. No-vowel nonsense
-
-Drop longer tokens with no standard vowel pattern when they do not resemble common English forms.
-
-Examples:
-
-- `jjjjkjj`
-- `qwrtyp`
-
-This should be conservative so short valid forms are not accidentally removed.
-
-#### 3. Low-structure / keyboard-smash patterns
-
-Drop tokens that appear mechanically random or smash-typed rather than word-like.
-
-Examples:
-
-- `asdfasdf`
-- `qwertyu`
-- `jjjjkjj`
-
-Possible signals:
-
-- repetitive chunks
-- highly unnatural character distribution
-- no plausible nearby lexicon candidate
-
-### Important implementation note
-
-These heuristics are only for **dropping likely gibberish words**.
-
-They are not intended to infer the intended word.
-The intended word should come from the candidate search + confidence gate.
-
-### Final V1 positioning
-
-Use:
-
-- **some explicit heuristics** for gibberish dropping
-- **strong candidate threshold** for correction
-
-This keeps the role of heuristics clear and limited.
-
----
-
-## Error Model
-
-Keep two error sources separate internally.
-
-### 1. Transcript mistakes
-
-These come directly from extraction:
-
-- backspaces
-- in-word corrections
-- other observed mistake signals already captured by `mistakeCount`
-
-### 2. Inferred spelling penalty
-
-These come from the interpretation layer when a non-word is corrected to a lexicon word.
-
-### V1 penalty rule
-
-Every corrected token gets:
-
-```text
-inferredSpellingPenalty = 1
-```
-
-This is fixed for V1.
-
-It does not attempt to equal literal edit distance.
-It is simply a signal that the user likely intended a real word but typed it incorrectly.
+This ensures exact lexicon lookup is stable.
 
 ---
 
 ## Data Model
 
-Current extracted model:
-
-```swift
-struct ExtractedWord {
-    let word: String
-    let characters: Int
-    let durationMs: Double
-    let mistakeCount: Int
-}
-```
-
-Add an interpreted form:
+No major change is required to the interpreted-word model.
 
 ```swift
 struct InterpretedWord {
@@ -384,138 +239,7 @@ struct InterpretedWord {
 }
 ```
 
-### Notes
-
-- `normalizedWord` is the accepted or corrected lexicon word
-- dropped words do not appear in the output collection
-- `characters` should reflect the final normalized word
-
----
-
-## Ranking Integration
-
-Ranking should operate on interpreted words, not raw extracted tokens.
-
-When computing error-based ranking metrics, combine the two mistake sources at scoring time:
-
-```text
-totalMistakes = transcriptMistakeCount + inferredSpellingPenalty
-```
-
-This preserves separation internally while keeping ranking simple.
-
-### Why this matters
-
-- `teh` corrected to `the` should count toward difficulty of `the`
-- gibberish should not produce its own ranked entry
-- spelling failures should increase difficulty without pretending they were transcript backspaces
-
----
-
-## Example Behavior
-
-### Example 1: obvious typo
-
-Input token:
-
-```text
-teh
-```
-
-Process:
-
-- not in lexicon
-- candidate `the` found at close distance
-- high confidence
-
-Output:
-
-```text
-corrected -> the
-inferredSpellingPenalty = 1
-```
-
-### Example 2: common misspelling
-
-Input token:
-
-```text
-becuase
-```
-
-Process:
-
-- not in lexicon
-- candidate `because` found
-- good distance and strong candidate
-
-Output:
-
-```text
-corrected -> because
-inferredSpellingPenalty = 1
-```
-
-### Example 3: valid word
-
-Input token:
-
-```text
-form
-```
-
-Process:
-
-- exact lexicon hit
-- do not attempt reinterpretation
-
-Output:
-
-```text
-accepted -> form
-inferredSpellingPenalty = 0
-```
-
-### Example 4: gibberish
-
-Input token:
-
-```text
-jjjjkjj
-```
-
-Process:
-
-- not in lexicon
-- trips gibberish-drop heuristics and/or lacks a strong nearby candidate
-
-Output:
-
-```text
-dropped
-```
-
-### Example 5: uncommon word
-
-Input token:
-
-```text
-fjord
-```
-
-If not in the common-word lexicon:
-
-```text
-dropped
-```
-
-This is expected in V1.
-
----
-
-## Proposed Types
-
-### Decision type
+### Decision model
 
 ```swift
 enum WordDecision {
@@ -525,110 +249,120 @@ enum WordDecision {
 }
 ```
 
-### Drop reasons
+---
 
-```swift
-enum DropReason {
-    case notInLexicon
-    case lowConfidenceCorrection
-    case gibberishHeuristic
-}
-```
+## Performance Principles
 
-### Interpreter result
+### 1. Exact match first
 
-```swift
-struct WordInterpretationResult {
-    let words: [InterpretedWord]
-    let correctedCount: Int
-    let droppedCount: Int
-}
-```
+Most words should be handled by a cheap exact membership check.
 
-These structures are useful for debugging and tests even if only `[InterpretedWord]` is used in production flow.
+### 2. Unknowns only
+
+Typo logic should run only on words that failed exact lookup.
+
+### 3. Unique unknown tokens
+
+Unknown-token analysis should be cached by normalized token.
+
+### 4. Resolver isolation
+
+The typo resolver should be a separate stage or component so it can be changed without affecting the fast exact-match path.
 
 ---
 
-## Proposed File Layout
+## Proposed Internal Architecture
 
-### New files
+One clean structure would be:
 
-- `Sources/TypingLens/WordExtraction/WordInterpreter.swift`
-- `Sources/TypingLens/WordExtraction/WordLexicon.swift`
-- `Sources/TypingLens/WordExtraction/InterpretedWord.swift`
-- `Sources/TypingLens/WordExtraction/DamerauLevenshtein.swift`
-- `Resources/common-words-en.txt` or equivalent bundled word list
+```swift
+struct WordInterpreter {
+    let lexicon: WordLexicon
+    let typoResolver: TypoResolver?
 
-### Modified files
+    func interpret(_ words: [ExtractedWord]) -> WordInterpretationResult
+}
+```
 
-- `Sources/TypingLens/WordExtraction/WordRanker.swift`
-  - consume interpreted words or preprocess extracted words before grouping
-- `Sources/TypingLens/WordExtraction/RankedExportService.swift`
-  - if needed, wire in interpreter dependency
+Where `TypoResolver` is responsible only for unknown tokens:
+
+```swift
+protocol TypoResolver {
+    func resolve(_ token: String) -> TypoResolution
+}
+```
+
+Example resolution type:
+
+```swift
+enum TypoResolution {
+    case corrected(String, inferredPenalty: Int)
+    case dropped(DropReason)
+}
+```
+
+This keeps responsibilities clear:
+
+- `WordLexicon` answers exact membership
+- `WordInterpreter` orchestrates
+- `TypoResolver` handles unknown-token correction/drop logic
+
+---
+
+## Ranking Implications
+
+Ranking remains downstream from interpretation.
+
+- accepted words rank normally
+- corrected words merge under the corrected normalized word
+- dropped words never reach the ranker
+- inferred spelling penalties still contribute to `errorRate`
+
+No change is needed to the ranking model beyond consuming interpreted words.
 
 ---
 
 ## Testing Strategy
 
-### Lexicon acceptance tests
+### Exact lexicon tests
 
-- exact common words are accepted
-- uncommon words are dropped
-- names are dropped
+- exact common word is accepted
+- valid words never enter typo correction
+- normalization still works correctly
 
-### Correction tests
+### Unknown-token stage tests
 
-- `teh -> the`
-- `becuase -> because`
-- `wrod -> word`
-- already-valid words are never rewritten
+- known typo map entries correct correctly
+- unknown non-typo tokens drop
+- gibberish drops
+- repeated unknown tokens are resolved once and reused
 
-### Gibberish tests
+### Integration tests
 
-- `jjjjkjj` drops
-- `asdfasdf` drops
-- repetitive-noise tokens drop
-
-### Ambiguity tests
-
-- low-confidence tokens drop instead of guessing
-- valid words remain untouched
-
-### Ranking integration tests
-
-- corrected words merge under corrected target word
-- inferred penalty contributes to error rate
-- dropped words do not appear in ranked output
+- ranked export merges accepted and corrected words correctly
+- dropped unknown words do not appear in ranked output
+- practice generation sees the same interpreted vocabulary
 
 ---
 
-## Tuning Guidance
+## Migration Plan
 
-If V1 under-corrects:
-
-- slightly relax edit-distance thresholds
-- slightly relax candidate confidence requirements
-
-If V1 over-corrects:
-
-- tighten confidence threshold
-- strengthen gibberish-drop heuristics
-- reduce allowable edit distance for short tokens
-
-The intended bias is conservative:
-
-- dropping uncertain tokens is acceptable
-- incorrect correction is worse than omission
+1. Keep normalization in `WordInterpreter`
+2. Make exact lexicon classification the first pass
+3. Move typo logic behind an unknown-token-only resolver interface
+4. Initially implement the resolver as:
+   - typo map, or
+   - no-op drop-only resolver
+5. Preserve `InterpretedWord` and ranking integration
+6. Add tests that prove valid words short-circuit before typo handling
 
 ---
 
 ## Summary
 
-V1 introduces a deterministic local word interpretation layer that:
+The revised design makes the pipeline intentionally two-stage:
 
-- uses a simple local **30k common English word list**
-- accepts exact common words
-- corrects obvious misspellings with **`inferredSpellingPenalty = 1`**
-- drops gibberish, uncommon words, names, and ambiguous non-words
-- keeps transcript mistakes and inferred spelling penalties separate internally
-- feeds corrected/common words into ranking so practice targets reflect intended words rather than raw noisy tokens
+- **Pass 1:** exact lexicon membership for all tokens
+- **Pass 2:** typo resolution only for unknown tokens
+
+This keeps the common case fast, makes the architecture clearer, and avoids expensive fuzzy correction work in the main ranking/export path.
