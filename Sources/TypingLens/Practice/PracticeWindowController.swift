@@ -1,13 +1,14 @@
 import AppKit
 import SwiftUI
 
-final class PracticeWindowController: NSWindowController {
+final class PracticeWindowController: NSWindowController, NSWindowDelegate {
     private let defaultWindowSize = NSSize(width: 1_080, height: 560)
     private let minimumWindowSize = NSSize(width: 860, height: 420)
     private let targetWidthRatio: CGFloat = 0.62
     private let targetHeightRatio: CGFloat = 0.72
     private var hostingController: NSHostingController<AnyView>?
     var onRequestNewPrompt: (() -> Void)?
+    var onWindowVisibilityChanged: ((Bool) -> Void)?
 
     init() {
         let initialFrame = Self.preferredFrame(
@@ -31,6 +32,7 @@ final class PracticeWindowController: NSWindowController {
 
         super.init(window: window)
 
+        window.delegate = self
         shouldCascadeWindows = false
     }
 
@@ -52,7 +54,7 @@ final class PracticeWindowController: NSWindowController {
         let rootView = PracticeRootView(
             viewModel: viewModel,
             onClose: { [weak self] in
-                self?.window?.orderOut(nil)
+                self?.closeWindow()
             }
         )
         .id(prompt.words)
@@ -78,13 +80,19 @@ final class PracticeWindowController: NSWindowController {
         )
         window.setFrame(targetFrame, display: true)
 
+        onWindowVisibilityChanged?(true)
         NSApp.activate(ignoringOtherApps: true)
         showWindow(nil)
         window.makeKeyAndOrderFront(nil)
     }
 
     func closeWindow() {
+        onWindowVisibilityChanged?(false)
         window?.orderOut(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        onWindowVisibilityChanged?(false)
     }
 
     private func screenForPresentation(from window: NSWindow) -> NSScreen? {

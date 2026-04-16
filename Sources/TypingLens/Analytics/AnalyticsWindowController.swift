@@ -1,13 +1,14 @@
 import AppKit
 import SwiftUI
 
-final class AnalyticsWindowController: NSWindowController {
+final class AnalyticsWindowController: NSWindowController, NSWindowDelegate {
     private let defaultWindowSize = NSSize(width: 980, height: 620)
     private let minimumWindowSize = NSSize(width: 900, height: 560)
     private let targetWidthRatio: CGFloat = 0.62
     private let targetHeightRatio: CGFloat = 0.72
     private var hostingController: NSHostingController<AnyView>?
     private let viewModel: AnalyticsViewModel
+    var onWindowVisibilityChanged: ((Bool) -> Void)?
     var onRefreshAnalytics: (() -> Void)? {
         didSet {
             viewModel.onRefresh = onRefreshAnalytics ?? {}
@@ -38,6 +39,7 @@ final class AnalyticsWindowController: NSWindowController {
         viewModel = AnalyticsViewModel()
 
         super.init(window: window)
+        window.delegate = self
         shouldCascadeWindows = false
     }
 
@@ -52,7 +54,7 @@ final class AnalyticsWindowController: NSWindowController {
         viewModel.show(result: result)
         let rootView = AnalyticsRootView(
             viewModel: viewModel,
-            onClose: { [weak self] in self?.window?.orderOut(nil) }
+            onClose: { [weak self] in self?.closeWindow() }
         )
 
         let anyRootView = AnyView(rootView)
@@ -76,13 +78,19 @@ final class AnalyticsWindowController: NSWindowController {
         )
         window.setFrame(targetFrame, display: true)
 
+        onWindowVisibilityChanged?(true)
         NSApp.activate(ignoringOtherApps: true)
         showWindow(nil)
         window.makeKeyAndOrderFront(nil)
     }
 
     func closeWindow() {
+        onWindowVisibilityChanged?(false)
         window?.orderOut(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        onWindowVisibilityChanged?(false)
     }
 
     private func screenForPresentation(from window: NSWindow) -> NSScreen? {

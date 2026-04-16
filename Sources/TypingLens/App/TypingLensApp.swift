@@ -15,6 +15,7 @@ struct TypingLensApp: App {
         ApplicationBootstrap.configureMenuBarActivationPolicy()
         TypingLensBranding.applyAppIcon()
 
+        let windowActivationController = WindowActivationController(application: NSApplication.shared)
         let fileLocations = FileLocations()
         let transcriptWriter = TranscriptWriter(fileLocations: fileLocations)
         let permissionManager = PermissionManager()
@@ -29,8 +30,14 @@ struct TypingLensApp: App {
         )
         let keyboardMonitor = KeyboardMonitor()
         let practiceWindowController = PracticeWindowController()
+        practiceWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "practice")
+        }
         self.practiceWindowController = practiceWindowController
         let analyticsWindowController = AnalyticsWindowController()
+        analyticsWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "analytics")
+        }
         self.analyticsWindowController = analyticsWindowController
 
         let loggingCoordinator: LoggingCoordinator
@@ -103,6 +110,9 @@ struct TypingLensApp: App {
                 loggingCoordinator.showAnalyticsRequested()
             }
         )
+        settingsWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "settings")
+        }
 
         _appState = StateObject(wrappedValue: state)
         menuBarController = MenuBarController(

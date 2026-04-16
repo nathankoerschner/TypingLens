@@ -13,4 +13,15 @@ final class ApplicationBootstrapTests: XCTestCase {
 
         XCTAssertEqual(NSApplication.shared.activationPolicy(), .accessory)
     }
+
+    func testConfigureWindowActivationPolicySetsRegularPolicyOnSharedApplication() {
+        let previousPolicy = NSApplication.shared.activationPolicy()
+        defer {
+            _ = NSApplication.shared.setActivationPolicy(previousPolicy)
+        }
+
+        ApplicationBootstrap.configureWindowActivationPolicy()
+
+        XCTAssertEqual(NSApplication.shared.activationPolicy(), .regular)
+    }
 }

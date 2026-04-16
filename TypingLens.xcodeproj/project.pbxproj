@@ -46,6 +46,12 @@
 		250102e755e293d0af55ea33 /* WordInterpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5525af5a68e5e6224241a78b; };
 		17024ea28d4cea81bee820ec /* WordLexicon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99489918881b7372d3ab6baa; };
 		5d965af454117a300026c904 /* WordRanker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9a6a0de433dfb901b3181b9c; };
+		1f31a7a1b8a64f4e9c3d1001 /* AnalyticsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1f31a7a1b8a64f4e9c3d2001; };
+		1f31a7a1b8a64f4e9c3d1002 /* AnalyticsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1f31a7a1b8a64f4e9c3d2002; };
+		1f31a7a1b8a64f4e9c3d1003 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1f31a7a1b8a64f4e9c3d2003; };
+		1f31a7a1b8a64f4e9c3d1004 /* AnalyticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1f31a7a1b8a64f4e9c3d2004; };
+		1f31a7a1b8a64f4e9c3d1005 /* AnalyticsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1f31a7a1b8a64f4e9c3d2005; };
+		1f31a7a1b8a64f4e9c3d1006 /* WindowActivationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1f31a7a1b8a64f4e9c3d2006; };
 		752ccfa94ab47bb4e196b1af /* app-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 018cc0c410054aa1c1b68c2f; };
 		f5413298fe1dfcea8b90534d /* common-words-en.txt in Resources */ = {isa = PBXBuildFile; fileRef = bca1f2c43e0da4492cef9448; };
 		7bd76a2bc9c11866072ea052 /* logging-enabled.png in Resources */ = {isa = PBXBuildFile; fileRef = cbf05361cdd94c063d8fb8a0; };
@@ -93,6 +99,12 @@
 		5525af5a68e5e6224241a78b /* WordInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/WordExtraction/WordInterpreter.swift; sourceTree = SOURCE_ROOT; };
 		99489918881b7372d3ab6baa /* WordLexicon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/WordExtraction/WordLexicon.swift; sourceTree = SOURCE_ROOT; };
 		9a6a0de433dfb901b3181b9c /* WordRanker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/WordExtraction/WordRanker.swift; sourceTree = SOURCE_ROOT; };
+		1f31a7a1b8a64f4e9c3d2001 /* AnalyticsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/Analytics/AnalyticsModels.swift; sourceTree = SOURCE_ROOT; };
+		1f31a7a1b8a64f4e9c3d2002 /* AnalyticsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/Analytics/AnalyticsRootView.swift; sourceTree = SOURCE_ROOT; };
+		1f31a7a1b8a64f4e9c3d2003 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/Analytics/AnalyticsService.swift; sourceTree = SOURCE_ROOT; };
+		1f31a7a1b8a64f4e9c3d2004 /* AnalyticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/Analytics/AnalyticsViewModel.swift; sourceTree = SOURCE_ROOT; };
+		1f31a7a1b8a64f4e9c3d2005 /* AnalyticsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/Analytics/AnalyticsWindowController.swift; sourceTree = SOURCE_ROOT; };
+		1f31a7a1b8a64f4e9c3d2006 /* WindowActivationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/App/WindowActivationController.swift; sourceTree = SOURCE_ROOT; };
 		018cc0c410054aa1c1b68c2f /* app-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Sources/TypingLens/Resources/app-icon.png; sourceTree = SOURCE_ROOT; };
 		bca1f2c43e0da4492cef9448 /* common-words-en.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Sources/TypingLens/Resources/common-words-en.txt; sourceTree = SOURCE_ROOT; };
 		cbf05361cdd94c063d8fb8a0 /* logging-enabled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Sources/TypingLens/Resources/logging-enabled.png; sourceTree = SOURCE_ROOT; };
@@ -169,6 +181,12 @@
 				250102e755e293d0af55ea33,
 				17024ea28d4cea81bee820ec,
 				5d965af454117a300026c904,
+				1f31a7a1b8a64f4e9c3d1001,
+				1f31a7a1b8a64f4e9c3d1002,
+				1f31a7a1b8a64f4e9c3d1003,
+				1f31a7a1b8a64f4e9c3d1004,
+				1f31a7a1b8a64f4e9c3d1005,
+				1f31a7a1b8a64f4e9c3d1006,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,6 +236,12 @@
 				5525af5a68e5e6224241a78b,
 				99489918881b7372d3ab6baa,
 				9a6a0de433dfb901b3181b9c,
+				1f31a7a1b8a64f4e9c3d2001,
+				1f31a7a1b8a64f4e9c3d2002,
+				1f31a7a1b8a64f4e9c3d2003,
+				1f31a7a1b8a64f4e9c3d2004,
+				1f31a7a1b8a64f4e9c3d2005,
+				1f31a7a1b8a64f4e9c3d2006,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -319,14 +343,14 @@
 				CODE_SIGN_ENTITLEMENTS = TypingLens/TypingLens.entitlements;
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = TypingLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.typinglens.app;
 				PRODUCT_NAME = TypingLens;
 				SDKROOT = macosx;
@@ -348,14 +372,14 @@
 				CODE_SIGNING_REQUIRED = YES;
 				DEVELOPMENT_TEAM = "$(APPLE_TEAM_ID)";
 				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = TypingLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.typinglens.app;
 				PRODUCT_NAME = TypingLens;
 				SDKROOT = macosx;

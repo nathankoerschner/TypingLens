@@ -1,7 +1,8 @@
 import AppKit
 import SwiftUI
 
-final class SettingsWindowController: NSWindowController, SettingsWindowShowing {
+final class SettingsWindowController: NSWindowController, SettingsWindowShowing, NSWindowDelegate {
+    var onWindowVisibilityChanged: ((Bool) -> Void)?
     init(
         appState: AppState,
         onRefreshPermissionStatus: @escaping () -> Void,
@@ -45,6 +46,7 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
         window.setContentSize(NSSize(width: 640, height: 520))
 
         super.init(window: window)
+        window.delegate = self
         shouldCascadeWindows = false
     }
 
@@ -54,7 +56,17 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
     }
 
     func showSettingsWindow() {
+        onWindowVisibilityChanged?(true)
         showWindow(nil)
         window?.makeKeyAndOrderFront(nil)
+    }
+
+    func closeWindow() {
+        onWindowVisibilityChanged?(false)
+        window?.orderOut(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        onWindowVisibilityChanged?(false)
     }
 }
