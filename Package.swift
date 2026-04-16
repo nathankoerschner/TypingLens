@@ -7,7 +7,8 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "TypingLens", targets: ["TypingLens"])
+        .executable(name: "TypingLens", targets: ["TypingLens"]),
+        .executable(name: "TypingLensControl", targets: ["TypingLensControl"])
     ],
     targets: [
         .executableTarget(
@@ -16,6 +17,10 @@ let package = Package(
             resources: [
                 .process("Resources")
             ]
+        ),
+        .executableTarget(
+            name: "TypingLensControl",
+            path: "Sources/TypingLensControl"
         ),
         .testTarget(
             name: "TypingLensTests",

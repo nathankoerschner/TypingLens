@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct PracticeRootView: View {
-    @StateObject var viewModel: PracticeViewModel
+    @ObservedObject var viewModel: PracticeViewModel
     @State private var focusToken = UUID()
     private let onClose: () -> Void
 
     init(viewModel: PracticeViewModel, onClose: @escaping () -> Void = {}) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
         self.onClose = onClose
     }
 
@@ -45,10 +45,17 @@ struct PracticeRootView: View {
     }
 
     private var metricsRow: some View {
-        HStack(spacing: 24) {
-            metric("WPM", String(format: "%.1f", viewModel.wpm))
-            metric("Accuracy", "\(Int(viewModel.accuracy.rounded()))%")
-            metric("Progress", viewModel.progressLabel)
+        HStack(spacing: 28) {
+            MetricChip(label: "wpm", value: String(format: "%.1f", viewModel.wpm))
+            MetricChip(label: "acc", value: "\(Int(viewModel.accuracy.rounded()))%")
+            MetricChip(label: "words", value: viewModel.progressLabel)
+
+            if viewModel.isFinished {
+                Text("Finished")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.yellow.opacity(0.8))
+                    .padding(.leading, 8)
+            }
         }
         .font(.headline)
     }
@@ -73,12 +80,21 @@ struct PracticeRootView: View {
         }
     }
 
-    private func metric(_ label: String, _ value: String) -> some View {
-        HStack(spacing: 6) {
+}
+
+private struct MetricChip: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .foregroundColor(Color.white.opacity(0.6))
+                .font(.caption)
+                .textCase(.uppercase)
+                .foregroundStyle(.white.opacity(0.6))
             Text(value)
-                .fontWeight(.bold)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.white)
         }
     }
 }
@@ -99,31 +115,50 @@ private struct PracticeWordSurface: View {
                         wordRenderState: word,
                         caretState: caretState?.wordIndex == word.wordIndex ? caretState : nil
                     )
+                    .equatable()
                 }
             }
         }
     }
 }
 
-private struct PracticeWordView: View {
+private struct PracticeWordView: View, Equatable {
     let wordRenderState: PracticeWordRenderState
     let caretState: PracticeCaretState?
 
     var body: some View {
-        let wordColor: Color = {
-            switch wordRenderState.role {
-            case .submitted:
-                return Color.white.opacity(0.65)
-            case .active:
-                return .white
-            case .upcoming:
-                return Color.white.opacity(0.28)
-            }
-        }()
+        if caretState == nil {
+            wordLetters
+                .fixedSize()
+        } else {
+            measuredWordLetters
+                .fixedSize()
+        }
+    }
 
+    private var wordColor: Color {
+        switch wordRenderState.role {
+        case .submitted:
+            return Color.white.opacity(0.65)
+        case .active:
+            return .white
+        case .upcoming:
+            return Color.white.opacity(0.28)
+        }
+    }
+
+    private var wordLetters: some View {
+        HStack(spacing: 0) {
+            ForEach(wordRenderState.letters) { letter in
+                PracticeLetterView(letter: letter, fallbackColor: wordColor)
+            }
+        }
+    }
+
+    private var measuredWordLetters: some View {
         let coordinateSpace = PracticeWordCoordinateSpace(wordIndex: wordRenderState.wordIndex)
 
-        HStack(spacing: 0) {
+        return HStack(spacing: 0) {
             ForEach(wordRenderState.letters) { letter in
                 PracticeLetterView(letter: letter, fallbackColor: wordColor)
                     .background(
@@ -146,7 +181,6 @@ private struct PracticeWordView: View {
                 }
             }
         }
-        .fixedSize()
     }
 
     private func caretX(from frames: [Int: CGRect], letterIndex: Int, fallbackWidth: CGFloat) -> CGFloat? {
@@ -172,7 +206,7 @@ private struct PracticeWordView: View {
     }
 }
 
-private struct PracticeLetterView: View {
+private struct PracticeLetterView: View, Equatable {
     let letter: PracticeLetterRenderState
     let fallbackColor: Color
 

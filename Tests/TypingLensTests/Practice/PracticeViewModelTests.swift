@@ -196,6 +196,17 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.submittedWords.isEmpty)
     }
 
+    func testDeleteBackwardAtFirstWordWithEmptyInputDoesNothing() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["alpha"]))
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 0)
+        XCTAssertEqual(viewModel.currentInput, "")
+        XCTAssertFalse(viewModel.canRestorePreviousWord)
+        XCTAssertFalse(viewModel.isFinished)
+    }
+
     func testSecondWordStartsFreshAfterFirstWordSubmission() {
         let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello", "world"]))
 
@@ -225,7 +236,7 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.submittedWords.isEmpty)
     }
 
-    func testDeleteBackwardCanRestoreAcrossMultipleCommittedWords() {
+    func testDeleteBackwardRestoresAtMostOneCommittedWord() {
         let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["alpha", "beta", "gamma"]))
 
         viewModel.type("alpha")
@@ -246,6 +257,7 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.currentInput, "gamma")
         XCTAssertNil(viewModel.finishedAt)
         XCTAssertEqual(viewModel.submittedWords, ["alpha", "beta"])
+        XCTAssertFalse(viewModel.canRestorePreviousWord)
 
         while !viewModel.currentInput.isEmpty {
             viewModel.handleDeleteBackward()
@@ -253,9 +265,9 @@ final class PracticeViewModelTests: XCTestCase {
 
         viewModel.handleDeleteBackward()
 
-        XCTAssertEqual(viewModel.currentWordIndex, 1)
-        XCTAssertEqual(viewModel.currentInput, "beta")
-        XCTAssertEqual(viewModel.submittedWords, ["alpha"])
+        XCTAssertEqual(viewModel.currentWordIndex, 2)
+        XCTAssertEqual(viewModel.currentInput, "")
+        XCTAssertEqual(viewModel.submittedWords, ["alpha", "beta"])
     }
 
     func testRewindAfterCompletionClearsFinishedAt() {
@@ -305,6 +317,34 @@ final class PracticeViewModelTests: XCTestCase {
         viewModel.handleSubmit()
 
         XCTAssertEqual(viewModel.currentWordIndex, 2)
+        XCTAssertEqual(viewModel.accuracy, 100, accuracy: 0.01)
+        XCTAssertNotNil(viewModel.finishedAt)
+    }
+
+    func testResubmittingAfterRewindMaintainsProgressAndMetrics() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["foo", "bar"]))
+
+        viewModel.type("foo")
+        viewModel.handleSubmit()
+        viewModel.type("zz")
+        viewModel.handleSubmit()
+
+        XCTAssertTrue(viewModel.isFinished)
+        XCTAssertEqual(viewModel.accuracy, 50, accuracy: 0.01)
+
+        viewModel.handleDeleteBackward()
+        XCTAssertEqual(viewModel.currentWordIndex, 1)
+        XCTAssertEqual(viewModel.currentInput, "zz")
+
+        while !viewModel.currentInput.isEmpty {
+            viewModel.handleDeleteBackward()
+        }
+
+        viewModel.type("bar")
+        viewModel.handleSubmit()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 2)
+        XCTAssertTrue(viewModel.isFinished)
         XCTAssertEqual(viewModel.accuracy, 100, accuracy: 0.01)
         XCTAssertNotNil(viewModel.finishedAt)
     }

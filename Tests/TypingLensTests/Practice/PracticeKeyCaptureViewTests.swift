@@ -73,6 +73,54 @@ final class PracticeKeyCaptureViewTests: XCTestCase {
 
         XCTAssertEqual(insertedCharacters.count, 0)
     }
+
+    func testDisallowedModifierDoesNotInvokeDeleteBackward() {
+        let view = KeyCaptureNSView()
+        var didDelete = false
+        view.onDeleteBackward = { didDelete = true }
+
+        view.keyDown(with: makeEvent(
+            keyCode: 51,
+            characters: "",
+            charactersIgnoringModifiers: "",
+            modifierFlags: [.command]
+        ))
+
+        XCTAssertFalse(didDelete)
+    }
+
+    func testDisabledStateSuppressesCallbacks() {
+        let view = KeyCaptureNSView()
+        var didInsert = false
+        var didSubmit = false
+        var didDelete = false
+
+        view.isDisabled = true
+        view.onInsert = { _ in didInsert = true }
+        view.onSubmit = { didSubmit = true }
+        view.onDeleteBackward = { didDelete = true }
+
+        view.keyDown(with: makeEvent(
+            keyCode: 0,
+            characters: "a",
+            charactersIgnoringModifiers: "a"
+        ))
+        XCTAssertFalse(didInsert)
+
+        view.keyDown(with: makeEvent(
+            keyCode: 49,
+            characters: " ",
+            charactersIgnoringModifiers: " "
+        ))
+        XCTAssertFalse(didSubmit)
+
+        view.keyDown(with: makeEvent(
+            keyCode: 51,
+            characters: "",
+            charactersIgnoringModifiers: ""
+        ))
+        XCTAssertFalse(didDelete)
+    }
 }
 
 private extension PracticeKeyCaptureViewTests {

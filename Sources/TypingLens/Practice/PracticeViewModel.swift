@@ -43,6 +43,7 @@ struct PracticeSession: Equatable {
     var currentInput: String
     var startedAt: Date?
     var finishedAt: Date?
+    var didRestorePreviousWordInCurrentWord: Bool
 
     var currentWordIndex: Int {
         committedWords.count
@@ -56,6 +57,10 @@ struct PracticeSession: Equatable {
 final class PracticeViewModel: ObservableObject {
     @Published private(set) var session: PracticeSession
 
+    private(set) var wordRenderStates: [PracticeWordRenderState]
+    private(set) var caretState: PracticeCaretState?
+
+    private let promptCharacterTable: [[Character]]
     private let now: () -> Date
     private let onNewPrompt: () -> Void
 
@@ -64,15 +69,22 @@ final class PracticeViewModel: ObservableObject {
         now: @escaping () -> Date = Date.init,
         onNewPrompt: @escaping () -> Void = {}
     ) {
-        self.session = PracticeSession(
+        let initialSession = PracticeSession(
             promptWords: prompt.words,
             committedWords: [],
             currentInput: "",
             startedAt: nil,
-            finishedAt: nil
+            finishedAt: nil,
+            didRestorePreviousWordInCurrentWord: false
         )
+
+        self.session = initialSession
+        self.wordRenderStates = []
+        self.caretState = nil
+        self.promptCharacterTable = prompt.words.map(Array.init)
         self.now = now
         self.onNewPrompt = onNewPrompt
+        rebuildDerivedState(from: initialSession)
     }
 
     var promptWords: [String] { session.promptWords }
@@ -112,30 +124,14 @@ final class PracticeViewModel: ObservableObject {
     }
 
     var canRestorePreviousWord: Bool {
-        guard session.currentInput.isEmpty else { return false }
-        return !session.committedWords.isEmpty
-    }
-
-    var wordRenderStates: [PracticeWordRenderState] {
-        promptWords.enumerated().map { index, word in
-            PracticeWordRenderState(
-                id: index,
-                wordIndex: index,
-                role: wordRole(at: index),
-                letters: wordRenderLetters(for: word, at: index)
-            )
+        guard session.currentInput.isEmpty,
+              !session.didRestorePreviousWordInCurrentWord else {
+            return false
         }
+        return canRestoreCommittedWord(session.committedWords.last)
     }
 
-    var caretState: PracticeCaretState? {
-        guard !session.promptWords.isEmpty else { return nil }
-        guard !isFinished else { return nil }
-
-        return PracticeCaretState(
-            wordIndex: min(currentWordIndex, session.promptWords.count - 1),
-            letterIndex: session.currentInput.count
-        )
-    }
+    
 
     func handleInsert(_ character: Character) {
         if character.isWhitespace || character.isNewline {
@@ -165,6 +161,7 @@ final class PracticeViewModel: ObservableObject {
 
         updateSession { session in
             session.currentInput = ""
+            session.didRestorePreviousWordInCurrentWord = false
 
             if session.startedAt == nil {
                 session.startedAt = now()
@@ -181,14 +178,15 @@ final class PracticeViewModel: ObservableObject {
     }
 
     func handleDeleteBackward() {
-        guard !session.currentInput.isEmpty else {
-            restorePreviousWordIfPossible()
+        if !session.currentInput.isEmpty {
+            updateSession { updated in
+                _ = updated.currentInput.removeLast()
+            }
             return
         }
 
-        updateSession {
-            _ = $0.currentInput.removeLast()
-        }
+        guard canRestorePreviousWord else { return }
+        restorePreviousWordIfPossible()
     }
 
     func restart() {
@@ -197,6 +195,7 @@ final class PracticeViewModel: ObservableObject {
             $0.currentInput = ""
             $0.startedAt = nil
             $0.finishedAt = nil
+            $0.didRestorePreviousWordInCurrentWord = false
         }
     }
 
@@ -214,20 +213,36 @@ final class PracticeViewModel: ObservableObject {
     }
 
     private func restorePreviousWordIfPossible() {
-        guard canRestorePreviousWord else {
+        guard let restored = session.committedWords.last,
+              canRestoreCommittedWord(restored) else {
             return
         }
 
         updateSession { session in
-            guard let restored = session.committedWords.popLast() else { return }
+            _ = session.committedWords.popLast()
             session.currentInput = restored.typed
             session.finishedAt = nil
+            session.didRestorePreviousWordInCurrentWord = true
         }
+    }
+
+    private func canRestoreCommittedWord(_ committedWord: PracticeCommittedWord?) -> Bool {
+        // v1 policy: allow rewinding to any previously committed word.
+        // Keep this isolated so stricter Monkeytype parity (for example, locking
+        // previously correct words) can be introduced without changing callers.
+        guard committedWord != nil else { return false }
+        return true
     }
 
     private func updateSession(_ update: (inout PracticeSession) -> Void) {
         var updated = session
         update(&updated)
+
+        guard updated != session else {
+            return
+        }
+
+        rebuildDerivedState(from: updated)
         session = updated
     }
 
@@ -243,9 +258,41 @@ final class PracticeViewModel: ObservableObject {
         return .upcoming
     }
 
-    private func wordRenderLetters(for word: String, at index: Int) -> [PracticeLetterRenderState] {
-        let expectedChars = Array(word)
-        let role = wordRole(at: index)
+    private func rebuildDerivedState(from session: PracticeSession) {
+        wordRenderStates = session.promptWords.enumerated().map { index, _ in
+            PracticeWordRenderState(
+                id: index,
+                wordIndex: index,
+                role: wordRole(at: index, in: session),
+                letters: wordRenderLetters(at: index, in: session)
+            )
+        }
+
+        if session.promptWords.isEmpty || session.isFinished {
+            caretState = nil
+        } else {
+            caretState = PracticeCaretState(
+                wordIndex: min(session.currentWordIndex, session.promptWords.count - 1),
+                letterIndex: session.currentInput.count
+            )
+        }
+    }
+
+    private func wordRole(at index: Int, in session: PracticeSession) -> PracticeWordRole {
+        if index < session.committedWords.count {
+            return .submitted
+        }
+
+        if index == session.currentWordIndex && !session.isFinished {
+            return .active
+        }
+
+        return .upcoming
+    }
+
+    private func wordRenderLetters(at index: Int, in session: PracticeSession) -> [PracticeLetterRenderState] {
+        let expectedChars = promptCharacterTable[safe: index] ?? []
+        let role = wordRole(at: index, in: session)
 
         switch role {
         case .upcoming:

@@ -70,14 +70,18 @@ final class KeyCaptureNSView: NSView {
     override func keyDown(with event: NSEvent) {
         guard !isDisabled else { return }
 
+        let disallowedModifiers: NSEvent.ModifierFlags = [.command, .control, .option]
+        guard event.modifierFlags.intersection(disallowedModifiers).isEmpty else {
+            super.keyDown(with: event)
+            return
+        }
+
         if event.keyCode == 51 || event.keyCode == 117 {
             onDeleteBackward?()
             return
         }
 
-        let disallowedModifiers: NSEvent.ModifierFlags = [.command, .control, .option]
-        guard event.modifierFlags.intersection(disallowedModifiers).isEmpty,
-              let characters = event.characters,
+        guard let characters = event.characters,
               !characters.isEmpty else {
             super.keyDown(with: event)
             return
