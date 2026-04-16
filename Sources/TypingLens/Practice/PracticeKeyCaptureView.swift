@@ -8,6 +8,10 @@ struct PracticeKeyCaptureView: NSViewRepresentable {
     let onSubmit: () -> Void
     let onDeleteBackward: () -> Void
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator(lastFocusToken: focusToken)
+    }
+
     func makeNSView(context: Context) -> KeyCaptureNSView {
         let view = KeyCaptureNSView()
         view.isDisabled = isDisabled
@@ -28,8 +32,21 @@ struct PracticeKeyCaptureView: NSViewRepresentable {
         nsView.onSubmit = onSubmit
         nsView.onDeleteBackward = onDeleteBackward
 
+        guard context.coordinator.lastFocusToken != focusToken else {
+            return
+        }
+
+        context.coordinator.lastFocusToken = focusToken
         DispatchQueue.main.async {
             nsView.window?.makeFirstResponder(nsView)
+        }
+    }
+
+    final class Coordinator {
+        var lastFocusToken: UUID
+
+        init(lastFocusToken: UUID) {
+            self.lastFocusToken = lastFocusToken
         }
     }
 }

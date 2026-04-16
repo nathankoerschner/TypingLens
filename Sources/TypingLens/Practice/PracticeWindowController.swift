@@ -2,23 +2,27 @@ import AppKit
 import SwiftUI
 
 final class PracticeWindowController: NSWindowController {
+    private let defaultWindowSize = NSSize(width: 900, height: 420)
+    private let minimumWindowSize = NSSize(width: 700, height: 320)
     private var hostingController: NSHostingController<PracticeRootView>?
     var onRequestNewPrompt: (() -> Void)?
 
     init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 520),
+            contentRect: NSRect(x: 0, y: 0, width: defaultWindowSize.width, height: defaultWindowSize.height),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "Typing Practice"
         window.isReleasedWhenClosed = false
-        window.setContentSize(NSSize(width: 900, height: 520))
-        window.minSize = NSSize(width: 900, height: 520)
+        window.setContentSize(defaultWindowSize)
+        window.minSize = minimumWindowSize
         window.center()
 
         super.init(window: window)
+
+        shouldCascadeWindows = false
     }
 
     @available(*, unavailable)
@@ -27,6 +31,9 @@ final class PracticeWindowController: NSWindowController {
     }
 
     func show(prompt: PracticePrompt) {
+        guard let window else { return }
+        let currentFrame = window.frame
+
         let viewModel = PracticeViewModel(
             prompt: prompt,
             onNewPrompt: { [weak self] in
@@ -45,19 +52,16 @@ final class PracticeWindowController: NSWindowController {
             hostingController.rootView = rootView
         } else {
             let controller = NSHostingController(rootView: rootView)
-            window?.contentViewController = controller
+            controller.sizingOptions = []
+            window.contentViewController = controller
             self.hostingController = controller
         }
 
-        if let window {
-            let targetSize = NSSize(width: 900, height: 520)
-            window.setContentSize(targetSize)
-            window.layoutIfNeeded()
-        }
+        window.setFrame(currentFrame, display: true)
 
         NSApp.activate(ignoringOtherApps: true)
         showWindow(nil)
-        window?.makeKeyAndOrderFront(nil)
+        window.makeKeyAndOrderFront(nil)
     }
 
     func closeWindow() {

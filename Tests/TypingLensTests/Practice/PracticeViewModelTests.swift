@@ -308,6 +308,82 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.accuracy, 100, accuracy: 0.01)
         XCTAssertNotNil(viewModel.finishedAt)
     }
+
+    func testCaretStateTracksCurrentInputLength() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello"]))
+
+        viewModel.handleInsert("h")
+        viewModel.handleInsert("e")
+
+        XCTAssertEqual(viewModel.caretState, PracticeCaretState(wordIndex: 0, letterIndex: 2))
+    }
+
+    func testCaretStateTracksOvertypedInputLength() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["cat"]))
+
+        viewModel.handleInsert("c")
+        XCTAssertEqual(viewModel.caretState?.wordIndex, 0)
+        XCTAssertEqual(viewModel.caretState?.letterIndex, 1)
+
+        viewModel.handleInsert("a")
+        XCTAssertEqual(viewModel.caretState?.wordIndex, 0)
+        XCTAssertEqual(viewModel.caretState?.letterIndex, 2)
+
+        viewModel.handleInsert("t")
+        XCTAssertEqual(viewModel.caretState?.wordIndex, 0)
+        XCTAssertEqual(viewModel.caretState?.letterIndex, 3)
+
+        viewModel.handleInsert("s")
+        XCTAssertEqual(viewModel.currentInput, "cats")
+        XCTAssertEqual(viewModel.caretState?.wordIndex, 0)
+        XCTAssertEqual(viewModel.caretState?.letterIndex, 4)
+
+        viewModel.handleInsert("t")
+        XCTAssertEqual(viewModel.currentInput, "catst")
+        XCTAssertEqual(viewModel.caretState?.wordIndex, 0)
+        XCTAssertEqual(viewModel.caretState?.letterIndex, 5)
+    }
+
+    func testWordRenderStatesIncludeSubmittedActiveAndUpcomingRoles() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello", "world", "swift"]))
+
+        viewModel.type("hey")
+        viewModel.handleSubmit()
+        viewModel.type("w")
+
+        XCTAssertEqual(viewModel.wordRenderStates.map(\.role), [.submitted, .active, .upcoming])
+        XCTAssertEqual(viewModel.wordRenderStates[1].wordIndex, 1)
+        XCTAssertEqual(viewModel.wordRenderStates[1].letters.map(\.role), [.correct, .pending, .pending, .pending, .pending])
+    }
+
+    func testWordRenderStatesMarkExtraTypedLettersOnActiveWord() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["cat"]))
+
+        viewModel.type("caxt")
+
+        let letters = viewModel.wordRenderStates[0].letters
+
+        XCTAssertEqual(letters.map(\.character), Array("catt"))
+        XCTAssertEqual(letters.map(\.role), [.correct, .correct, .incorrect, .extra])
+    }
+
+    func testCaretStateRestoresAfterRewind() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["alpha", "beta"]))
+
+        viewModel.type("alpha")
+        viewModel.handleSubmit()
+        viewModel.type("beta")
+        viewModel.handleSubmit()
+
+        XCTAssertNotNil(viewModel.finishedAt)
+        XCTAssertNil(viewModel.caretState)
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertEqual(viewModel.caretState?.wordIndex, 1)
+        XCTAssertEqual(viewModel.caretState?.letterIndex, 4)
+        XCTAssertEqual(viewModel.currentInput, "beta")
+    }
 }
 
 private final class FakeClock {

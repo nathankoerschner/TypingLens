@@ -1,5 +1,37 @@
 import Foundation
 
+enum PracticeWordRole: Equatable {
+    case submitted
+    case active
+    case upcoming
+}
+
+enum PracticeLetterRole: Equatable {
+    case correct
+    case incorrect
+    case pending
+    case extra
+    case missing
+}
+
+struct PracticeLetterRenderState: Equatable, Identifiable {
+    let id: Int
+    let character: Character
+    let role: PracticeLetterRole
+}
+
+struct PracticeWordRenderState: Equatable, Identifiable {
+    let id: Int
+    let wordIndex: Int
+    let role: PracticeWordRole
+    let letters: [PracticeLetterRenderState]
+}
+
+struct PracticeCaretState: Equatable {
+    let wordIndex: Int
+    let letterIndex: Int
+}
+
 struct PracticeCommittedWord: Equatable {
     let expected: String
     let typed: String
@@ -51,11 +83,6 @@ final class PracticeViewModel: ObservableObject {
     var currentWordIndex: Int { session.currentWordIndex }
     var isFinished: Bool { session.isFinished }
 
-    var canRestorePreviousWord: Bool {
-        guard session.currentInput.isEmpty else { return false }
-        return !session.committedWords.isEmpty
-    }
-
     var progressLabel: String {
         "\(min(currentWordIndex, promptWords.count)) / \(promptWords.count)"
     }
@@ -84,6 +111,32 @@ final class PracticeViewModel: ObservableObject {
         promptWords.indices.contains(currentWordIndex) ? promptWords[currentWordIndex] : ""
     }
 
+    var canRestorePreviousWord: Bool {
+        guard session.currentInput.isEmpty else { return false }
+        return !session.committedWords.isEmpty
+    }
+
+    var wordRenderStates: [PracticeWordRenderState] {
+        promptWords.enumerated().map { index, word in
+            PracticeWordRenderState(
+                id: index,
+                wordIndex: index,
+                role: wordRole(at: index),
+                letters: wordRenderLetters(for: word, at: index)
+            )
+        }
+    }
+
+    var caretState: PracticeCaretState? {
+        guard !session.promptWords.isEmpty else { return nil }
+        guard !isFinished else { return nil }
+
+        return PracticeCaretState(
+            wordIndex: min(currentWordIndex, session.promptWords.count - 1),
+            letterIndex: session.currentInput.count
+        )
+    }
+
     func handleInsert(_ character: Character) {
         if character.isWhitespace || character.isNewline {
             handleSubmit()
@@ -98,8 +151,8 @@ final class PracticeViewModel: ObservableObject {
     }
 
     func handleSubmit() {
-        guard !session.isFinished else { return }
-        let expectedWord = promptWords[currentWordIndex]
+        guard !session.isFinished,
+              let expectedWord = promptWords[safe: currentWordIndex] else { return }
 
         let typedWord = session.currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -178,6 +231,102 @@ final class PracticeViewModel: ObservableObject {
         session = updated
     }
 
+    private func wordRole(at index: Int) -> PracticeWordRole {
+        if index < session.committedWords.count {
+            return .submitted
+        }
+
+        if index == session.currentWordIndex && !session.isFinished {
+            return .active
+        }
+
+        return .upcoming
+    }
+
+    private func wordRenderLetters(for word: String, at index: Int) -> [PracticeLetterRenderState] {
+        let expectedChars = Array(word)
+        let role = wordRole(at: index)
+
+        switch role {
+        case .upcoming:
+            return expectedChars.enumerated().map { offset, char in
+                PracticeLetterRenderState(
+                    id: offset,
+                    character: char,
+                    role: .pending
+                )
+            }
+
+        case .active:
+            let typedChars = Array(session.currentInput)
+            let renderedCount = max(expectedChars.count, typedChars.count)
+
+            guard renderedCount > 0 else {
+                return []
+            }
+
+            return (0..<renderedCount).map { letterIndex in
+                if letterIndex < expectedChars.count {
+                    if letterIndex < typedChars.count {
+                        let role: PracticeLetterRole =
+                            typedChars[letterIndex] == expectedChars[letterIndex] ? .correct : .incorrect
+                        return PracticeLetterRenderState(
+                            id: letterIndex,
+                            character: expectedChars[letterIndex],
+                            role: role
+                        )
+                    }
+
+                    return PracticeLetterRenderState(
+                        id: letterIndex,
+                        character: expectedChars[letterIndex],
+                        role: .pending
+                    )
+                }
+
+                return PracticeLetterRenderState(
+                    id: letterIndex,
+                    character: typedChars[letterIndex],
+                    role: .extra
+                )
+            }
+
+        case .submitted:
+            let committedTyped = session.committedWords[safe: index].map { Array($0.typed) } ?? []
+            let renderedCount = max(expectedChars.count, committedTyped.count)
+
+            guard renderedCount > 0 else {
+                return []
+            }
+
+            return (0..<renderedCount).map { letterIndex in
+                if letterIndex < expectedChars.count {
+                    if letterIndex < committedTyped.count {
+                        let role: PracticeLetterRole =
+                            committedTyped[letterIndex] == expectedChars[letterIndex] ? .correct : .incorrect
+                        return PracticeLetterRenderState(
+                            id: letterIndex,
+                            character: expectedChars[letterIndex],
+                            role: role
+                        )
+                    }
+
+                    return PracticeLetterRenderState(
+                        id: letterIndex,
+                        character: expectedChars[letterIndex],
+                        role: .missing
+                    )
+                }
+
+                return PracticeLetterRenderState(
+                    id: letterIndex,
+                    character: committedTyped[letterIndex],
+                    role: .extra
+                )
+            }
+        }
+    }
+
     private func accuracyTotals() -> (correct: Int, total: Int) {
         session.committedWords.reduce((0, 0)) { partial, committed in
             let comparison = typedCharacterComparison(
@@ -205,5 +354,12 @@ final class PracticeViewModel: ObservableObject {
         }
 
         return (correctCount, maxCount)
+    }
+}
+
+private extension Array {
+    subscript(safe index: Index) -> Element? {
+        guard indices.contains(index) else { return nil }
+        return self[index]
     }
 }
