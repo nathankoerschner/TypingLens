@@ -5,10 +5,11 @@ enum TypingLensBranding {
     static let appIcon: NSImage? = loadImage(named: "app-icon")
     static let toolbarIcon: NSImage? = loadImage(named: "logging-enabled")
 
-    static func menuBarIcon(size: CGFloat = 18) -> NSImage? {
+    static func menuBarIcon(size: CGFloat = 20) -> NSImage? {
         guard let image = toolbarIcon?.copy() as? NSImage else { return nil }
         image.isTemplate = true
-        image.size = NSSize(width: size, height: size)
+        let aspectRatio = image.size.width / max(image.size.height, 1)
+        image.size = NSSize(width: size * aspectRatio, height: size)
         return image
     }
 
