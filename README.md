@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/banner.png" alt="TypingLens" width="800">
+  <img src="https://raw.githubusercontent.com/nathankoerschner/TypingLens/main/docs/banner.png" alt="TypingLens" width="800">
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
   <img alt="macOS" src="https://img.shields.io/badge/macOS-13%2B-18181b?style=flat-square">
   <img alt="Privacy" src="https://img.shields.io/badge/privacy-local--only-18181b?style=flat-square">
   <img alt="UI" src="https://img.shields.io/badge/UI-SwiftUI-18181b?style=flat-square">
-  <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/nathankoerschner/typinglens/ci.yml?style=flat-square&label=CI">
+  <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/nathankoerschner/TypingLens/ci.yml?style=flat-square&label=CI">
 </p>
 
 ## How it works
