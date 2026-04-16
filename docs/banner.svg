@@ -1,0 +1,9 @@
+<svg width="1600" height="500" viewBox="0 0 1600 500" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">TypingLens banner</title>
+  <desc id="desc">The TypingLens logo and wordmark on a dark background, matching the practice view branding.</desc>
+  <rect width="1600" height="500" fill="#323437"/>
+  <g transform="translate(480 250)">
+    <image x="0" y="-70" width="140" height="140" preserveAspectRatio="xMidYMid meet" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAJ5UExURf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPf+KPQAAADJdFJOUwAFAwoMDxATFhkaHB0hIiMlJicoKywuLzA0Njg6O0JFRklLT1dYWVpbXmJjaWttb3BxdHZ3eHl7g4SEhYeIiYuRkpSYmpydnqCjpKWmqaurra+1t7m6vL7Aw8bHyMrLzM3P0dLV2Nna297f4ePk5efp6evt7vDy9Pb4+fr7/P3+99zzdgAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAbNJREFUWMPtmVtywyAQRWPhhMSEEMJ5/0eZFKq6WW2zmf+7K5lQ4wxO9C2x6XaJiIiIiIiIiEg0n4Nux3F83wFU3+IBXOwBL44XYK3ffCAe3Qdmz7vvgDrhxuD9mQfEKXHuO4jre4AlP+33Z8vsR6/3AUV+V8A+Kp8TwD4qtxPAPiqfE8A+Kp8TwD4qn+EcAKL+u9vHcwTt0ZtNjnkvRyUpFudJkA5Mh7fTW0R7Gl6gCOxZ2jRtwO3QUn0/SB3cBd44Hb4H34HzcAd4YFj4bHvhqH1ewWH8M0B09b0D4TE8Y44sPoE31bBGsB4+VG3kJ8ET/xxHfYv1xP8M+KrFgtkr3r0Cl76mJ6wG2L5R+MlyVvYh4z3sMfhC7+X9dXhfAx4hklmJf87E3z6pP0M0wF8MH3wX7vD5R+0xyg3D70ofrRQr3gLbuwmWJhQ4PzLq18jCL0M+eR2d8Pqn6zmk9M9W2mV9Y7h1zC7WsA+2D5jtmv8wczl9gd4pKiGJQz4O8J4N0q7r0oCGvdboP1aP9f3jUt1u3m27CQAAAAAAAAAAANxP/gGRzDq7ZlCe6AAAAABJRU5ErkJggg=="/>
+    <text x="200" y="25" fill="#FF8A3D" font-size="120" font-weight="600" letter-spacing="-2" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace">TypingLens</text>
+  </g>
+</svg>

@@ -1,4 +1,6 @@
-<h1 align="center">TypingLens</h1>
+<p align="center">
+  <img src="./docs/banner.svg" alt="TypingLens" width="800">
+</p>
 
 <p align="center">
   <strong>A local-only typing monitor for targeted speed improvement.</strong>
