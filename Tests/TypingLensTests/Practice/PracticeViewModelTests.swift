@@ -384,6 +384,42 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.caretState?.letterIndex, 5)
     }
 
+    func testRestartRestoresCaretToBeginningOfPrompt() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["alpha", "beta"]))
+
+        viewModel.type("alpha")
+        viewModel.handleSubmit()
+        viewModel.type("beta")
+        viewModel.handleSubmit()
+
+        XCTAssertTrue(viewModel.isFinished)
+        XCTAssertNil(viewModel.caretState)
+
+        viewModel.restart()
+
+        XCTAssertFalse(viewModel.isFinished)
+        XCTAssertEqual(viewModel.caretState, PracticeCaretState(wordIndex: 0, letterIndex: 0))
+    }
+
+    func testCompletionClearsCaretStateUntilRewindOrRestart() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["go"]))
+
+        viewModel.type("go")
+        viewModel.handleSubmit()
+
+        XCTAssertTrue(viewModel.isFinished)
+        XCTAssertNil(viewModel.caretState)
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertEqual(viewModel.caretState, PracticeCaretState(wordIndex: 0, letterIndex: 2))
+        XCTAssertEqual(viewModel.currentInput, "go")
+
+        viewModel.restart()
+
+        XCTAssertEqual(viewModel.caretState, PracticeCaretState(wordIndex: 0, letterIndex: 0))
+    }
+
     func testWordRenderStatesIncludeSubmittedActiveAndUpcomingRoles() {
         let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello", "world", "swift"]))
 

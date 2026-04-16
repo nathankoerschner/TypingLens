@@ -6,7 +6,7 @@ final class PracticeWindowController: NSWindowController {
     private let minimumWindowSize = NSSize(width: 860, height: 420)
     private let targetWidthRatio: CGFloat = 0.62
     private let targetHeightRatio: CGFloat = 0.72
-    private var hostingController: NSHostingController<PracticeRootView>?
+    private var hostingController: NSHostingController<AnyView>?
     var onRequestNewPrompt: (() -> Void)?
 
     init() {
@@ -55,11 +55,14 @@ final class PracticeWindowController: NSWindowController {
                 self?.window?.orderOut(nil)
             }
         )
+        .id(prompt.words)
+
+        let anyRootView = AnyView(rootView)
 
         if let hostingController {
-            hostingController.rootView = rootView
+            hostingController.rootView = anyRootView
         } else {
-            let controller = NSHostingController(rootView: rootView)
+            let controller = NSHostingController(rootView: anyRootView)
             controller.sizingOptions = []
             window.contentViewController = controller
             self.hostingController = controller

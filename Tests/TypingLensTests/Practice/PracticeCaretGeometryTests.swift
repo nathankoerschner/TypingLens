@@ -60,6 +60,18 @@ final class PracticeCaretGeometryTests: XCTestCase {
         )
     }
 
+    func testResolveReturnsNilWhenActiveWordFrameHasBeenClearedDuringPromptReset() {
+        let target = resolvePracticeCaretTarget(
+            caretState: PracticeCaretState(wordIndex: 0, letterIndex: 0),
+            wordFrames: [:],
+            letterFrames: [
+                PracticeLetterFrameID(wordIndex: 0, letterIndex: 0): CGRect(x: 12, y: 0, width: 10, height: 20)
+            ]
+        )
+
+        XCTAssertNil(target)
+    }
+
     func testResolverReturnsTrailingEdgeForExtraLettersAcrossLineWrap() {
         let target = resolvePracticeCaretTarget(
             caretState: PracticeCaretState(wordIndex: 5, letterIndex: 8),

@@ -85,7 +85,9 @@ struct PracticeRootView: View {
     private var promptView: some View {
         PracticeWordSurface(
             wordRenderStates: viewModel.wordRenderStates,
-            caretState: viewModel.caretState
+            caretState: viewModel.caretState,
+            isFinished: viewModel.isFinished,
+            promptWords: viewModel.promptWords
         )
         .font(.system(size: 40, weight: .regular, design: .monospaced))
         .multilineTextAlignment(.leading)
@@ -127,6 +129,8 @@ private struct MetricChip: View {
 private struct PracticeWordSurface: View {
     let wordRenderStates: [PracticeWordRenderState]
     let caretState: PracticeCaretState?
+    let isFinished: Bool
+    let promptWords: [String]
 
     @State private var wordFrames: [Int: CGRect] = [:]
     @State private var letterFrames: [PracticeLetterFrameID: CGRect] = [:]
@@ -169,6 +173,18 @@ private struct PracticeWordSurface: View {
             .onAppear { displayedCaretTarget = resolvedCaretTarget }
             .onChange(of: resolvedCaretTarget) { target in
                 updateDisplayedCaretTarget(target)
+            }
+            .onChange(of: isFinished) { isFinished in
+                if isFinished {
+                    displayedCaretTarget = nil
+                } else if let target = resolvedCaretTarget {
+                    displayedCaretTarget = target
+                }
+            }
+            .onChange(of: promptWords) { _ in
+                displayedCaretTarget = nil
+                wordFrames = [:]
+                letterFrames = [:]
             }
         }
     }
