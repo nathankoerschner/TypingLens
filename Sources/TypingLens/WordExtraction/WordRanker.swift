@@ -2,9 +2,11 @@ import Foundation
 
 struct WordRanker {
     struct Weights: Equatable {
-        var speed: Double = 1.0
-        var error: Double = 1.0
-        var frequency: Double = 1.0
+        // Slowness and explicit typing errors/backspaces are the main ranking signals.
+        // Frequency is only a small modifier.
+        var speed: Double = 0.55
+        var error: Double = 0.35
+        var frequency: Double = 0.10
     }
 
     // Ranking expects interpreted words (post-interpretation).
