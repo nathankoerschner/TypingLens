@@ -1,0 +1,99 @@
+2026-04-16 14:35:33 +0000 [MT] Initial pipeline context: <IDEDistributionProcessingPipelineContext: 0x144e7c990; archive(resolved)="<IDEArchive: 0x6000036841c0>", distributionTask(resolved)="2", distributionDestination(resolved)="1", distributionMethod(resolved)="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team(resolved)="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	Chain (12, self inclusive):
+	<IDEDistributionProcessingPipelineContext: 0x144e7c990; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionProcessingPipelineContext: 0x144e7c100; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x144e7bef0; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x144e7e0b0; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x144e7dea0; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x144e7b7f0; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x1461133d0; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x14631f330; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x146324a40; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="<IDEProvisioningBasicTeam: 0x600001c18e20; teamID='8R3TAM7H32', teamName='(null)'>">
+	<IDEDistributionContext: 0x146323d20; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="(null)">
+	<IDEDistributionContext: 0x14620f1d0; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="<IDEDistributionMethodDeveloperID: 0x600001feee60>", team="(null)">
+	<IDEDistributionContext: 0x144e6fdc0; archive = "<IDEArchive: 0x6000036841c0>", distributionMethod="(null)", team="(null)">
+</IDEDistributionProcessingPipelineContext: 0x144e7c990>
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionCreateDestRootStep
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionCopyItemStep
+2026-04-16 14:35:33 +0000 [MT] Running /usr/bin/ditto '-V' '/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app' '/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app'
+2026-04-16 14:35:33 +0000  >>> Copying /Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app 
+2026-04-16 14:35:33 +0000  copying file ./Contents/_CodeSignature/CodeResources ... 
+2026-04-16 14:35:33 +0000  3636 bytes for ./Contents/_CodeSignature/CodeResources
+2026-04-16 14:35:33 +0000  copying file ./Contents/MacOS/TypingLens ... 
+2026-04-16 14:35:33 +0000  470704 bytes for ./Contents/MacOS/TypingLens
+2026-04-16 14:35:33 +0000  copying file ./Contents/Resources/logging-disabled.png ... 
+2026-04-16 14:35:33 +0000  143661 bytes for ./Contents/Resources/logging-disabled.png
+2026-04-16 14:35:33 +0000  copying file ./Contents/Resources/common-words-en.txt ... 
+2026-04-16 14:35:33 +0000  267237 bytes for ./Contents/Resources/common-words-en.txt
+2026-04-16 14:35:33 +0000  copying file ./Contents/Resources/AppIcon.icns ... 
+2026-04-16 14:35:33 +0000  34926 bytes for ./Contents/Resources/AppIcon.icns
+2026-04-16 14:35:33 +0000  copying file ./Contents/Resources/logging-enabled.png ... 
+2026-04-16 14:35:33 +0000  143661 bytes for ./Contents/Resources/logging-enabled.png
+2026-04-16 14:35:33 +0000  copying file ./Contents/Resources/Assets.car ... 
+2026-04-16 14:35:33 +0000  303992 bytes for ./Contents/Resources/Assets.car
+2026-04-16 14:35:33 +0000  copying file ./Contents/Resources/app-icon.png ... 
+2026-04-16 14:35:33 +0000  143661 bytes for ./Contents/Resources/app-icon.png
+2026-04-16 14:35:33 +0000  copying file ./Contents/Info.plist ... 
+2026-04-16 14:35:33 +0000  1421 bytes for ./Contents/Info.plist
+2026-04-16 14:35:33 +0000  copying file ./Contents/PkgInfo ... 
+2026-04-16 14:35:33 +0000  8 bytes for ./Contents/PkgInfo
+2026-04-16 14:35:33 +0000 [MT] /usr/bin/ditto exited with 0
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionEmbedProfileStep
+2026-04-16 14:35:33 +0000 [MT] Skipping profile for item: <IDEDistributionItem: 0x600003918240; bundleID='io.typinglens.app', path='<DVTFilePath:0x6000039f3540:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x6000039d7e40; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x600002889b00; name='Developer ID Application: Nathaniel Koerschner (8R3TAM7H32)', hash='A1A97932F8FFC6A7CCD1AA11C95FFC16436A2CF8', serialNumber='2703231F017881CA', certificateKinds='(
+    "1.2.840.113635.100.6.1.13"
+), issueDate='2026-01-18 20:44:04 +0000''>', entitlements='{
+}', teamID='8R3TAM7H32', identifier='io.typinglens.app', executablePath='<DVTFilePath:0x600003911980:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app/Contents/MacOS/TypingLens'>', hardenedRuntime='1'>'>
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionInfoPlistStep
+2026-04-16 14:35:33 +0000 [MT] Skipping step: IDEDistributionInfoPlistStep because it said so
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionAppThinningPlistStep
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionSymbolsStep
+2026-04-16 14:35:33 +0000 [MT] Skipping step: IDEDistributionSymbolsStep because it said so
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionAppThinningStep
+2026-04-16 14:35:33 +0000 [MT] Skipping step: IDEDistributionAppThinningStep because it said so
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionArchThinningStep
+2026-04-16 14:35:33 +0000 [MT] Archs to thin for item /Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app are []
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionODRStep
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionStripXattrsStep
+2026-04-16 14:35:33 +0000 [MT] Skipping stripping extended attributes because the codesign step will strip them.
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionCodesignStep
+2026-04-16 14:35:33 +0000 [MT] Entitlements for <IDEDistributionItem: 0x600003918240; bundleID='io.typinglens.app', path='<DVTFilePath:0x6000039f3540:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x6000039d7e40; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x60000288d500; name='Developer ID Application: Nathaniel Koerschner (8R3TAM7H32)', hash='A1A97932F8FFC6A7CCD1AA11C95FFC16436A2CF8', serialNumber='2703231F017881CA', certificateKinds='(
+    "1.2.840.113635.100.6.1.13"
+), issueDate='2026-01-18 20:44:04 +0000''>', entitlements='{
+}', teamID='8R3TAM7H32', identifier='io.typinglens.app', executablePath='<DVTFilePath:0x600003911980:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app/Contents/MacOS/TypingLens'>', hardenedRuntime='1'>'>: {
+}
+2026-04-16 14:35:33 +0000 [MT] Associated App Clip Identifiers Filter: Skipping because "com.apple.developer.associated-appclip-app-identifiers" is not present
+2026-04-16 14:35:33 +0000 [MT] Entitlements for <IDEDistributionItem: 0x600003918240; bundleID='io.typinglens.app', path='<DVTFilePath:0x6000039f3540:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x6000039d7e40; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x60000288d380; name='Developer ID Application: Nathaniel Koerschner (8R3TAM7H32)', hash='A1A97932F8FFC6A7CCD1AA11C95FFC16436A2CF8', serialNumber='2703231F017881CA', certificateKinds='(
+    "1.2.840.113635.100.6.1.13"
+), issueDate='2026-01-18 20:44:04 +0000''>', entitlements='{
+}', teamID='8R3TAM7H32', identifier='io.typinglens.app', executablePath='<DVTFilePath:0x600003911980:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app/Contents/MacOS/TypingLens'>', hardenedRuntime='1'>'> are: {
+}
+2026-04-16 14:35:33 +0000 [MT] Writing entitlements for <IDEDistributionItem: 0x600003918240; bundleID='io.typinglens.app', path='<DVTFilePath:0x6000039f3540:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x6000039d7e40; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x60000288d380; name='Developer ID Application: Nathaniel Koerschner (8R3TAM7H32)', hash='A1A97932F8FFC6A7CCD1AA11C95FFC16436A2CF8', serialNumber='2703231F017881CA', certificateKinds='(
+    "1.2.840.113635.100.6.1.13"
+), issueDate='2026-01-18 20:44:04 +0000''>', entitlements='{
+}', teamID='8R3TAM7H32', identifier='io.typinglens.app', executablePath='<DVTFilePath:0x600003911980:'/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive/Products/Applications/TypingLens.app/Contents/MacOS/TypingLens'>', hardenedRuntime='1'>'> to: /var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/entitlements~~~JRHnBz
+2026-04-16 14:35:33 +0000 [MT] invoking codesign: <NSConcreteTask: 0x600003dba620; launchPath='/usr/bin/codesign', arguments='(
+    "-f",
+    "-s",
+    A1A97932F8FFC6A7CCD1AA11C95FFC16436A2CF8,
+    "--entitlements",
+    "/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/entitlements~~~JRHnBz",
+    "--requirements",
+    "=designated => anchor apple generic  and identifier \"$self.identifier\" and ((cert leaf[field.1.2.840.113635.100.6.1.9] exists) or ( certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists  and certificate leaf[subject.OU] = \"8R3TAM7H32\" ))",
+    "--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints",
+    "--generate-entitlement-der",
+    "--strip-disallowed-xattrs",
+    "-vvv",
+    "/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app"
+)'>
+2026-04-16 14:35:33 +0000 [MT] codesign output: /var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app: replacing existing signature
+/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app: signed app bundle with Mach-O thin (arm64) [io.typinglens.app]
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionZipODRItemStep
+2026-04-16 14:35:33 +0000 [MT] Skipping step: IDEDistributionZipODRItemStep because it said so
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionSkipPackagingStep
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionAppStoreInformationStep
+2026-04-16 14:35:33 +0000 [MT] Skipping step: IDEDistributionAppStoreInformationStep because it said so
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionGenerateProcessedDistributionItems
+2026-04-16 14:35:33 +0000 [MT] IDEDistributionItem init <DVTFilePath:0x6000039310e0:'/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app'>
+2026-04-16 14:35:33 +0000 [MT] [OPTIONAL] Didn't find embedded provisioning profile for <DVTFilePath:0x6000039310e0:'/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app'>: Error Domain=NSCocoaErrorDomain Code=4 "No file at <DVTFilePath:0x600003615a40:'/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app/Contents/embedded.provisionprofile'>" UserInfo={NSLocalizedDescription=No file at <DVTFilePath:0x600003615a40:'/var/folders/3q/9rbcws0x4f9_l91tzpqjvm300000gn/T/XcodeDistPipeline.~~~RF1Haw/Root/Applications/TypingLens.app/Contents/embedded.provisionprofile'>}
+2026-04-16 14:35:33 +0000 [MT] Processing step: IDEDistributionCreateManifestStep
+2026-04-16 14:35:33 +0000 [MT] Skipping step: IDEDistributionCreateManifestStep because it said so

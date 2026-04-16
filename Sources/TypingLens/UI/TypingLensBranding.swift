@@ -2,18 +2,29 @@ import AppKit
 import SwiftUI
 
 enum TypingLensBranding {
-    static let appIcon: NSImage? = {
-        guard let url = TypingLensBundle.resources.url(forResource: "app-icon", withExtension: "png"),
-              let image = NSImage(contentsOf: url) else {
-            return nil
-        }
+    static let appIcon: NSImage? = loadImage(named: "app-icon")
+    static let toolbarIcon: NSImage? = loadImage(named: "logging-enabled")
+
+    static func menuBarIcon(size: CGFloat = 18) -> NSImage? {
+        guard let image = toolbarIcon?.copy() as? NSImage else { return nil }
+        image.isTemplate = true
+        image.size = NSSize(width: size, height: size)
         return image
-    }()
+    }
+
     static func applyAppIcon() {
         guard let appIcon else { return }
 
         NSApplication.shared.applicationIconImage = appIcon
         _ = NSWorkspace.shared.setIcon(appIcon, forFile: Bundle.main.bundlePath, options: [])
+    }
+
+    private static func loadImage(named name: String) -> NSImage? {
+        guard let url = TypingLensBundle.resources.url(forResource: name, withExtension: "png"),
+              let image = NSImage(contentsOf: url) else {
+            return nil
+        }
+        return image
     }
 }
 

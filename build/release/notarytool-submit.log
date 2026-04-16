@@ -1,0 +1,11 @@
+Conducting pre-submission checks for TypingLens.zip and initiating connection to the Apple notary service...
+Submission ID received
+  id: ead193cb-ec19-45c5-84cd-8fd1dd771977
+Successfully uploaded file
+  id: ead193cb-ec19-45c5-84cd-8fd1dd771977
+  path: /Users/natkoersch/typinglens/build/release/TypingLens.zip
+Waiting for processing to complete.
+Current status: In Progress...Current status: In Progress....Current status: Accepted.....Processing complete
+  id: ead193cb-ec19-45c5-84cd-8fd1dd771977
+  status: Accepted
+

@@ -56,22 +56,6 @@ struct MenuBarState: Equatable {
 }
 
 final class MenuBarController: NSObject {
-    private enum MenuBarIcon {
-        static let loggingEnabled = loadTemplateImage(named: "logging-enabled")
-        static let loggingDisabled = loadTemplateImage(named: "logging-disabled")
-
-        private static func loadTemplateImage(named name: String) -> NSImage? {
-            guard let url = TypingLensBundle.resources.url(forResource: name, withExtension: "png"),
-                  let image = NSImage(contentsOf: url) else {
-                return nil
-            }
-
-            image.isTemplate = true
-            image.size = NSSize(width: 20, height: 20)
-            return image
-        }
-    }
-
     private let statusItem: MenuBarStatusItemPresenting
     private let appState: AppState
     private let transcriptWriter: TranscriptWriting
@@ -146,12 +130,12 @@ final class MenuBarController: NSObject {
 
     private var statusImage: NSImage? {
         switch appState.loggingStatus {
-        case .enabled:
-            return Self.accessibleImage(MenuBarIcon.loggingEnabled, description: "Logging enabled")
         case .error:
             return NSImage(systemSymbolName: "exclamationmark.circle.fill", accessibilityDescription: "Logging error")
+        case .enabled:
+            return Self.accessibleImage(TypingLensBranding.menuBarIcon(), description: "TypingLens active")
         default:
-            return Self.accessibleImage(MenuBarIcon.loggingDisabled, description: "Logging disabled")
+            return Self.accessibleImage(TypingLensBranding.menuBarIcon(), description: "TypingLens")
         }
     }
 

@@ -1,0 +1,5 @@
+{
+  "version": "$(MARKETING_VERSION)",
+  "app": "/Users/natkoersch/typinglens/build/release/export/TypingLens.app",
+  "archive": "/Users/natkoersch/typinglens/build/release/TypingLens.xcarchive"
+}
