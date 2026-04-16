@@ -7,7 +7,6 @@ struct TypingLensApp: App {
     private let loggingCoordinator: LoggingCoordinator
     private let menuBarController: MenuBarController
     private let practiceWindowController: PracticeWindowController
-    private let analyticsWindowController: AnalyticsWindowController
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
 
@@ -30,8 +29,6 @@ struct TypingLensApp: App {
         let keyboardMonitor = KeyboardMonitor()
         let practiceWindowController = PracticeWindowController()
         self.practiceWindowController = practiceWindowController
-        let analyticsWindowController = AnalyticsWindowController()
-        self.analyticsWindowController = analyticsWindowController
 
         let loggingCoordinator: LoggingCoordinator
         do {
@@ -43,9 +40,6 @@ struct TypingLensApp: App {
                 transcriptWriter: transcriptWriter,
                 onOpenPractice: { prompt in
                     practiceWindowController.show(prompt: prompt)
-                },
-                onOpenAnalytics: { result in
-                    analyticsWindowController.show(result: result)
                 }
             )
         } catch {
@@ -59,18 +53,12 @@ struct TypingLensApp: App {
                 onOpenPractice: { prompt in
                     practiceWindowController.show(prompt: prompt)
                 },
-                onOpenAnalytics: { result in
-                    analyticsWindowController.show(result: result)
-                },
                 initialSequence: 1
             )
         }
 
         practiceWindowController.onRequestNewPrompt = {
             loggingCoordinator.practiceNowRequested()
-        }
-        analyticsWindowController.onRefreshAnalytics = {
-            loggingCoordinator.showAnalyticsRequested()
         }
         var menuBarController: MenuBarController!
         let settingsWindowController = SettingsWindowController(
@@ -98,9 +86,6 @@ struct TypingLensApp: App {
             },
             onPracticeNow: {
                 loggingCoordinator.practiceNowRequested()
-            },
-            onOpenAnalytics: {
-                loggingCoordinator.showAnalyticsRequested()
             }
         )
 
@@ -152,9 +137,6 @@ struct TypingLensApp: App {
                     },
                     onPracticeNow: {
                         loggingCoordinator.practiceNowRequested()
-                    },
-                    onOpenAnalytics: {
-                        loggingCoordinator.showAnalyticsRequested()
                     }
                 )
             )
