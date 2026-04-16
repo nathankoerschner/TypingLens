@@ -128,37 +128,85 @@ private struct PracticeWordSurface: View {
     let wordRenderStates: [PracticeWordRenderState]
     let caretState: PracticeCaretState?
 
+    @State private var wordFrames: [Int: CGRect] = [:]
+    @State private var letterFrames: [PracticeLetterFrameID: CGRect] = [:]
+
     var body: some View {
         if wordRenderStates.isEmpty {
             Text("No words available")
                 .foregroundColor(TypingLensTheme.subdued)
                 .font(.system(size: 22, weight: .medium, design: .monospaced))
         } else {
-            PracticeFlowLayout(horizontalSpacing: 12, verticalSpacing: 14) {
-                ForEach(wordRenderStates) { word in
-                    PracticeWordView(
-                        wordRenderState: word,
-                        caretState: caretState?.wordIndex == word.wordIndex ? caretState : nil
-                    )
-                    .equatable()
+            ZStack(alignment: .topLeading) {
+                PracticeFlowLayout(horizontalSpacing: 12, verticalSpacing: 14) {
+                    ForEach(wordRenderStates) { word in
+                        PracticeWordView(wordRenderState: word)
+                            .equatable()
+                            .background(
+                                GeometryReader { proxy in
+                                    Color.clear.preference(
+                                        key: PracticeWordFrameKey.self,
+                                        value: [
+                                            word.wordIndex: proxy.frame(in: .named(PracticePromptCoordinateSpace.name))
+                                        ]
+                                    )
+                                }
+                            )
+                    }
                 }
+
+                caretOverlay
             }
+            .coordinateSpace(name: PracticePromptCoordinateSpace.name)
+            .onPreferenceChange(PracticeWordFrameKey.self) { wordFrames = $0 }
+            .onPreferenceChange(PracticeLetterFrameKey.self) { letterFrames = $0 }
+        }
+    }
+
+    private var resolvedCaretTarget: PracticeCaretTarget? {
+        resolvePracticeCaretTarget(
+            caretState: caretState,
+            wordFrames: wordFrames,
+            letterFrames: letterFrames
+        )
+    }
+
+    @ViewBuilder
+    private var caretOverlay: some View {
+        if let target = resolvedCaretTarget {
+            PracticeCaretView(caretHeight: target.height)
+                .offset(x: target.x, y: target.y)
         }
     }
 }
 
 private struct PracticeWordView: View, Equatable {
     let wordRenderState: PracticeWordRenderState
-    let caretState: PracticeCaretState?
 
     var body: some View {
-        if caretState == nil {
-            wordLetters
-                .fixedSize()
-        } else {
-            measuredWordLetters
-                .fixedSize()
+        HStack(spacing: 0) {
+            ForEach(wordRenderState.letters) { letter in
+                PracticeLetterView(
+                    letter: letter,
+                    wordRole: wordRenderState.role,
+                    fallbackColor: wordColor
+                )
+                .background(
+                    GeometryReader { proxy in
+                        Color.clear.preference(
+                            key: PracticeLetterFrameKey.self,
+                            value: [
+                                PracticeLetterFrameID(
+                                    wordIndex: wordRenderState.wordIndex,
+                                    letterIndex: letter.id
+                                ): proxy.frame(in: .named(PracticePromptCoordinateSpace.name))
+                            ]
+                        )
+                    }
+                )
+            }
         }
+        .fixedSize()
     }
 
     private var wordColor: Color {
@@ -170,72 +218,6 @@ private struct PracticeWordView: View, Equatable {
         case .upcoming:
             return TypingLensTheme.subdued.opacity(0.52)
         }
-    }
-
-    private var wordLetters: some View {
-        HStack(spacing: 0) {
-            ForEach(wordRenderState.letters) { letter in
-                PracticeLetterView(
-                    letter: letter,
-                    wordRole: wordRenderState.role,
-                    fallbackColor: wordColor
-                )
-            }
-        }
-    }
-
-    private var measuredWordLetters: some View {
-        let coordinateSpace = PracticeWordCoordinateSpace(wordIndex: wordRenderState.wordIndex)
-
-        return HStack(spacing: 0) {
-            ForEach(wordRenderState.letters) { letter in
-                PracticeLetterView(
-                    letter: letter,
-                    wordRole: wordRenderState.role,
-                    fallbackColor: wordColor
-                )
-                    .background(
-                        GeometryReader { proxy in
-                            Color.clear.preference(
-                                key: PracticeLetterFrameKey.self,
-                                value: [letter.id: proxy.frame(in: .named(coordinateSpace))]
-                            )
-                        }
-                    )
-            }
-        }
-        .coordinateSpace(name: coordinateSpace)
-        .overlayPreferenceValue(PracticeLetterFrameKey.self) { frames in
-            GeometryReader { geometry in
-                if let caretState,
-                   let caretX = caretX(from: frames, letterIndex: caretState.letterIndex, fallbackWidth: geometry.size.width) {
-                    PracticeCaretView(caretHeight: geometry.size.height)
-                        .offset(x: caretX, y: 0)
-                }
-            }
-        }
-    }
-
-    private func caretX(from frames: [Int: CGRect], letterIndex: Int, fallbackWidth: CGFloat) -> CGFloat? {
-        guard !wordRenderState.letters.isEmpty else {
-            return 0
-        }
-
-        let clampedIndex = min(max(letterIndex, 0), wordRenderState.letters.count)
-
-        if clampedIndex == 0 {
-            return 0
-        }
-
-        if let targetFrame = frames[clampedIndex] {
-            return targetFrame.minX
-        }
-
-        if let lastFrame = frames.values.max(by: { $0.minX < $1.minX }) {
-            return lastFrame.maxX
-        }
-
-        return fallbackWidth
     }
 }
 
@@ -334,8 +316,8 @@ private struct PracticeCaretView: View {
     }
 }
 
-private struct PracticeWordCoordinateSpace: Hashable {
-    let wordIndex: Int
+private enum PracticePromptCoordinateSpace {
+    static let name = "PracticePromptCoordinateSpace"
 }
 
 private struct PracticeFlowLayout: Layout {
@@ -411,10 +393,18 @@ private struct PracticeFlowLayout: Layout {
     }
 }
 
-private struct PracticeLetterFrameKey: PreferenceKey {
+private struct PracticeWordFrameKey: PreferenceKey {
     static var defaultValue: [Int: CGRect] = [:]
 
     static func reduce(value: inout [Int: CGRect], nextValue: () -> [Int: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, newest in newest })
+    }
+}
+
+private struct PracticeLetterFrameKey: PreferenceKey {
+    static var defaultValue: [PracticeLetterFrameID: CGRect] = [:]
+
+    static func reduce(value: inout [PracticeLetterFrameID: CGRect], nextValue: () -> [PracticeLetterFrameID: CGRect]) {
         value.merge(nextValue(), uniquingKeysWith: { _, newest in newest })
     }
 }
