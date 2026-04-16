@@ -350,7 +350,7 @@
 				INFOPLIST_FILE = TypingLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.12;
 				PRODUCT_BUNDLE_IDENTIFIER = io.typinglens.app;
 				PRODUCT_NAME = TypingLens;
 				SDKROOT = macosx;
@@ -379,7 +379,7 @@
 				INFOPLIST_FILE = TypingLens/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.0.1;
+				MARKETING_VERSION = 0.0.12;
 				PRODUCT_BUNDLE_IDENTIFIER = io.typinglens.app;
 				PRODUCT_NAME = TypingLens;
 				SDKROOT = macosx;
