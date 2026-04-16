@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/banner.svg" alt="TypingLens" width="800">
+  <img src="./docs/banner.png" alt="TypingLens" width="800">
 </p>
 
 <p align="center">
