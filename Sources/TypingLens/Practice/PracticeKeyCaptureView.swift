@@ -4,14 +4,16 @@ import SwiftUI
 struct PracticeKeyCaptureView: NSViewRepresentable {
     let isDisabled: Bool
     let focusToken: UUID
-    let onCharacter: (Character) -> Void
-    let onBackspace: () -> Void
+    let onInsert: (Character) -> Void
+    let onSubmit: () -> Void
+    let onDeleteBackward: () -> Void
 
     func makeNSView(context: Context) -> KeyCaptureNSView {
         let view = KeyCaptureNSView()
         view.isDisabled = isDisabled
-        view.onCharacter = onCharacter
-        view.onBackspace = onBackspace
+        view.onInsert = onInsert
+        view.onSubmit = onSubmit
+        view.onDeleteBackward = onDeleteBackward
 
         DispatchQueue.main.async {
             view.window?.makeFirstResponder(view)
@@ -22,8 +24,9 @@ struct PracticeKeyCaptureView: NSViewRepresentable {
 
     func updateNSView(_ nsView: KeyCaptureNSView, context: Context) {
         nsView.isDisabled = isDisabled
-        nsView.onCharacter = onCharacter
-        nsView.onBackspace = onBackspace
+        nsView.onInsert = onInsert
+        nsView.onSubmit = onSubmit
+        nsView.onDeleteBackward = onDeleteBackward
 
         DispatchQueue.main.async {
             nsView.window?.makeFirstResponder(nsView)
@@ -33,8 +36,9 @@ struct PracticeKeyCaptureView: NSViewRepresentable {
 
 final class KeyCaptureNSView: NSView {
     var isDisabled = false
-    var onCharacter: ((Character) -> Void)?
-    var onBackspace: (() -> Void)?
+    var onInsert: ((Character) -> Void)?
+    var onSubmit: (() -> Void)?
+    var onDeleteBackward: (() -> Void)?
 
     override var acceptsFirstResponder: Bool { true }
 
@@ -50,7 +54,7 @@ final class KeyCaptureNSView: NSView {
         guard !isDisabled else { return }
 
         if event.keyCode == 51 || event.keyCode == 117 {
-            onBackspace?()
+            onDeleteBackward?()
             return
         }
 
@@ -64,15 +68,14 @@ final class KeyCaptureNSView: NSView {
 
         for character in characters {
             if character.isWhitespace || character.isNewline {
-                onCharacter?(character)
-                continue
+                onSubmit?()
+            } else {
+                let scalars = String(character).unicodeScalars
+                let isPrintable = scalars.allSatisfy { !CharacterSet.controlCharacters.contains($0) }
+                guard isPrintable else { continue }
+
+                onInsert?(character)
             }
-
-            let scalars = String(character).unicodeScalars
-            let isPrintable = scalars.allSatisfy { !CharacterSet.controlCharacters.contains($0) }
-            guard isPrintable else { continue }
-
-            onCharacter?(character)
         }
     }
 }

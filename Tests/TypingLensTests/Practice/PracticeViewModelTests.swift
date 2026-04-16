@@ -28,57 +28,45 @@ final class PracticeViewModelTests: XCTestCase {
             onNewPrompt: {}
         )
 
-        viewModel.currentInput = "hello"
-        viewModel.submitCurrentWord()
+        viewModel.type("hello")
+        viewModel.handleSubmit()
 
         XCTAssertEqual(viewModel.startedAt, Date(timeIntervalSince1970: 10))
         XCTAssertEqual(viewModel.currentWordIndex, 1)
     }
 
     func testCurrentWordIndexAndProgressUpdateAfterSubmissions() {
-        let clock = FakeClock(times: [
-            Date(timeIntervalSince1970: 1),
-            Date(timeIntervalSince1970: 2),
-            Date(timeIntervalSince1970: 3)
-        ])
         let viewModel = PracticeViewModel(
-            prompt: PracticePrompt(words: ["one", "two", "three"]),
-            now: clock.next
+            prompt: PracticePrompt(words: ["one", "two", "three"])
         )
 
-        viewModel.currentInput = "one"
-        viewModel.submitCurrentWord()
+        viewModel.type("one")
+        viewModel.handleSubmit()
         XCTAssertEqual(viewModel.currentWordIndex, 1)
         XCTAssertEqual(viewModel.progressLabel, "1 / 3")
 
-        viewModel.currentInput = "two"
-        viewModel.submitCurrentWord()
+        viewModel.type("two")
+        viewModel.handleSubmit()
         XCTAssertEqual(viewModel.currentWordIndex, 2)
         XCTAssertEqual(viewModel.progressLabel, "2 / 3")
 
-        viewModel.currentInput = "three"
-        viewModel.submitCurrentWord()
+        viewModel.type("three")
+        viewModel.handleSubmit()
         XCTAssertEqual(viewModel.currentWordIndex, 3)
         XCTAssertEqual(viewModel.progressLabel, "3 / 3")
         XCTAssertTrue(viewModel.isFinished)
     }
 
     func testMistakesReduceAccuracy() {
-        let clock = FakeClock(times: [
-            Date(timeIntervalSince1970: 1),
-            Date(timeIntervalSince1970: 2),
-            Date(timeIntervalSince1970: 3)
-        ])
         let viewModel = PracticeViewModel(
-            prompt: PracticePrompt(words: ["focus", "type"]),
-            now: clock.next
+            prompt: PracticePrompt(words: ["focus", "type"])
         )
 
-        viewModel.currentInput = "focs"
-        viewModel.submitCurrentWord()
+        viewModel.type("focs")
+        viewModel.handleSubmit()
 
-        viewModel.currentInput = "types"
-        viewModel.submitCurrentWord()
+        viewModel.type("types")
+        viewModel.handleSubmit()
 
         // focus: 3/5 correct, type vs types: 4/5 correct => 7/10 => 70%
         XCTAssertEqual(viewModel.currentWordIndex, 2)
@@ -95,35 +83,29 @@ final class PracticeViewModelTests: XCTestCase {
             now: clock.next
         )
 
-        viewModel.currentInput = "hi"
-        viewModel.submitCurrentWord()
-        viewModel.currentInput = "yo"
-        viewModel.submitCurrentWord()
+        viewModel.type("hi")
+        viewModel.handleSubmit()
+        viewModel.type("yo")
+        viewModel.handleSubmit()
 
         XCTAssertTrue(viewModel.isFinished)
         XCTAssertEqual(viewModel.currentWordIndex, 2)
         XCTAssertEqual(viewModel.finishedAt, Date(timeIntervalSince1970: 2))
 
-        viewModel.currentInput = "extra"
-        viewModel.submitCurrentWord()
+        viewModel.type("extra")
+        viewModel.handleSubmit()
 
         XCTAssertEqual(viewModel.currentWordIndex, 2)
         XCTAssertEqual(viewModel.finishedAt, Date(timeIntervalSince1970: 2))
     }
 
     func testRestartClearsProgressKeepsPromptWords() {
-        let clock = FakeClock(times: [
-            Date(timeIntervalSince1970: 1),
-            Date(timeIntervalSince1970: 2),
-            Date(timeIntervalSince1970: 3)
-        ])
         let viewModel = PracticeViewModel(
-            prompt: PracticePrompt(words: ["alpha", "beta"]),
-            now: clock.next
+            prompt: PracticePrompt(words: ["alpha", "beta"])
         )
 
-        viewModel.currentInput = "alpha"
-        viewModel.submitCurrentWord()
+        viewModel.type("alpha")
+        viewModel.handleSubmit()
         viewModel.restart()
 
         XCTAssertEqual(viewModel.promptWords, ["alpha", "beta"])
@@ -133,6 +115,7 @@ final class PracticeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.currentInput, "")
         XCTAssertEqual(viewModel.currentWordIndex, 0)
         XCTAssertFalse(viewModel.isFinished)
+        XCTAssertFalse(viewModel.canRestorePreviousWord)
     }
 
     func testRequestNewPromptInvokesCallback() {
@@ -158,26 +141,26 @@ final class PracticeViewModelTests: XCTestCase {
             now: clock.next
         )
 
-        viewModel.currentInput = "alpha"
-        viewModel.submitCurrentWord()
-        viewModel.currentInput = "beta"
-        viewModel.submitCurrentWord()
+        viewModel.type("alpha")
+        viewModel.handleSubmit()
+        viewModel.type("beta")
+        viewModel.handleSubmit()
 
         let finalWpm = viewModel.wpm
 
-        viewModel.currentInput = "ignored"
-        viewModel.submitCurrentWord()
+        viewModel.type("ignored")
+        viewModel.handleSubmit()
 
         XCTAssertEqual(finalWpm, 2, accuracy: 0.001)
         XCTAssertEqual(viewModel.wpm, 2, accuracy: 0.001)
     }
 
-    func testHandleTypedCharacterPreservesLiveTypedCharacters() {
+    func testHandleInsertPreservesLiveTypedCharacters() {
         let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello", "world"]))
 
-        viewModel.handleTypedCharacter("h")
-        viewModel.handleTypedCharacter("e")
-        viewModel.handleTypedCharacter("l")
+        viewModel.handleInsert("h")
+        viewModel.handleInsert("e")
+        viewModel.handleInsert("l")
 
         XCTAssertEqual(viewModel.currentInput, "hel")
         XCTAssertEqual(viewModel.currentWordIndex, 0)
@@ -193,10 +176,8 @@ final class PracticeViewModelTests: XCTestCase {
             now: clock.next
         )
 
-        for character in "hello" {
-            viewModel.handleTypedCharacter(character)
-        }
-        viewModel.handleTypedCharacter(" ")
+        viewModel.type("hello")
+        viewModel.handleInsert(" ")
 
         XCTAssertEqual(viewModel.currentWordIndex, 1)
         XCTAssertEqual(viewModel.submittedWords, ["hello"])
@@ -207,10 +188,8 @@ final class PracticeViewModelTests: XCTestCase {
     func testBackspaceRemovesLastTypedCharacterWithoutSubmitting() {
         let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello", "world"]))
 
-        viewModel.handleTypedCharacter("h")
-        viewModel.handleTypedCharacter("e")
-        viewModel.handleTypedCharacter("l")
-        viewModel.handleBackspace()
+        viewModel.type("hel")
+        viewModel.handleDeleteBackward()
 
         XCTAssertEqual(viewModel.currentInput, "he")
         XCTAssertEqual(viewModel.currentWordIndex, 0)
@@ -218,24 +197,116 @@ final class PracticeViewModelTests: XCTestCase {
     }
 
     func testSecondWordStartsFreshAfterFirstWordSubmission() {
-        let clock = FakeClock(times: [
-            Date(timeIntervalSince1970: 10),
-            Date(timeIntervalSince1970: 20)
-        ])
-        let viewModel = PracticeViewModel(
-            prompt: PracticePrompt(words: ["hello", "world"]),
-            now: clock.next
-        )
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello", "world"]))
 
-        for character in "jjjjdj" {
-            viewModel.handleTypedCharacter(character)
-        }
-        viewModel.handleTypedCharacter(" ")
-        viewModel.handleTypedCharacter("j")
+        viewModel.type("jjjjdj")
+        viewModel.handleSubmit()
+        viewModel.type("j")
 
         XCTAssertEqual(viewModel.currentWordIndex, 1)
         XCTAssertEqual(viewModel.submittedWords, ["jjjjdj"])
         XCTAssertEqual(viewModel.currentInput, "j")
+    }
+
+    func testDeleteBackwardRestoresPreviousCommittedWordWhenCurrentWordIsEmpty() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["alpha", "beta"]))
+
+        viewModel.type("alpha")
+        viewModel.handleSubmit()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 1)
+        XCTAssertEqual(viewModel.currentInput, "")
+        XCTAssertEqual(viewModel.submittedWords, ["alpha"])
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 0)
+        XCTAssertEqual(viewModel.currentInput, "alpha")
+        XCTAssertTrue(viewModel.submittedWords.isEmpty)
+    }
+
+    func testDeleteBackwardCanRestoreAcrossMultipleCommittedWords() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["alpha", "beta", "gamma"]))
+
+        viewModel.type("alpha")
+        viewModel.handleSubmit()
+        viewModel.type("beta")
+        viewModel.handleSubmit()
+        viewModel.type("gamma")
+        viewModel.handleSubmit()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 3)
+        XCTAssertTrue(viewModel.isFinished)
+        XCTAssertEqual(viewModel.currentInput, "")
+        XCTAssertEqual(viewModel.submittedWords, ["alpha", "beta", "gamma"])
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 2)
+        XCTAssertEqual(viewModel.currentInput, "gamma")
+        XCTAssertNil(viewModel.finishedAt)
+        XCTAssertEqual(viewModel.submittedWords, ["alpha", "beta"])
+
+        while !viewModel.currentInput.isEmpty {
+            viewModel.handleDeleteBackward()
+        }
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 1)
+        XCTAssertEqual(viewModel.currentInput, "beta")
+        XCTAssertEqual(viewModel.submittedWords, ["alpha"])
+    }
+
+    func testRewindAfterCompletionClearsFinishedAt() {
+        let clock = FakeClock(times: [
+            Date(timeIntervalSince1970: 1),
+            Date(timeIntervalSince1970: 2),
+            Date(timeIntervalSince1970: 3),
+            Date(timeIntervalSince1970: 4)
+        ])
+        let viewModel = PracticeViewModel(
+            prompt: PracticePrompt(words: ["alpha", "beta"]),
+            now: clock.next
+        )
+
+        viewModel.type("alpha")
+        viewModel.handleSubmit()
+        viewModel.type("beta")
+        viewModel.handleSubmit()
+
+        XCTAssertEqual(viewModel.finishedAt, Date(timeIntervalSince1970: 2))
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertNil(viewModel.finishedAt)
+        XCTAssertEqual(viewModel.currentWordIndex, 1)
+        XCTAssertEqual(viewModel.currentInput, "beta")
+    }
+
+    func testMetricsRecalculatedAfterRewindAndResubmit() {
+        let viewModel = PracticeViewModel(prompt: PracticePrompt(words: ["hello", "world"]))
+
+        viewModel.type("hello")
+        viewModel.handleSubmit()
+        viewModel.type("wordd")
+        viewModel.handleSubmit()
+
+        XCTAssertEqual(viewModel.accuracy, 90, accuracy: 0.01)
+
+        viewModel.handleDeleteBackward()
+
+        XCTAssertEqual(viewModel.accuracy, 100, accuracy: 0.01)
+
+        while !viewModel.currentInput.isEmpty {
+            viewModel.handleDeleteBackward()
+        }
+        viewModel.type("world")
+        viewModel.handleSubmit()
+
+        XCTAssertEqual(viewModel.currentWordIndex, 2)
+        XCTAssertEqual(viewModel.accuracy, 100, accuracy: 0.01)
+        XCTAssertNotNil(viewModel.finishedAt)
     }
 }
 
@@ -251,5 +322,13 @@ private final class FakeClock {
         let value = times[min(index, times.count - 1)]
         index += 1
         return value
+    }
+}
+
+private extension PracticeViewModel {
+    func type(_ text: String) {
+        for character in text {
+            handleInsert(character)
+        }
     }
 }

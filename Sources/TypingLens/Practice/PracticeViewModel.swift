@@ -1,35 +1,59 @@
 import Foundation
 
+struct PracticeCommittedWord: Equatable {
+    let expected: String
+    let typed: String
+}
+
+struct PracticeSession: Equatable {
+    let promptWords: [String]
+    var committedWords: [PracticeCommittedWord]
+    var currentInput: String
+    var startedAt: Date?
+    var finishedAt: Date?
+
+    var currentWordIndex: Int {
+        committedWords.count
+    }
+
+    var isFinished: Bool {
+        currentWordIndex >= promptWords.count
+    }
+}
+
 final class PracticeViewModel: ObservableObject {
-    @Published var promptWords: [String]
-    @Published var currentInput: String = ""
-    @Published var submittedWords: [String] = []
-    @Published var startedAt: Date?
-    @Published var finishedAt: Date?
+    @Published private(set) var session: PracticeSession
 
     private let now: () -> Date
     private let onNewPrompt: () -> Void
-
-    private var totalExpectedCharactersTyped: Int = 0
-    private var accuracyCorrectCharacters: Int = 0
-    private var accuracyTotalCharacters: Int = 0
 
     init(
         prompt: PracticePrompt,
         now: @escaping () -> Date = Date.init,
         onNewPrompt: @escaping () -> Void = {}
     ) {
-        self.promptWords = prompt.words
+        self.session = PracticeSession(
+            promptWords: prompt.words,
+            committedWords: [],
+            currentInput: "",
+            startedAt: nil,
+            finishedAt: nil
+        )
         self.now = now
         self.onNewPrompt = onNewPrompt
     }
 
-    var currentWordIndex: Int {
-        submittedWords.count
-    }
+    var promptWords: [String] { session.promptWords }
+    var currentInput: String { session.currentInput }
+    var submittedWords: [String] { session.committedWords.map(\.typed) }
+    var startedAt: Date? { session.startedAt }
+    var finishedAt: Date? { session.finishedAt }
+    var currentWordIndex: Int { session.currentWordIndex }
+    var isFinished: Bool { session.isFinished }
 
-    var isFinished: Bool {
-        currentWordIndex >= promptWords.count
+    var canRestorePreviousWord: Bool {
+        guard session.currentInput.isEmpty else { return false }
+        return !session.committedWords.isEmpty
     }
 
     var progressLabel: String {
@@ -38,75 +62,130 @@ final class PracticeViewModel: ObservableObject {
 
     var wpm: Double {
         guard currentWordIndex > 0 else { return 0 }
-        guard let startedAt else { return 0 }
+        guard let startedAt = session.startedAt else { return 0 }
 
-        let endTime = finishedAt ?? now()
+        let endTime = session.finishedAt ?? now()
         let elapsed = endTime.timeIntervalSince(startedAt)
         guard elapsed > 0 else { return 0 }
 
-        return Double(totalExpectedCharactersTyped) / 5.0 / (elapsed / 60.0)
+        let expectedCharacterCount = session.committedWords.reduce(0) { partialResult, committed in
+            partialResult + committed.expected.count
+        }
+        return Double(expectedCharacterCount) / 5.0 / (elapsed / 60.0)
     }
 
     var accuracy: Double {
-        guard accuracyTotalCharacters > 0 else { return 100 }
-        return (Double(accuracyCorrectCharacters) / Double(accuracyTotalCharacters)) * 100
+        let (correct, total) = accuracyTotals()
+        guard total > 0 else { return 100 }
+        return (Double(correct) / Double(total)) * 100
     }
 
-    func handleTypedCharacter(_ character: Character) {
-        guard !isFinished else {
-            currentInput = ""
-            return
-        }
+    var currentWordExpected: String {
+        promptWords.indices.contains(currentWordIndex) ? promptWords[currentWordIndex] : ""
+    }
 
+    func handleInsert(_ character: Character) {
         if character.isWhitespace || character.isNewline {
-            submitCurrentWord()
+            handleSubmit()
             return
         }
 
-        currentInput.append(character)
-    }
-
-    func handleBackspace() {
-        guard !currentInput.isEmpty else { return }
-        currentInput.removeLast()
-    }
-
-    func submitCurrentWord() {
         guard !isFinished else { return }
 
+        updateSession {
+            $0.currentInput.append(character)
+        }
+    }
+
+    func handleSubmit() {
+        guard !session.isFinished else { return }
         let expectedWord = promptWords[currentWordIndex]
-        let typedWord = currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        currentInput = ""
 
-        guard !typedWord.isEmpty else { return }
+        let typedWord = session.currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if startedAt == nil {
-            startedAt = now()
+        guard !typedWord.isEmpty else {
+            updateSession { session in
+                session.currentInput = ""
+            }
+            return
         }
 
-        let (correct, total) = typedCharacterComparison(expected: expectedWord, typed: typedWord)
-        accuracyCorrectCharacters += correct
-        accuracyTotalCharacters += total
-        totalExpectedCharactersTyped += expectedWord.count
-        submittedWords.append(typedWord)
+        updateSession { session in
+            session.currentInput = ""
 
-        if isFinished {
-            finishedAt = now()
+            if session.startedAt == nil {
+                session.startedAt = now()
+            }
+
+            session.committedWords.append(
+                PracticeCommittedWord(expected: expectedWord, typed: typedWord)
+            )
+
+            if session.isFinished {
+                session.finishedAt = now()
+            }
+        }
+    }
+
+    func handleDeleteBackward() {
+        guard !session.currentInput.isEmpty else {
+            restorePreviousWordIfPossible()
+            return
+        }
+
+        updateSession {
+            _ = $0.currentInput.removeLast()
         }
     }
 
     func restart() {
-        currentInput = ""
-        submittedWords.removeAll()
-        startedAt = nil
-        finishedAt = nil
-        totalExpectedCharactersTyped = 0
-        accuracyCorrectCharacters = 0
-        accuracyTotalCharacters = 0
+        updateSession {
+            $0.committedWords.removeAll()
+            $0.currentInput = ""
+            $0.startedAt = nil
+            $0.finishedAt = nil
+        }
     }
 
     func requestNewPrompt() {
         onNewPrompt()
+    }
+
+    // Backward-compatible API used by existing call sites and tests.
+    func handleTypedCharacter(_ character: Character) {
+        handleInsert(character)
+    }
+
+    func handleBackspace() {
+        handleDeleteBackward()
+    }
+
+    private func restorePreviousWordIfPossible() {
+        guard canRestorePreviousWord else {
+            return
+        }
+
+        updateSession { session in
+            guard let restored = session.committedWords.popLast() else { return }
+            session.currentInput = restored.typed
+            session.finishedAt = nil
+        }
+    }
+
+    private func updateSession(_ update: (inout PracticeSession) -> Void) {
+        var updated = session
+        update(&updated)
+        session = updated
+    }
+
+    private func accuracyTotals() -> (correct: Int, total: Int) {
+        session.committedWords.reduce((0, 0)) { partial, committed in
+            let comparison = typedCharacterComparison(
+                expected: committed.expected,
+                typed: committed.typed
+            )
+            return (partial.0 + comparison.correct, partial.1 + comparison.total)
+        }
     }
 
     private func typedCharacterComparison(expected: String, typed: String) -> (correct: Int, total: Int) {

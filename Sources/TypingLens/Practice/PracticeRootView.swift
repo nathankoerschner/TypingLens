@@ -15,8 +15,9 @@ struct PracticeRootView: View {
             PracticeKeyCaptureView(
                 isDisabled: viewModel.isFinished,
                 focusToken: focusToken,
-                onCharacter: { viewModel.handleTypedCharacter($0) },
-                onBackspace: { viewModel.handleBackspace() }
+                onInsert: { viewModel.handleInsert($0) },
+                onSubmit: { viewModel.handleSubmit() },
+                onDeleteBackward: { viewModel.handleDeleteBackward() }
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
