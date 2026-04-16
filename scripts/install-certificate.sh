@@ -36,9 +36,25 @@ if [[ -z "$DETECTED_SIGNING_IDENTITY" ]]; then
   exit 1
 fi
 
+trimmed_team_id="$(printf '%s' "${APPLE_TEAM_ID:-}" | tr -d '[:space:]')"
+DETECTED_TEAM_ID="$(security find-certificate -c "$DETECTED_SIGNING_IDENTITY" -p "$KEYCHAIN_PATH" \
+  | openssl x509 -noout -subject -nameopt RFC2253 \
+  | sed -n 's/.*OU=\([^,]*\).*/\1/p' \
+  | head -n 1)"
+
+if [[ -z "$DETECTED_TEAM_ID" ]]; then
+  echo "error: could not detect Apple team ID from signing certificate: $DETECTED_SIGNING_IDENTITY" >&2
+  exit 1
+fi
+
+if [[ -n "$trimmed_team_id" && "$trimmed_team_id" != "$DETECTED_TEAM_ID" ]]; then
+  echo "warning: APPLE_TEAM_ID did not match the imported signing certificate; using certificate team ID instead" >&2
+fi
+
 if [[ -n "${GITHUB_ENV:-}" ]]; then
   echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
   echo "APPLE_SIGNING_IDENTITY=$DETECTED_SIGNING_IDENTITY" >> "$GITHUB_ENV"
+  echo "APPLE_TEAM_ID=$DETECTED_TEAM_ID" >> "$GITHUB_ENV"
 fi
 
 rm -f "$CERT_PATH"
