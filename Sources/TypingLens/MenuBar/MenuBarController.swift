@@ -61,7 +61,7 @@ final class MenuBarController: NSObject {
         static let loggingDisabled = loadTemplateImage(named: "logging-disabled")
 
         private static func loadTemplateImage(named name: String) -> NSImage? {
-            guard let url = Bundle.module.url(forResource: name, withExtension: "png"),
+            guard let url = TypingLensBundle.resources.url(forResource: name, withExtension: "png"),
                   let image = NSImage(contentsOf: url) else {
                 return nil
             }

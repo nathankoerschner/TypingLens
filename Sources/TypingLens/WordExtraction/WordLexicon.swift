@@ -32,7 +32,7 @@ struct WordLexicon {
         self.rankByWord = ranks
     }
 
-    init(bundle: Bundle = .module, resourceName: String = "common-words-en") throws {
+    init(bundle: Bundle = TypingLensBundle.resources, resourceName: String = "common-words-en") throws {
         guard let url = bundle.url(forResource: resourceName, withExtension: "txt") else {
             throw WordLexiconError.resourceNotFound(resourceName)
         }

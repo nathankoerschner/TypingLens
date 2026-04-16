@@ -3,13 +3,12 @@ import SwiftUI
 
 enum TypingLensBranding {
     static let appIcon: NSImage? = {
-        guard let url = Bundle.module.url(forResource: "app-icon", withExtension: "png"),
+        guard let url = TypingLensBundle.resources.url(forResource: "app-icon", withExtension: "png"),
               let image = NSImage(contentsOf: url) else {
             return nil
         }
         return image
     }()
-
     static func applyAppIcon() {
         guard let appIcon else { return }
 
