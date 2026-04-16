@@ -130,6 +130,12 @@ private struct PracticeWordSurface: View {
 
     @State private var wordFrames: [Int: CGRect] = [:]
     @State private var letterFrames: [PracticeLetterFrameID: CGRect] = [:]
+    @State private var displayedCaretTarget: PracticeCaretTarget?
+    private let caretAnimation = Animation.interactiveSpring(
+        response: 0.16,
+        dampingFraction: 0.82,
+        blendDuration: 0.05
+    )
 
     var body: some View {
         if wordRenderStates.isEmpty {
@@ -160,6 +166,10 @@ private struct PracticeWordSurface: View {
             .coordinateSpace(name: PracticePromptCoordinateSpace.name)
             .onPreferenceChange(PracticeWordFrameKey.self) { wordFrames = $0 }
             .onPreferenceChange(PracticeLetterFrameKey.self) { letterFrames = $0 }
+            .onAppear { displayedCaretTarget = resolvedCaretTarget }
+            .onChange(of: resolvedCaretTarget) { target in
+                updateDisplayedCaretTarget(target)
+            }
         }
     }
 
@@ -173,9 +183,25 @@ private struct PracticeWordSurface: View {
 
     @ViewBuilder
     private var caretOverlay: some View {
-        if let target = resolvedCaretTarget {
+        if let target = displayedCaretTarget {
             PracticeCaretView(caretHeight: target.height)
                 .offset(x: target.x, y: target.y)
+        }
+    }
+
+    private func updateDisplayedCaretTarget(_ target: PracticeCaretTarget?) {
+        guard let target else {
+            displayedCaretTarget = nil
+            return
+        }
+
+        if displayedCaretTarget == nil {
+            displayedCaretTarget = target
+            return
+        }
+
+        withAnimation(caretAnimation) {
+            displayedCaretTarget = target
         }
     }
 }
@@ -313,6 +339,7 @@ private struct PracticeCaretView: View {
             .fill(TypingLensTheme.primary)
             .frame(width: 2)
             .frame(height: max(caretHeight * 0.95, 24))
+            .animation(nil, value: caretHeight)
     }
 }
 

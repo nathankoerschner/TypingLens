@@ -59,4 +59,18 @@ final class PracticeCaretGeometryTests: XCTestCase {
             )
         )
     }
+
+    func testResolverReturnsTrailingEdgeForExtraLettersAcrossLineWrap() {
+        let target = resolvePracticeCaretTarget(
+            caretState: PracticeCaretState(wordIndex: 5, letterIndex: 8),
+            wordFrames: [5: CGRect(x: 24, y: 112, width: 120, height: 42)],
+            letterFrames: [
+                PracticeLetterFrameID(wordIndex: 5, letterIndex: 6): CGRect(x: 120, y: 112, width: 18, height: 42),
+                PracticeLetterFrameID(wordIndex: 5, letterIndex: 7): CGRect(x: 138, y: 112, width: 18, height: 42)
+            ]
+        )
+
+        XCTAssertEqual(target, PracticeCaretTarget(x: 156, y: 112, height: 42))
+    }
 }
+
