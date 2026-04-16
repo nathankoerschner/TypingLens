@@ -40,13 +40,14 @@ struct TypingLensLogoMark: View {
 
     var body: some View {
         Group {
-            if let image = TypingLensBranding.appIcon {
+            if let image = TypingLensBranding.toolbarIcon {
+                let aspectRatio = image.size.width / max(image.size.height, 1)
                 Image(nsImage: image)
                     .renderingMode(.template)
                     .resizable()
                     .interpolation(.high)
                     .foregroundStyle(color)
-                    .frame(width: size, height: size)
+                    .frame(width: size * aspectRatio, height: size)
             }
         }
         .accessibilityHidden(true)
@@ -58,7 +59,7 @@ struct TypingLensTitleLockup: View {
     let spacing: CGFloat
     let logoColor: Color
 
-    init(logoSize: CGFloat = 28, spacing: CGFloat = 10, logoColor: Color = TypingLensTheme.primary) {
+    init(logoSize: CGFloat = 28, spacing: CGFloat = 6, logoColor: Color = TypingLensTheme.primary) {
         self.logoSize = logoSize
         self.spacing = spacing
         self.logoColor = logoColor

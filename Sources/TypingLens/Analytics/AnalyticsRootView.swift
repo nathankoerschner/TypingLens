@@ -5,34 +5,36 @@ struct AnalyticsRootView: View {
     let onClose: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
+                header(topPadding: max(12, proxy.safeAreaInsets.top + 4))
+                Divider()
 
-            if let result = viewModel.result {
-                if result.words.isEmpty {
-                    emptyState
-                } else {
-                    HSplitView {
-                        analyticsTable(result.words)
-                        detailPane
+                if let result = viewModel.result {
+                    if result.words.isEmpty {
+                        emptyState
+                    } else {
+                        HSplitView {
+                            analyticsTable(result.words)
+                            detailPane
+                        }
                     }
+                } else if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.system(size: 14, weight: .regular, design: .monospaced))
+                        .foregroundStyle(TypingLensTheme.error)
+                        .padding(16)
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-            } else if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .font(.system(size: 14, weight: .regular, design: .monospaced))
-                    .foregroundStyle(TypingLensTheme.error)
-                    .padding(16)
-            } else {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .background(TypingLensTheme.background)
+            .foregroundStyle(TypingLensTheme.text)
         }
-        .background(TypingLensTheme.background)
-        .foregroundStyle(TypingLensTheme.text)
     }
 
-    private var header: some View {
+    private func header(topPadding: CGFloat) -> some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Analytics")
@@ -57,7 +59,8 @@ struct AnalyticsRootView: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.top, topPadding)
+        .padding(.bottom, 12)
     }
 
     private var emptyState: some View {

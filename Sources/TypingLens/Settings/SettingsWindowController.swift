@@ -31,12 +31,14 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
         let hostingController = NSHostingController(rootView: rootView)
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 640, height: 520),
-            styleMask: [.titled, .closable, .miniaturizable],
+            styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
 
         window.title = "TypingLens Settings"
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         window.center()
         window.isReleasedWhenClosed = false
         window.contentViewController = hostingController

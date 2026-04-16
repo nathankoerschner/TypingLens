@@ -7,9 +7,10 @@ struct SettingsRootView: View {
     var body: some View {
         let state = viewModel.state(for: appState)
 
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                TypingLensTitleLockup()
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    TypingLensTitleLockup()
 
                 VStack(alignment: .leading, spacing: 14) {
                     Toggle(
@@ -98,12 +99,15 @@ struct SettingsRootView: View {
                     }
                 }
                 .font(.system(size: 12, weight: .regular, design: .monospaced))
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, max(20, proxy.safeAreaInsets.top + 8))
+                .padding(.bottom, 20)
             }
-            .padding(20)
+            .frame(width: 640)
+            .background(TypingLensTheme.background)
+            .foregroundStyle(TypingLensTheme.text)
         }
-        .frame(width: 640)
-        .background(TypingLensTheme.background)
-        .foregroundStyle(TypingLensTheme.text)
     }
 }
 
