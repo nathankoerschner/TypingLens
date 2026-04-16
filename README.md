@@ -27,3 +27,8 @@
 
 3. **Practice against real weaknesses**  
    It generates drills and analytics from those results, giving you practice that reflects how you actually type.
+
+## License
+
+TypingLens is licensed under the GNU General Public License v3.0, in the same spirit as Monkeytype.
+See [`LICENSE`](./LICENSE).
