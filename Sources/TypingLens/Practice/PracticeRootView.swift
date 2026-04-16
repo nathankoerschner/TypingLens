@@ -11,37 +11,58 @@ struct PracticeRootView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            PracticeKeyCaptureView(
-                isDisabled: viewModel.isFinished,
-                focusToken: focusToken,
-                onInsert: { viewModel.handleInsert($0) },
-                onSubmit: { viewModel.handleSubmit() },
-                onDeleteBackward: { viewModel.handleDeleteBackward() }
-            )
-            .frame(width: 0, height: 0)
+        GeometryReader { proxy in
+            ZStack(alignment: .topLeading) {
+                PracticeKeyCaptureView(
+                    isDisabled: viewModel.isFinished,
+                    focusToken: focusToken,
+                    onInsert: { viewModel.handleInsert($0) },
+                    onSubmit: { viewModel.handleSubmit() },
+                    onDeleteBackward: { viewModel.handleDeleteBackward() }
+                )
+                .frame(width: 0, height: 0)
 
-            VStack(spacing: 24) {
-                metricsRow
-                promptView
-                Spacer(minLength: 0)
-                actionRow
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        pageHeader
+                            .padding(.bottom, 8)
+                        metricsRow
+                        promptView
+                            .padding(.top, 12)
+                        Spacer(minLength: 0)
+                        actionRow
+                            .padding(.top, 18)
+                            .opacity(0.9)
+                    }
+                    .frame(maxWidth: 980, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, minHeight: proxy.size.height - (contentTopPadding(for: proxy) + 32), alignment: .topLeading)
+                    .padding(.horizontal, 40)
+                    .padding(.top, contentTopPadding(for: proxy))
+                    .padding(.bottom, 32)
+                }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(TypingLensTheme.background)
+            .foregroundColor(TypingLensTheme.text)
+            .contentShape(Rectangle())
+            .onAppear {
+                focusToken = UUID()
+            }
+            .onChange(of: viewModel.promptWords) { _ in
+                focusToken = UUID()
+            }
+            .onTapGesture {
+                focusToken = UUID()
+            }
         }
-        .padding(32)
-        .background(TypingLensTheme.background)
-        .foregroundColor(TypingLensTheme.text)
-        .contentShape(Rectangle())
-        .onAppear {
-            focusToken = UUID()
-        }
-        .onChange(of: viewModel.promptWords) { _ in
-            focusToken = UUID()
-        }
-        .onTapGesture {
-            focusToken = UUID()
-        }
+    }
+
+    private func contentTopPadding(for proxy: GeometryProxy) -> CGFloat {
+        max(28, proxy.safeAreaInsets.top + 12)
+    }
+
+    private var pageHeader: some View {
+        TypingLensTitleLockup()
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var metricsRow: some View {
@@ -53,11 +74,12 @@ struct PracticeRootView: View {
             if viewModel.isFinished {
                 Text("Finished")
                     .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(TypingLensTheme.primary)
+                    .foregroundStyle(TypingLensTheme.accent)
                     .padding(.leading, 8)
             }
         }
-        .font(.system(size: 16, weight: .medium, design: .monospaced))
+        .font(.system(size: 15, weight: .medium, design: .monospaced))
+        .foregroundStyle(TypingLensTheme.subdued)
     }
 
     private var promptView: some View {
@@ -65,7 +87,7 @@ struct PracticeRootView: View {
             wordRenderStates: viewModel.wordRenderStates,
             caretState: viewModel.caretState
         )
-        .font(.system(size: 36, weight: .regular, design: .monospaced))
+        .font(.system(size: 40, weight: .regular, design: .monospaced))
         .multilineTextAlignment(.leading)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -96,8 +118,8 @@ private struct MetricChip: View {
                 .textCase(.uppercase)
                 .foregroundStyle(TypingLensTheme.subdued)
             Text(value)
-                .font(.system(size: 26, weight: .semibold, design: .monospaced))
-                .foregroundStyle(TypingLensTheme.primary)
+                .font(.system(size: 24, weight: .medium, design: .monospaced))
+                .foregroundStyle(TypingLensTheme.text.opacity(0.82))
         }
     }
 }

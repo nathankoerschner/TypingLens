@@ -16,7 +16,13 @@ enum TypingLensTheme {
     static let background = Color(hex: 0x323437)
     static let panel = Color(hex: 0x2C2E31)
     static let panelElevated = Color(hex: 0x3A3D41)
-    static let primary = Color(hex: 0xE2B714)
+    static let primary = Color(hex: 0xFF8A3D)
+    static let accent = Color(hex: 0xFF8A3D)
+    static let titleStyle = LinearGradient(
+        colors: [accent, accent],
+        startPoint: .top,
+        endPoint: .bottom
+    )
     static let text = Color(hex: 0xD1D0C5)
     static let subdued = Color(hex: 0x646669)
     static let error = Color(hex: 0xCA4754)

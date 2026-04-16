@@ -56,6 +56,22 @@ struct MenuBarState: Equatable {
 }
 
 final class MenuBarController: NSObject {
+    private enum MenuBarIcon {
+        static let loggingEnabled = loadTemplateImage(named: "logging-enabled")
+        static let loggingDisabled = loadTemplateImage(named: "logging-disabled")
+
+        private static func loadTemplateImage(named name: String) -> NSImage? {
+            guard let url = Bundle.module.url(forResource: name, withExtension: "png"),
+                  let image = NSImage(contentsOf: url) else {
+                return nil
+            }
+
+            image.isTemplate = true
+            image.size = NSSize(width: 20, height: 20)
+            return image
+        }
+    }
+
     private let statusItem: MenuBarStatusItemPresenting
     private let appState: AppState
     private let transcriptWriter: TranscriptWriting
@@ -131,12 +147,17 @@ final class MenuBarController: NSObject {
     private var statusImage: NSImage? {
         switch appState.loggingStatus {
         case .enabled:
-            return NSImage(systemSymbolName: "circle.fill", accessibilityDescription: "Logging enabled")
+            return Self.accessibleImage(MenuBarIcon.loggingEnabled, description: "Logging enabled")
         case .error:
             return NSImage(systemSymbolName: "exclamationmark.circle.fill", accessibilityDescription: "Logging error")
         default:
-            return NSImage(systemSymbolName: "circle", accessibilityDescription: "Logging disabled")
+            return Self.accessibleImage(MenuBarIcon.loggingDisabled, description: "Logging disabled")
         }
+    }
+
+    private static func accessibleImage(_ image: NSImage?, description: String) -> NSImage? {
+        image?.accessibilityDescription = description
+        return image
     }
 
     @objc private func enableLogging() {

@@ -9,7 +9,7 @@ struct PermissionGuidanceView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Permission required")
                 .font(.system(size: 22, weight: .semibold, design: .monospaced))
-                .foregroundStyle(TypingLensTheme.primary)
+                .foregroundStyle(TypingLensTheme.accent)
             Text("TypingLens needs permission to monitor keyboard input globally.")
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
             Text("Grant access in System Settings to enable logging.")

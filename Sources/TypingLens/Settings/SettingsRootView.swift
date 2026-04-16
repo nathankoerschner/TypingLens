@@ -8,15 +8,8 @@ struct SettingsRootView: View {
         let state = viewModel.state(for: appState)
 
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("TypingLens")
-                        .font(.system(size: 28, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(TypingLensTheme.primary)
-                    Text("Use the Monkeytype palette here too: muted chrome, warm accent, mono-heavy UI.")
-                        .font(.system(size: 13, weight: .regular, design: .monospaced))
-                        .foregroundStyle(TypingLensTheme.subdued)
-                }
+            VStack(alignment: .leading, spacing: 18) {
+                TypingLensTitleLockup()
 
                 VStack(alignment: .leading, spacing: 14) {
                     Toggle(
@@ -37,11 +30,14 @@ struct SettingsRootView: View {
 
                     HStack(spacing: 10) {
                         Button("Refresh", action: viewModel.refreshPermissionStatus)
+                            .frame(maxWidth: .infinity)
                             .buttonStyle(TypingLensFilledButtonStyle())
                         Button("Open System Settings", action: viewModel.openSystemSettings)
+                            .frame(maxWidth: .infinity)
                             .buttonStyle(TypingLensFilledButtonStyle(backgroundColor: TypingLensTheme.primary, foregroundColor: TypingLensTheme.background))
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .typingLensCard()
 
                 VStack(alignment: .leading, spacing: 12) {
@@ -56,28 +52,14 @@ struct SettingsRootView: View {
 
                     HStack(spacing: 10) {
                         Button("Reveal in Finder", action: viewModel.revealTranscript)
+                            .frame(maxWidth: .infinity)
                             .buttonStyle(TypingLensFilledButtonStyle())
                         Button("Clear Transcript", action: viewModel.clearTranscript)
+                            .frame(maxWidth: .infinity)
                             .buttonStyle(TypingLensFilledButtonStyle(backgroundColor: TypingLensTheme.errorMuted, foregroundColor: TypingLensTheme.text))
                     }
                 }
-                .typingLensCard()
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Actions")
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .textCase(.uppercase)
-                        .foregroundStyle(TypingLensTheme.subdued)
-
-                    HStack(spacing: 10) {
-                        Button("Extract Words", action: viewModel.extractWords)
-                            .buttonStyle(TypingLensFilledButtonStyle())
-                        Button("Export Ranked Words", action: viewModel.exportRankedWords)
-                            .buttonStyle(TypingLensFilledButtonStyle())
-                        Button("Practice Now", action: viewModel.practiceNow)
-                            .buttonStyle(TypingLensFilledButtonStyle(backgroundColor: TypingLensTheme.primary, foregroundColor: TypingLensTheme.background))
-                    }
-                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .typingLensCard()
 
                 VStack(alignment: .leading, spacing: 8) {

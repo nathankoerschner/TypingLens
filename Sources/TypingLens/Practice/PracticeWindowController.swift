@@ -2,10 +2,10 @@ import AppKit
 import SwiftUI
 
 final class PracticeWindowController: NSWindowController {
-    private let defaultWindowSize = NSSize(width: 900, height: 420)
-    private let minimumWindowSize = NSSize(width: 700, height: 320)
-    private let targetWidthRatio: CGFloat = 0.5
-    private let targetHeightRatio: CGFloat = 0.6
+    private let defaultWindowSize = NSSize(width: 1_080, height: 560)
+    private let minimumWindowSize = NSSize(width: 860, height: 420)
+    private let targetWidthRatio: CGFloat = 0.62
+    private let targetHeightRatio: CGFloat = 0.72
     private var hostingController: NSHostingController<PracticeRootView>?
     var onRequestNewPrompt: (() -> Void)?
 
@@ -19,11 +19,13 @@ final class PracticeWindowController: NSWindowController {
         )
         let window = NSWindow(
             contentRect: initialFrame,
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.title = "Typing Practice"
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
         window.minSize = minimumWindowSize
 

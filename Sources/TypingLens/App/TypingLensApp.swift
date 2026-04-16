@@ -12,6 +12,7 @@ struct TypingLensApp: App {
 
     init() {
         ApplicationBootstrap.configureMenuBarActivationPolicy()
+        TypingLensBranding.applyAppIcon()
 
         let fileLocations = FileLocations()
         let transcriptWriter = TranscriptWriter(fileLocations: fileLocations)
