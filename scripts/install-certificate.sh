@@ -11,9 +11,6 @@ CERT_PATH="${RUNNER_TEMP:-/tmp}/build_certificate.p12"
 KEYCHAIN_PATH="${RUNNER_TEMP:-/tmp}/typinglens-signing.keychain-db"
 export KEYCHAIN_PATH
 
-# Ensure the temporary keychain is always cleaned up in CI.
-register_keychain_cleanup
-
 rm -f "$CERT_PATH"
 rm -f "$KEYCHAIN_PATH"
 
