@@ -50,11 +50,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: typinglens-dmg
-          path: build/release/*.dmg
+          path: build/release/TypingLens-*.dmg
 
       - name: Publish tag release
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          gh release create "$GITHUB_REF_NAME" build/release/*.dmg --generate-notes
+          gh release create "$GITHUB_REF_NAME" "build/release/TypingLens-${GITHUB_REF_NAME#v}.dmg" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}

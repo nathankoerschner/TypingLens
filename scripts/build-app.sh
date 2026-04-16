@@ -6,6 +6,8 @@ source "$(dirname "$0")/lib/release-common.sh"
 mkdir -p "$BUILD_DIR"
 rm -rf "$ARCHIVE_PATH"
 rm -rf "$EXPORT_DIR"
+rm -f "$BUILD_DIR"/*.dmg
+rm -f "$BUILD_DIR"/*.zip
 
 TEMPLATE_EXPORT_OPTIONS="$ROOT_DIR/TypingLens/ExportOptions-DeveloperID.plist"
 GENERATED_EXPORT_OPTIONS="$BUILD_DIR/ExportOptions-DeveloperID.generated.plist"
