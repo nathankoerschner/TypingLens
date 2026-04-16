@@ -8,6 +8,14 @@ EXPORT_DIR="$BUILD_DIR/export"
 APP_PATH="$EXPORT_DIR/TypingLens.app"
 DMG_STAGING_DIR="$BUILD_DIR/dmg"
 
+if [[ -z "${KEYCHAIN_PATH:-}" && -n "${RUNNER_TEMP:-}" ]]; then
+  default_ci_keychain="$RUNNER_TEMP/typinglens-signing.keychain-db"
+  if [[ -f "$default_ci_keychain" ]]; then
+    KEYCHAIN_PATH="$default_ci_keychain"
+    export KEYCHAIN_PATH
+  fi
+fi
+
 current_version() {
   local plist_path
 

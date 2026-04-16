@@ -29,4 +29,8 @@ security default-keychain -s "$KEYCHAIN_PATH"
 security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
+if [[ -n "${GITHUB_ENV:-}" ]]; then
+  echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+fi
+
 rm -f "$CERT_PATH"
