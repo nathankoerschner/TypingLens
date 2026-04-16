@@ -21,19 +21,41 @@ else
   cp "$TEMPLATE_EXPORT_OPTIONS" "$GENERATED_EXPORT_OPTIONS"
 fi
 
-xcodebuild archive \
-  -project "$ROOT_DIR/TypingLens.xcodeproj" \
-  -scheme TypingLens \
-  -configuration Release \
-  -destination 'generic/platform=macOS' \
-  -archivePath "$ARCHIVE_PATH" \
-  ARCHS=arm64 \
+XCODEBUILD_ARGS=(
+  -project "$ROOT_DIR/TypingLens.xcodeproj"
+  -scheme TypingLens
+  -configuration Release
+  -destination 'generic/platform=macOS'
+  -archivePath "$ARCHIVE_PATH"
+  ARCHS=arm64
   ONLY_ACTIVE_ARCH=NO
+)
 
-xcodebuild -exportArchive \
-  -archivePath "$ARCHIVE_PATH" \
-  -exportPath "$EXPORT_DIR" \
+if [[ -n "${APPLE_TEAM_ID:-}" ]]; then
+  XCODEBUILD_ARGS+=(DEVELOPMENT_TEAM="$APPLE_TEAM_ID")
+fi
+
+if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
+  XCODEBUILD_ARGS+=(CODE_SIGN_IDENTITY="$APPLE_SIGNING_IDENTITY")
+fi
+
+if [[ -n "${KEYCHAIN_PATH:-}" ]]; then
+  XCODEBUILD_ARGS+=(OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH")
+fi
+
+xcodebuild archive "${XCODEBUILD_ARGS[@]}"
+
+EXPORT_ARGS=(
+  -archivePath "$ARCHIVE_PATH"
+  -exportPath "$EXPORT_DIR"
   -exportOptionsPlist "$GENERATED_EXPORT_OPTIONS"
+)
+
+if [[ -n "${KEYCHAIN_PATH:-}" ]]; then
+  EXPORT_ARGS+=(OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH")
+fi
+
+xcodebuild -exportArchive "${EXPORT_ARGS[@]}"
 
 [[ -d "$APP_PATH" ]] || { echo "error: exported app not found at $APP_PATH" >&2; exit 1; }
 
