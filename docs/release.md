@@ -14,6 +14,32 @@ export APPLE_SIGNING_IDENTITY="Developer ID Application: <Name> (<TEAM_ID>)" # o
 
 `APPLE_SIGNING_IDENTITY` is optional when building on a machine that already has the app signed by another step. The automated scripts require a signed app before notarization.
 
+## GitHub Actions secrets
+
+```text
+APPLE_DEVELOPER_ID
+APPLE_TEAM_ID
+APPLE_APP_SPECIFIC_PASSWORD
+BUILD_CERTIFICATE_BASE64
+P12_PASSWORD
+KEYCHAIN_PASSWORD
+APPLE_SIGNING_IDENTITY
+```
+
+`APPLE_SIGNING_IDENTITY` is optional in CI when the certificate already has the expected identity's default key partition list. If omitted, `xcodebuild` will fail on signing failures.
+
+## CI behavior
+
+- **Push to `main`**: Runs tests and release scripts, then uploads `TypingLens-*.dmg` as a workflow artifact.
+- **Push of tag `v*`**: Runs tests and release scripts, then creates a GitHub Release and attaches the DMG artifacts.
+
+## Recovery
+
+- Re-run the failed workflow after fixing secrets or certificate settings.
+- If notarization fails, inspect the notary log from workflow output.
+
+All release automation assumes the Developer ID certificate and Apple credentials belong to the same Apple Team ID (`APPLE_TEAM_ID`).
+
 ## Local release steps
 
 ```bash
