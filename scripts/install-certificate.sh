@@ -29,8 +29,16 @@ security default-keychain -s "$KEYCHAIN_PATH"
 security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
+DETECTED_SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F'"' '/Mac Developer ID Application:|Developer ID Application:/ { print $2; exit }')"
+
+if [[ -z "$DETECTED_SIGNING_IDENTITY" ]]; then
+  echo "error: could not detect Developer ID signing identity in $KEYCHAIN_PATH" >&2
+  exit 1
+fi
+
 if [[ -n "${GITHUB_ENV:-}" ]]; then
   echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+  echo "APPLE_SIGNING_IDENTITY=$DETECTED_SIGNING_IDENTITY" >> "$GITHUB_ENV"
 fi
 
 rm -f "$CERT_PATH"
