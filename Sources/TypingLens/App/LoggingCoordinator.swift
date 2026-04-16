@@ -7,6 +7,7 @@ final class LoggingCoordinator {
     private let keyboardMonitor: KeyboardMonitoring
     private let transcriptWriter: TranscriptWriting
     private let onOpenPractice: (PracticePrompt) -> Void
+    private let onOpenAnalytics: (AnalyticsResult) -> Void
     private var nextSeq: Int64 = 1
 
     init(
@@ -15,7 +16,8 @@ final class LoggingCoordinator {
         permissionManager: PermissionManaging,
         keyboardMonitor: KeyboardMonitoring,
         transcriptWriter: TranscriptWriting,
-        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in }
+        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in },
+        onOpenAnalytics: @escaping (AnalyticsResult) -> Void = { _ in }
     ) throws {
         self.appState = appState
         self.fileLocations = fileLocations
@@ -23,6 +25,7 @@ final class LoggingCoordinator {
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
         self.onOpenPractice = onOpenPractice
+        self.onOpenAnalytics = onOpenAnalytics
         self.nextSeq = try transcriptWriter.initializeNextSequence()
     }
 
@@ -33,6 +36,7 @@ final class LoggingCoordinator {
         keyboardMonitor: KeyboardMonitoring,
         transcriptWriter: TranscriptWriting,
         onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in },
+        onOpenAnalytics: @escaping (AnalyticsResult) -> Void = { _ in },
         initialSequence: Int64
     ) {
         self.appState = appState
@@ -41,6 +45,7 @@ final class LoggingCoordinator {
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
         self.onOpenPractice = onOpenPractice
+        self.onOpenAnalytics = onOpenAnalytics
         self.nextSeq = initialSequence
     }
 
@@ -158,6 +163,22 @@ final class LoggingCoordinator {
             onOpenPractice(prompt)
         } catch {
             appState.practiceStatus = "Practice generation failed: \(error.localizedDescription)"
+        }
+    }
+
+    func showAnalyticsRequested() {
+        let service = AnalyticsService(fileLocations: fileLocations)
+
+        do {
+            let result = try service.analyze()
+            if result.words.isEmpty {
+                appState.analyticsStatus = "No analytics available yet"
+            } else {
+                appState.analyticsStatus = nil
+            }
+            onOpenAnalytics(result)
+        } catch {
+            appState.analyticsStatus = "Analytics generation failed: \(error.localizedDescription)"
         }
     }
 

@@ -239,13 +239,73 @@ final class LoggingCoordinatorTests: XCTestCase {
         XCTAssertEqual(appState.practiceStatus, "Practice generation failed: Transcript file not found.")
     }
 
+    func testShowAnalyticsOpensWindowWhenTranscriptProducesRows() {
+        var openedResults: [AnalyticsResult] = []
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinatorWithOpenCallback(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter(),
+            transcriptEvents: transcriptEvents(for: ["hello", "world"]),
+            onOpenAnalytics: { openedResults.append($0) }
+        )
+
+        coordinator.showAnalyticsRequested()
+
+        XCTAssertEqual(openedResults.count, 1)
+        XCTAssertNil(appState.analyticsStatus)
+        XCTAssertGreaterThan(openedResults.first?.totalUniqueWords ?? 0, 0)
+    }
+
+    func testShowAnalyticsStillOpensWindowForEmptyResult() {
+        var openedResults: [AnalyticsResult] = []
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinatorWithOpenCallback(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter(),
+            transcriptEvents: sampleWhitespaceEvents(),
+            onOpenAnalytics: { openedResults.append($0) }
+        )
+
+        coordinator.showAnalyticsRequested()
+
+        XCTAssertEqual(openedResults.count, 1)
+        XCTAssertEqual(openedResults.first?.totalUniqueWords, 0)
+        XCTAssertEqual(openedResults.first?.words.count, 0)
+        XCTAssertEqual(appState.analyticsStatus, "No analytics available yet")
+    }
+
+    func testShowAnalyticsSetsFailureStatusWhenTranscriptMissing() {
+        let appState = makeAppState()
+        let monitor = StubKeyboardMonitor()
+        let permissionManager = StubPermissionManager(status: .granted)
+        let coordinator = makeCoordinator(
+            appState: appState,
+            permissionManager: permissionManager,
+            keyboardMonitor: monitor,
+            transcriptWriter: StubTranscriptWriter()
+        )
+
+        coordinator.showAnalyticsRequested()
+
+        XCTAssertEqual(appState.analyticsStatus, "Analytics generation failed: Transcript file not found.")
+    }
+
     private func makeCoordinatorWithOpenCallback(
         appState: AppState,
         permissionManager: PermissionManaging,
         keyboardMonitor: StubKeyboardMonitor,
         transcriptWriter: TranscriptWriting,
         transcriptEvents: [TranscriptEvent],
-        onOpenPractice: @escaping (PracticePrompt) -> Void
+        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in },
+        onOpenAnalytics: @escaping (AnalyticsResult) -> Void = { _ in }
     ) -> LoggingCoordinator {
         do {
             let tempDir = FileManager.default.temporaryDirectory
@@ -259,7 +319,8 @@ final class LoggingCoordinatorTests: XCTestCase {
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter,
-                onOpenPractice: onOpenPractice
+                onOpenPractice: onOpenPractice,
+                onOpenAnalytics: onOpenAnalytics
             )
         } catch {
             fatalError("Unexpected coordinator initialization failure: \(error.localizedDescription)")

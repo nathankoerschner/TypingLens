@@ -37,6 +37,15 @@ final class MenuBarControllerTests: XCTestCase {
         )
         try assertActionItem(
             in: menu,
+            title: "Open Analytics",
+            expectedAction: "openAnalytics",
+            target: target,
+            isEnabled: true,
+            keyEquivalent: "",
+            modifiers: []
+        )
+        try assertActionItem(
+            in: menu,
             title: "Practice Now",
             expectedAction: "practiceNow",
             target: target,
@@ -95,6 +104,7 @@ private final class StubMenuActionTarget: NSObject {
     @objc func enableLogging() {}
     @objc func disableLogging() {}
     @objc func openSettings() {}
+    @objc func openAnalytics() {}
     @objc func practiceNow() {}
     @objc func revealTranscript() {}
     @objc func clearTranscript() {}

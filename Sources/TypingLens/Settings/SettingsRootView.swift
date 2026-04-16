@@ -58,6 +58,15 @@ struct SettingsRootView: View {
                             .frame(maxWidth: .infinity)
                             .buttonStyle(TypingLensFilledButtonStyle(backgroundColor: TypingLensTheme.errorMuted, foregroundColor: TypingLensTheme.text))
                     }
+
+                    HStack(spacing: 10) {
+                        Button("Practice Now", action: viewModel.practiceNow)
+                            .frame(maxWidth: .infinity)
+                            .buttonStyle(TypingLensFilledButtonStyle())
+                        Button("Open Analytics", action: viewModel.openAnalytics)
+                            .frame(maxWidth: .infinity)
+                            .buttonStyle(TypingLensFilledButtonStyle())
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .typingLensCard()
@@ -80,6 +89,11 @@ struct SettingsRootView: View {
 
                     if let practiceStatus = state.practiceStatus {
                         Text(practiceStatus)
+                            .foregroundStyle(TypingLensTheme.subdued)
+                    }
+
+                    if let analyticsStatus = state.analyticsStatus {
+                        Text(analyticsStatus)
                             .foregroundStyle(TypingLensTheme.subdued)
                     }
                 }

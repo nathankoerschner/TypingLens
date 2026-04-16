@@ -13,6 +13,7 @@ final class SettingsViewModelTests: XCTestCase {
         appState.extractionStatus = "Extracted 5 words"
         appState.rankedExportStatus = "Ranked 3 unique words"
         appState.practiceStatus = "No words available for practice"
+        appState.analyticsStatus = "No analytics available yet"
 
         let state = viewModel.state(for: appState)
 
@@ -24,6 +25,7 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(state.extractionStatus, "Extracted 5 words")
         XCTAssertEqual(state.rankedExportStatus, "Ranked 3 unique words")
         XCTAssertEqual(state.practiceStatus, "No words available for practice")
+        XCTAssertEqual(state.analyticsStatus, "No analytics available yet")
     }
 
     func testActionCallbacksAreForwarded() {
@@ -35,6 +37,7 @@ final class SettingsViewModelTests: XCTestCase {
         var didExtractWords = false
         var didExportRankedWords = false
         var didPracticeNow = false
+        var didOpenAnalytics = false
 
         let viewModel = SettingsViewModel(
             onRefreshPermissionStatus: { didRefresh = true },
@@ -44,7 +47,8 @@ final class SettingsViewModelTests: XCTestCase {
             onToggleLaunchAtLogin: { didToggle = $0 },
             onExtractWords: { didExtractWords = true },
             onExportRankedWords: { didExportRankedWords = true },
-            onPracticeNow: { didPracticeNow = true }
+            onPracticeNow: { didPracticeNow = true },
+            onOpenAnalytics: { didOpenAnalytics = true }
         )
 
         viewModel.refreshPermissionStatus()
@@ -55,6 +59,7 @@ final class SettingsViewModelTests: XCTestCase {
         viewModel.extractWords()
         viewModel.exportRankedWords()
         viewModel.practiceNow()
+        viewModel.openAnalytics()
 
         XCTAssertTrue(didRefresh)
         XCTAssertTrue(didOpenSystemSettings)
@@ -64,6 +69,7 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertTrue(didExtractWords)
         XCTAssertTrue(didExportRankedWords)
         XCTAssertTrue(didPracticeNow)
+        XCTAssertTrue(didOpenAnalytics)
     }
 
     private func makeViewModel() -> SettingsViewModel {
@@ -75,7 +81,8 @@ final class SettingsViewModelTests: XCTestCase {
             onToggleLaunchAtLogin: { _ in },
             onExtractWords: {},
             onExportRankedWords: {},
-            onPracticeNow: {}
+            onPracticeNow: {},
+            onOpenAnalytics: {}
         )
     }
 }
