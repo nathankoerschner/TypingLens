@@ -48,7 +48,6 @@
 		5d965af454117a300026c904 /* WordRanker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9a6a0de433dfb901b3181b9c; };
 		752ccfa94ab47bb4e196b1af /* app-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 018cc0c410054aa1c1b68c2f; };
 		f5413298fe1dfcea8b90534d /* common-words-en.txt in Resources */ = {isa = PBXBuildFile; fileRef = bca1f2c43e0da4492cef9448; };
-		8cce8080052ffc22edfc8333 /* logging-disabled.png in Resources */ = {isa = PBXBuildFile; fileRef = 48211866fe71aaf95db9c7d6; };
 		7bd76a2bc9c11866072ea052 /* logging-enabled.png in Resources */ = {isa = PBXBuildFile; fileRef = cbf05361cdd94c063d8fb8a0; };
 		8f1b9e4a2c3d4e5f60718293 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 91a2b3c4d5e6f708192a3b4c; };
 	/* End PBXBuildFile section */
@@ -96,7 +95,6 @@
 		9a6a0de433dfb901b3181b9c /* WordRanker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/WordExtraction/WordRanker.swift; sourceTree = SOURCE_ROOT; };
 		018cc0c410054aa1c1b68c2f /* app-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Sources/TypingLens/Resources/app-icon.png; sourceTree = SOURCE_ROOT; };
 		bca1f2c43e0da4492cef9448 /* common-words-en.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Sources/TypingLens/Resources/common-words-en.txt; sourceTree = SOURCE_ROOT; };
-		48211866fe71aaf95db9c7d6 /* logging-disabled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Sources/TypingLens/Resources/logging-disabled.png; sourceTree = SOURCE_ROOT; };
 		cbf05361cdd94c063d8fb8a0 /* logging-enabled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Sources/TypingLens/Resources/logging-enabled.png; sourceTree = SOURCE_ROOT; };
 		91a2b3c4d5e6f708192a3b4c /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = TypingLens/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		d40b6daa369c26672a202a04 /* TypingLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TypingLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -119,7 +117,6 @@
 			files = (
 				752ccfa94ab47bb4e196b1af,
 				f5413298fe1dfcea8b90534d,
-				8cce8080052ffc22edfc8333,
 				7bd76a2bc9c11866072ea052,
 				8f1b9e4a2c3d4e5f60718293,
 			);
@@ -230,7 +227,6 @@
 			children = (
 				018cc0c410054aa1c1b68c2f,
 				bca1f2c43e0da4492cef9448,
-				48211866fe71aaf95db9c7d6,
 				cbf05361cdd94c063d8fb8a0,
 				91a2b3c4d5e6f708192a3b4c,
 			);
