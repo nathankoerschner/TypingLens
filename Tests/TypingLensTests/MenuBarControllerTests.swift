@@ -40,7 +40,9 @@ final class MenuBarControllerTests: XCTestCase {
             title: "Practice Now",
             expectedAction: "practiceNow",
             target: target,
-            isEnabled: true
+            isEnabled: true,
+            keyEquivalent: "",
+            modifiers: []
         )
         try assertActionItem(
             in: menu,
@@ -71,6 +73,8 @@ final class MenuBarControllerTests: XCTestCase {
         expectedAction: String,
         target: AnyObject,
         isEnabled: Bool,
+        keyEquivalent: String? = nil,
+        modifiers: NSEvent.ModifierFlags? = nil,
         file: StaticString = #filePath,
         line: UInt = #line
     ) throws {
@@ -78,6 +82,12 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertEqual(item.action.map(NSStringFromSelector), expectedAction, file: file, line: line)
         XCTAssertTrue(item.target === target, file: file, line: line)
         XCTAssertEqual(item.isEnabled, isEnabled, file: file, line: line)
+        if let keyEquivalent {
+            XCTAssertEqual(item.keyEquivalent, keyEquivalent, file: file, line: line)
+        }
+        if let modifiers {
+            XCTAssertEqual(item.keyEquivalentModifierMask, modifiers, file: file, line: line)
+        }
     }
 }
 

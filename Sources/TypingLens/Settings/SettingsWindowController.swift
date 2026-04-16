@@ -28,7 +28,7 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
         )
         let hostingController = NSHostingController(rootView: rootView)
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 300),
+            contentRect: NSRect(x: 0, y: 0, width: 640, height: 520),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -38,7 +38,7 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing 
         window.center()
         window.isReleasedWhenClosed = false
         window.contentViewController = hostingController
-        window.setContentSize(NSSize(width: 560, height: 300))
+        window.setContentSize(NSSize(width: 640, height: 520))
 
         super.init(window: window)
         shouldCascadeWindows = false

@@ -113,8 +113,16 @@ final class MenuBarController: NSObject {
         return menu
     }
 
-    private static func actionItem(title: String, action: Selector, keyEquivalent: String, target: AnyObject, isEnabled: Bool = true) -> NSMenuItem {
+    private static func actionItem(
+        title: String,
+        action: Selector,
+        keyEquivalent: String,
+        modifiers: NSEvent.ModifierFlags = [.command],
+        target: AnyObject,
+        isEnabled: Bool = true
+    ) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
+        item.keyEquivalentModifierMask = keyEquivalent.isEmpty ? [] : modifiers
         item.target = target
         item.isEnabled = isEnabled
         return item

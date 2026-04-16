@@ -6,22 +6,31 @@ struct PermissionGuidanceView: View {
     let dismiss: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Permission required")
+                .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                .foregroundStyle(TypingLensTheme.primary)
             Text("TypingLens needs permission to monitor keyboard input globally.")
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
             Text("Grant access in System Settings to enable logging.")
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
+                .foregroundStyle(TypingLensTheme.subdued)
 
-            HStack {
+            HStack(spacing: 10) {
                 Button("Cancel", action: dismiss)
+                    .buttonStyle(TypingLensFilledButtonStyle())
                 Button("Open System Settings") {
                     openSystemSettings()
                     dismiss()
                 }
+                .buttonStyle(TypingLensFilledButtonStyle(backgroundColor: TypingLensTheme.primary, foregroundColor: TypingLensTheme.background))
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding()
-        .frame(width: 420)
+        .padding(20)
+        .frame(width: 460)
+        .background(TypingLensTheme.background)
+        .foregroundStyle(TypingLensTheme.text)
     }
 }
 

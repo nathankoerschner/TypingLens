@@ -30,8 +30,8 @@ struct PracticeRootView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .padding(32)
-        .background(Color.black)
-        .foregroundColor(.white)
+        .background(TypingLensTheme.background)
+        .foregroundColor(TypingLensTheme.text)
         .contentShape(Rectangle())
         .onAppear {
             focusToken = UUID()
@@ -52,12 +52,12 @@ struct PracticeRootView: View {
 
             if viewModel.isFinished {
                 Text("Finished")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.yellow.opacity(0.8))
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(TypingLensTheme.primary)
                     .padding(.leading, 8)
             }
         }
-        .font(.headline)
+        .font(.system(size: 16, weight: .medium, design: .monospaced))
     }
 
     private var promptView: some View {
@@ -65,7 +65,7 @@ struct PracticeRootView: View {
             wordRenderStates: viewModel.wordRenderStates,
             caretState: viewModel.caretState
         )
-        .font(.system(size: 34, weight: .regular, design: .monospaced))
+        .font(.system(size: 36, weight: .regular, design: .monospaced))
         .multilineTextAlignment(.leading)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -73,10 +73,13 @@ struct PracticeRootView: View {
     }
 
     private var actionRow: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             Button("Restart", action: viewModel.restart)
+                .buttonStyle(TypingLensFilledButtonStyle())
             Button("New Prompt", action: viewModel.requestNewPrompt)
+                .buttonStyle(TypingLensFilledButtonStyle(backgroundColor: TypingLensTheme.primary, foregroundColor: TypingLensTheme.background))
             Button("Close", action: onClose)
+                .buttonStyle(TypingLensFilledButtonStyle())
         }
     }
 
@@ -89,12 +92,12 @@ private struct MetricChip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .font(.caption)
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .textCase(.uppercase)
-                .foregroundStyle(.white.opacity(0.6))
+                .foregroundStyle(TypingLensTheme.subdued)
             Text(value)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)
+                .font(.system(size: 26, weight: .semibold, design: .monospaced))
+                .foregroundStyle(TypingLensTheme.primary)
         }
     }
 }
@@ -106,8 +109,8 @@ private struct PracticeWordSurface: View {
     var body: some View {
         if wordRenderStates.isEmpty {
             Text("No words available")
-                .foregroundColor(Color.white.opacity(0.5))
-                .font(.title3)
+                .foregroundColor(TypingLensTheme.subdued)
+                .font(.system(size: 22, weight: .medium, design: .monospaced))
         } else {
             PracticeFlowLayout(horizontalSpacing: 12, verticalSpacing: 14) {
                 ForEach(wordRenderStates) { word in
@@ -139,18 +142,22 @@ private struct PracticeWordView: View, Equatable {
     private var wordColor: Color {
         switch wordRenderState.role {
         case .submitted:
-            return Color.white.opacity(0.65)
+            return TypingLensTheme.text
         case .active:
-            return .white
+            return TypingLensTheme.subdued
         case .upcoming:
-            return Color.white.opacity(0.28)
+            return TypingLensTheme.subdued.opacity(0.52)
         }
     }
 
     private var wordLetters: some View {
         HStack(spacing: 0) {
             ForEach(wordRenderState.letters) { letter in
-                PracticeLetterView(letter: letter, fallbackColor: wordColor)
+                PracticeLetterView(
+                    letter: letter,
+                    wordRole: wordRenderState.role,
+                    fallbackColor: wordColor
+                )
             }
         }
     }
@@ -160,7 +167,11 @@ private struct PracticeWordView: View, Equatable {
 
         return HStack(spacing: 0) {
             ForEach(wordRenderState.letters) { letter in
-                PracticeLetterView(letter: letter, fallbackColor: wordColor)
+                PracticeLetterView(
+                    letter: letter,
+                    wordRole: wordRenderState.role,
+                    fallbackColor: wordColor
+                )
                     .background(
                         GeometryReader { proxy in
                             Color.clear.preference(
@@ -208,25 +219,84 @@ private struct PracticeWordView: View, Equatable {
 
 private struct PracticeLetterView: View, Equatable {
     let letter: PracticeLetterRenderState
+    let wordRole: PracticeWordRole
     let fallbackColor: Color
 
     var body: some View {
         Text(String(letter.character))
             .foregroundStyle(letterColor)
+            .opacity(letterOpacity)
+            .overlay(alignment: .bottom) {
+                if underlineColor != .clear {
+                    Rectangle()
+                        .fill(underlineColor)
+                        .frame(height: 2)
+                        .offset(y: 3)
+                }
+            }
     }
 
     private var letterColor: Color {
         switch letter.role {
         case .correct:
-            return .green
+            switch wordRole {
+            case .active:
+                return TypingLensTheme.text
+            case .submitted:
+                return TypingLensTheme.text
+            case .upcoming:
+                return fallbackColor
+            }
         case .incorrect:
-            return .red
+            return TypingLensTheme.error
         case .extra:
-            return .red
+            return TypingLensTheme.errorMuted
         case .missing:
-            return fallbackColor
+            return TypingLensTheme.subdued
         case .pending:
             return fallbackColor
+        }
+    }
+
+    private var letterOpacity: Double {
+        switch letter.role {
+        case .correct:
+            switch wordRole {
+            case .active:
+                return 1
+            case .submitted:
+                return 1
+            case .upcoming:
+                return 0.7
+            }
+        case .incorrect:
+            return wordRole == .submitted ? 0.9 : 1
+        case .extra:
+            return wordRole == .submitted ? 0.82 : 0.95
+        case .missing:
+            return wordRole == .submitted ? 0.38 : 0.8
+        case .pending:
+            switch wordRole {
+            case .active:
+                return 0.88
+            case .submitted:
+                return 0.6
+            case .upcoming:
+                return 0.72
+            }
+        }
+    }
+
+    private var underlineColor: Color {
+        switch letter.role {
+        case .incorrect:
+            return TypingLensTheme.error
+        case .extra:
+            return TypingLensTheme.errorMuted
+        case .missing:
+            return wordRole == .submitted ? TypingLensTheme.subdued.opacity(0.5) : .clear
+        case .correct, .pending:
+            return .clear
         }
     }
 }
@@ -236,7 +306,7 @@ private struct PracticeCaretView: View {
 
     var body: some View {
         Rectangle()
-            .fill(Color.yellow)
+            .fill(TypingLensTheme.primary)
             .frame(width: 2)
             .frame(height: max(caretHeight * 0.95, 24))
     }

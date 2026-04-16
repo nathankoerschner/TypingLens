@@ -9,7 +9,6 @@ struct TypingLensApp: App {
     private let practiceWindowController: PracticeWindowController
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
-    private let externalPracticeRequestObserver: NSObjectProtocol
 
     init() {
         ApplicationBootstrap.configureMenuBarActivationPolicy()
@@ -17,7 +16,8 @@ struct TypingLensApp: App {
         let fileLocations = FileLocations()
         let transcriptWriter = TranscriptWriter(fileLocations: fileLocations)
         let permissionManager = PermissionManager()
-        let launchAtLoginManager = LaunchAtLoginManager()
+        let preferencesStore = PreferencesStore()
+        let launchAtLoginManager = LaunchAtLoginManager(preferencesStore: preferencesStore)
         self.launchAtLoginManager = launchAtLoginManager
         let state = AppState(
             transcriptPath: fileLocations.transcriptURL.path,
@@ -105,13 +105,6 @@ struct TypingLensApp: App {
         ) { _ in
             loggingCoordinator.handleAppDidBecomeActive()
             menuBarController.rebuildMenu()
-        }
-        self.externalPracticeRequestObserver = DistributedNotificationCenter.default().addObserver(
-            forName: Notification.Name("com.natkoersch.typinglens.practice-now"),
-            object: nil,
-            queue: .main
-        ) { _ in
-            loggingCoordinator.practiceNowRequested()
         }
     }
 
