@@ -1,8 +1,31 @@
 import AppKit
 import SwiftUI
 
+@MainActor
+private enum QuitInterception {
+    static func dismissCurrentUI(application: NSApplication = .shared) {
+        if let window = application.keyWindow
+            ?? application.mainWindow
+            ?? application.orderedWindows.first(where: { $0.isVisible })
+        {
+            window.performClose(nil)
+            return
+        }
+
+        application.hide(nil)
+    }
+}
+
+final class TypingLensAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        QuitInterception.dismissCurrentUI(application: sender)
+        return .terminateCancel
+    }
+}
+
 @main
 struct TypingLensApp: App {
+    @NSApplicationDelegateAdaptor(TypingLensAppDelegate.self) private var appDelegate
     @StateObject private var appState: AppState
     private let loggingCoordinator: LoggingCoordinator
     private let menuBarController: MenuBarController
