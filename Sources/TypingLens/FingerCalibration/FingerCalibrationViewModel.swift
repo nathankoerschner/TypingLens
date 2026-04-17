@@ -15,22 +15,84 @@ final class FingerCalibrationViewModel: ObservableObject {
     @Published var selectedKeyID: String?
     @Published var draftCalibrationName: String = ""
 
-    private let store: FingerCalibrationStore
-    private let appState: AppState
+    @Published var availableCameras: [CameraOption] = []
+    @Published var selectedCameraID: String?
+    @Published var isCameraRunning = false
+    @Published var isCameraMirrored = false {
+        didSet {
+            cameraService.isMirroringEnabled = isCameraMirrored
+        }
+    }
+    @Published var liveFrame: CGImage?
+    @Published var frozenFrame: CGImage?
+    @Published var recentTrackedFrames: [TrackedFrame] = []
+    @Published var showKeyboardOverlay = true
+    @Published var showKeyCenters = true
+    @Published var showFingerLabels = true
+    @Published var showHandLandmarks = true
+    @Published var showDebugAnnotations = false
 
     @Published private(set) var canvasSize: CGSize = CGSize(width: 1_000, height: 620)
+
+    private let store: FingerCalibrationStore
+    private let appState: AppState
+    private let cameraService: CameraFrameServing
+    private let handTrackingService: HandTrackingServing
+    private var frozenTrackedFrame: TrackedFrame?
+    private let maxFrameHistory = 90
 
     init(
         appState: AppState,
         store: FingerCalibrationStore = FingerCalibrationStore(fileLocations: FileLocations()),
+        cameraService: CameraFrameServing = AVFoundationCameraFrameService(),
+        handTrackingService: HandTrackingServing = UnavailableHandTrackingService(),
         defaultCalibration: FingerCalibration = FingerCalibration.makeDefault(name: "Untitled Calibration")
     ) {
         self.appState = appState
         self.store = store
+        self.cameraService = cameraService
+        self.handTrackingService = handTrackingService
         self.activeCalibration = defaultCalibration
+        self.cameraService.isMirroringEnabled = false
         self.draftCalibrationName = defaultCalibration.name
         self.selectedKeyLabel = nil
+
         refreshSavedCalibrations()
+        refreshAvailableCameras()
+        trackingStatus = handTrackingService.isAvailable ? "\(handTrackingService.backendName) ready" : "\(handTrackingService.backendName) unavailable"
+    }
+
+    deinit {
+        cameraService.stop()
+    }
+
+    var displayedFrame: CGImage? {
+        isFrozen ? frozenFrame : liveFrame
+    }
+
+    var displayedFingertips: [TrackedFingertip] {
+        let frame = isFrozen ? frozenTrackedFrame : recentTrackedFrames.last
+        return frame?.fingertips ?? []
+    }
+
+    var canvasStatusMessage: String? {
+        if availableCameras.isEmpty {
+            return "No camera available"
+        }
+
+        if isCameraRunning {
+            if displayedFrame == nil {
+                return "Camera started\nWaiting for frame"
+            }
+
+            if recentTrackedFrames.isEmpty {
+                return trackingStatus
+            }
+
+            return nil
+        }
+
+        return nil
     }
 
     var projectedKeys: [String: CGRect] {
@@ -53,14 +115,79 @@ final class FingerCalibrationViewModel: ObservableObject {
         canvasSize = size
     }
 
+    func refreshAvailableCameras() {
+        availableCameras = cameraService.availableCameras()
+
+        if let selectedCameraID, availableCameras.contains(where: { $0.id == selectedCameraID }) {
+            return
+        }
+
+        selectedCameraID = availableCameras.first?.id
+        if availableCameras.isEmpty {
+            cameraStatus = "No camera available"
+            trackingStatus = "Tracking unavailable"
+        }
+    }
+
+    func setCameraSelection(_ cameraID: String) {
+        guard availableCameras.contains(where: { $0.id == cameraID }) else { return }
+        selectedCameraID = cameraID
+    }
+
+    func setCameraMirroring(_ isEnabled: Bool) {
+        isCameraMirrored = isEnabled
+    }
+
+    func startCamera() {
+        guard !isCameraRunning else { return }
+
+        guard let selectedCameraID else {
+            cameraStatus = "Select a camera before starting"
+            appState.fingerCalibrationStatus = cameraStatus
+            return
+        }
+
+        cameraService.onFrame = { [weak self] frame in
+            Task { @MainActor in
+                self?.handleCapturedFrame(frame)
+            }
+        }
+
+        do {
+            try cameraService.start(cameraID: selectedCameraID)
+            isCameraRunning = true
+            cameraStatus = "Camera running"
+            appState.fingerCalibrationStatus = cameraStatus
+            trackingStatus = handTrackingService.isAvailable ? "\(handTrackingService.backendName) ready" : "\(handTrackingService.backendName) unavailable"
+        } catch {
+            isCameraRunning = false
+            cameraStatus = "Failed to start camera: \(error.localizedDescription)"
+            appState.fingerCalibrationStatus = cameraStatus
+        }
+    }
+
+    func stopCamera() {
+        guard isCameraRunning else { return }
+
+        cameraService.stop()
+        isCameraRunning = false
+        liveFrame = nil
+        cameraStatus = "Camera stopped"
+        appState.fingerCalibrationStatus = cameraStatus
+    }
+
     func freezeFrame() {
         isFrozen = true
+        frozenFrame = liveFrame
+        frozenTrackedFrame = recentTrackedFrames.last
         calibrationStatus = "Frame frozen for editing"
         appState.fingerCalibrationStatus = "Frame frozen for editing"
     }
 
     func resumeLiveFrame() {
         isFrozen = false
+        frozenFrame = nil
+        frozenTrackedFrame = nil
         calibrationStatus = "Live frame editing resumed"
         appState.fingerCalibrationStatus = "Live frame editing resumed"
     }
@@ -199,5 +326,29 @@ final class FingerCalibrationViewModel: ObservableObject {
 
     func activeCalibrationNameOrFallback() -> String {
         activeCalibration?.name ?? ""
+    }
+
+    func receive(trackedFrame: TrackedFrame) {
+        handleTrackedFrame(trackedFrame)
+    }
+
+    func receive(capturedFrame: CapturedFrame) {
+        handleCapturedFrame(capturedFrame)
+    }
+
+    private func handleTrackedFrame(_ trackedFrame: TrackedFrame) {
+        recentTrackedFrames.append(trackedFrame)
+        if recentTrackedFrames.count > maxFrameHistory {
+            recentTrackedFrames.removeFirst(recentTrackedFrames.count - maxFrameHistory)
+        }
+        trackingStatus = trackedFrame.backendStatus
+    }
+
+    private func handleCapturedFrame(_ frame: CapturedFrame) {
+        guard !isFrozen else { return }
+
+        liveFrame = frame.image
+        let trackedFrame = handTrackingService.track(frame: frame)
+        handleTrackedFrame(trackedFrame)
     }
 }

@@ -72,15 +72,68 @@ final class FingerCalibrationViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.savedCalibrations.contains(where: { $0.id == saved.id }))
     }
 
-    private func makeViewModel(
-        appState: AppState,
-        store: FingerCalibrationStore
-    ) -> FingerCalibrationViewModel {
-        FingerCalibrationViewModel(appState: appState, store: store)
+    func testTrackedFrameHistoryIsBoundedToNinetyFrames() {
+        let viewModel = makeViewModel()
+
+        for index in 0..<120 {
+            viewModel.receive(trackedFrame: sampleTrackedFrame(id: Int64(index), timestamp: Double(index)))
+        }
+
+        XCTAssertEqual(viewModel.recentTrackedFrames.count, 90)
+        XCTAssertEqual(viewModel.recentTrackedFrames.first?.id, 30)
+        XCTAssertEqual(viewModel.recentTrackedFrames.last?.id, 119)
     }
 
-    private func makeViewModel() -> FingerCalibrationViewModel {
-        makeViewModel(appState: makeAppState(), store: defaultStore())
+    func testOverlayTogglesCanChangeIndependently() {
+        let viewModel = makeViewModel()
+
+        XCTAssertTrue(viewModel.showKeyboardOverlay)
+        XCTAssertTrue(viewModel.showKeyCenters)
+        XCTAssertTrue(viewModel.showFingerLabels)
+        XCTAssertTrue(viewModel.showHandLandmarks)
+        XCTAssertFalse(viewModel.showDebugAnnotations)
+
+        viewModel.showKeyboardOverlay = false
+        viewModel.showHandLandmarks = false
+        viewModel.showDebugAnnotations = true
+
+        XCTAssertFalse(viewModel.showKeyboardOverlay)
+        XCTAssertFalse(viewModel.showHandLandmarks)
+        XCTAssertTrue(viewModel.showDebugAnnotations)
+        XCTAssertTrue(viewModel.showKeyCenters)
+        XCTAssertTrue(viewModel.showFingerLabels)
+    }
+
+    func testCameraMirroringSettingPropagatesToCameraService() {
+        let cameraService = RecordingCameraFrameService()
+        let viewModel = makeViewModel(cameraService: cameraService)
+
+        XCTAssertFalse(cameraService.isMirroringEnabled)
+
+        viewModel.setCameraMirroring(true)
+        XCTAssertTrue(viewModel.isCameraMirrored)
+        XCTAssertTrue(cameraService.isMirroringEnabled)
+
+        viewModel.setCameraMirroring(false)
+        XCTAssertFalse(viewModel.isCameraMirrored)
+        XCTAssertFalse(cameraService.isMirroringEnabled)
+    }
+
+    private func makeViewModel(
+        appState: AppState,
+        store: FingerCalibrationStore,
+        cameraService: CameraFrameServing = RecordingCameraFrameService()
+    ) -> FingerCalibrationViewModel {
+        FingerCalibrationViewModel(
+            appState: appState,
+            store: store,
+            cameraService: cameraService,
+            handTrackingService: UnavailableHandTrackingService()
+        )
+    }
+
+    private func makeViewModel(cameraService: CameraFrameServing = RecordingCameraFrameService()) -> FingerCalibrationViewModel {
+        makeViewModel(appState: makeAppState(), store: defaultStore(), cameraService: cameraService)
     }
 
     private func defaultStore() -> FingerCalibrationStore {
@@ -105,4 +158,31 @@ final class FingerCalibrationViewModelTests: XCTestCase {
     private func cleanupDirectory(at url: URL) {
         try? FileManager.default.removeItem(at: url)
     }
+
+    private func sampleTrackedFrame(
+        id: Int64,
+        timestamp: TimeInterval = 0,
+        imageSize: CGSize = CGSize(width: 640, height: 480)
+    ) -> TrackedFrame {
+        TrackedFrame(
+            id: id,
+            timestamp: timestamp,
+            imageSize: imageSize,
+            fingertips: [],
+            backendStatus: "ok"
+        )
+    }
+}
+
+private final class RecordingCameraFrameService: CameraFrameServing {
+    var onFrame: ((CapturedFrame) -> Void)?
+    var isMirroringEnabled = false
+
+    func availableCameras() -> [CameraOption] {
+        []
+    }
+
+    func start(cameraID: String) throws {}
+
+    func stop() {}
 }

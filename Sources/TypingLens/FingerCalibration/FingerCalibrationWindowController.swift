@@ -80,11 +80,13 @@ final class FingerCalibrationWindowController: NSWindowController, NSWindowDeleg
     }
 
     func closeWindow() {
+        viewModel.stopCamera()
         onWindowVisibilityChanged?(false)
         window?.orderOut(nil)
     }
 
     func windowWillClose(_ notification: Notification) {
+        viewModel.stopCamera()
         onWindowVisibilityChanged?(false)
     }
 

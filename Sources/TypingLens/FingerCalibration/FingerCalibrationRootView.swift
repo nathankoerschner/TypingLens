@@ -7,6 +7,7 @@ struct FingerCalibrationRootView: View {
     @State private var keyboardDragTranslation = CGSize.zero
     @State private var draggedKeyID: String?
     @State private var keyDragTranslation = CGSize.zero
+
     var body: some View {
         HStack(spacing: 16) {
             leftRail
@@ -27,6 +28,59 @@ struct FingerCalibrationRootView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Finger Calibration")
                 .font(.system(size: 20, weight: .semibold, design: .monospaced))
+
+            TypingLensPanelCard {
+                Text("Camera")
+                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+
+                Text(viewModel.cameraStatus)
+                    .font(.system(size: 12, weight: .regular, design: .monospaced))
+                    .foregroundStyle(TypingLensTheme.subdued)
+
+                Picker("Camera Device", selection: Binding(
+                    get: { viewModel.selectedCameraID },
+                    set: { viewModel.setCameraSelection($0 ?? "") }
+                )) {
+                    ForEach(viewModel.availableCameras) { camera in
+                        Text(camera.displayName)
+                            .tag(Optional(camera.id))
+                    }
+                }
+                .pickerStyle(.menu)
+                .disabled(viewModel.isCameraRunning || viewModel.availableCameras.isEmpty)
+
+                HStack(spacing: 10) {
+                    Button(viewModel.isCameraRunning ? "Stop Camera" : "Start Camera") {
+                        if viewModel.isCameraRunning {
+                            viewModel.stopCamera()
+                        } else {
+                            viewModel.startCamera()
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .buttonStyle(TypingLensFilledButtonStyle())
+
+                    Button("Refresh") {
+                        viewModel.refreshAvailableCameras()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .buttonStyle(TypingLensFilledButtonStyle())
+                }
+
+                Toggle(isOn: Binding(
+                    get: { viewModel.isCameraMirrored },
+                    set: { viewModel.setCameraMirroring($0) }
+                )) {
+                    Text("Mirror Camera")
+                        .font(.system(size: 12, weight: .regular, design: .monospaced))
+                        .foregroundStyle(TypingLensTheme.text)
+                }
+                .toggleStyle(.checkbox)
+
+                Text("Tracking: \(viewModel.trackingStatus)")
+                    .font(.system(size: 12, weight: .regular, design: .monospaced))
+                    .foregroundStyle(TypingLensTheme.subdued)
+            }
 
             TypingLensPanelCard {
                 Text("Canvas")
@@ -109,7 +163,7 @@ struct FingerCalibrationRootView: View {
                             }
                         }
                     }
-                    .frame(maxHeight: 260)
+                    .frame(maxHeight: 240)
                 }
             }
 
@@ -133,44 +187,74 @@ struct FingerCalibrationRootView: View {
                     TypingLensTheme.panel
                         .opacity(0.3)
 
-                    if let activeCalibration = viewModel.activeCalibration {
-                        ForEach(KeyboardCalibrationLayout.supportedKeys) { key in
-                            if let frame = viewModel.projectedKeys[key.id] {
-                                KeyTargetView(
-                                    key: key,
-                                    frame: frame,
-                                    isSelected: viewModel.selectedKeyID == key.id
-                                ) {
-                                    if viewModel.isFrozen {
-                                        viewModel.selectKey(key.id)
-                                    }
-                                }
-                                .highPriorityGesture(
-                                    DragGesture()
-                                        .onChanged { value in
-                                            guard viewModel.isFrozen else { return }
+                    if let frame = viewModel.displayedFrame {
+                        Image(decorative: frame, scale: 1)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipped()
+                    } else {
+                        VStack {
+                            Text("No frame yet")
+                                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                                .foregroundStyle(TypingLensTheme.subdued)
+                            Text("Start camera + choose a source")
+                                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                                .foregroundStyle(TypingLensTheme.subdued)
+                        }
+                    }
 
-                                            if draggedKeyID != key.id {
-                                                draggedKeyID = key.id
-                                                keyDragTranslation = .zero
+                    if let activeCalibration = viewModel.activeCalibration {
+                        if viewModel.showKeyCenters {
+                            ForEach(KeyboardCalibrationLayout.supportedKeys) { key in
+                                if let frame = viewModel.projectedKeys[key.id] {
+                                    KeyTargetView(
+                                        key: key,
+                                        frame: frame,
+                                        isSelected: viewModel.selectedKeyID == key.id,
+                                        onTap: {
+                                            if viewModel.isFrozen {
                                                 viewModel.selectKey(key.id)
                                             }
-
-                                            let delta = CGSize(
-                                                width: value.translation.width - keyDragTranslation.width,
-                                                height: value.translation.height - keyDragTranslation.height
-                                            )
-
-                                            keyDragTranslation = value.translation
-                                            viewModel.moveSelectedKey(by: delta)
                                         }
-                                        .onEnded { _ in
-                                            guard viewModel.isFrozen else { return }
-                                            guard draggedKeyID == key.id else { return }
+                                    )
+                                    .highPriorityGesture(
+                                        DragGesture()
+                                            .onChanged { value in
+                                                guard viewModel.isFrozen else { return }
 
-                                            draggedKeyID = nil
-                                            keyDragTranslation = .zero
-                                        }
+                                                if draggedKeyID != key.id {
+                                                    draggedKeyID = key.id
+                                                    keyDragTranslation = .zero
+                                                    viewModel.selectKey(key.id)
+                                                }
+
+                                                let delta = CGSize(
+                                                    width: value.translation.width - keyDragTranslation.width,
+                                                    height: value.translation.height - keyDragTranslation.height
+                                                )
+
+                                                keyDragTranslation = value.translation
+                                                viewModel.moveSelectedKey(by: delta)
+                                            }
+                                            .onEnded { _ in
+                                                guard viewModel.isFrozen else { return }
+                                                guard draggedKeyID == key.id else { return }
+
+                                                draggedKeyID = nil
+                                                keyDragTranslation = .zero
+                                            }
+                                    )
+                                }
+                            }
+                        }
+
+                        if viewModel.showHandLandmarks {
+                            ForEach(viewModel.displayedFingertips) { fingertip in
+                                HandLandmarkView(
+                                    fingertip: fingertip,
+                                    showLabel: viewModel.showFingerLabels,
+                                    showDebug: viewModel.showDebugAnnotations
                                 )
                             }
                         }
@@ -186,10 +270,10 @@ struct FingerCalibrationRootView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(8)
                             .position(x: 12, y: 12)
-                    } else {
-                        Text("No active calibration")
-                            .font(.system(size: 13, weight: .regular, design: .monospaced))
-                            .foregroundStyle(TypingLensTheme.subdued)
+                    }
+
+                    if let status = viewModel.canvasStatusMessage {
+                        CanvasStatusBadge(text: status)
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -230,6 +314,27 @@ struct FingerCalibrationRootView: View {
     private var rightRail: some View {
         VStack(alignment: .leading, spacing: 12) {
             TypingLensPanelCard {
+                Text("Overlay")
+                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+
+                Toggle("Show Keyboard Overlay", isOn: $viewModel.showKeyboardOverlay)
+                    .toggleStyle(.switch)
+                    .tint(TypingLensTheme.primary)
+                Toggle("Show Key Centers", isOn: $viewModel.showKeyCenters)
+                    .toggleStyle(.switch)
+                    .tint(TypingLensTheme.primary)
+                Toggle("Show Finger Labels", isOn: $viewModel.showFingerLabels)
+                    .toggleStyle(.switch)
+                    .tint(TypingLensTheme.primary)
+                Toggle("Show Hand Landmarks", isOn: $viewModel.showHandLandmarks)
+                    .toggleStyle(.switch)
+                    .tint(TypingLensTheme.primary)
+                Toggle("Show Debug Annotations", isOn: $viewModel.showDebugAnnotations)
+                    .toggleStyle(.switch)
+                    .tint(TypingLensTheme.primary)
+            }
+
+            TypingLensPanelCard {
                 Text("System State")
                     .font(.system(size: 14, weight: .medium, design: .monospaced))
 
@@ -238,6 +343,10 @@ struct FingerCalibrationRootView: View {
                     .foregroundStyle(TypingLensTheme.subdued)
 
                 Text("Tracking: \(viewModel.trackingStatus)")
+                    .font(.system(size: 12, weight: .regular, design: .monospaced))
+                    .foregroundStyle(TypingLensTheme.subdued)
+
+                Text("Tracked frames: \(viewModel.recentTrackedFrames.count)")
                     .font(.system(size: 12, weight: .regular, design: .monospaced))
                     .foregroundStyle(TypingLensTheme.subdued)
 
@@ -299,6 +408,18 @@ private struct KeyTargetView: View {
     let isSelected: Bool
     let onTap: () -> Void
 
+    init(
+        key: KeyboardKeyDefinition,
+        frame: CGRect,
+        isSelected: Bool,
+        onTap: @escaping () -> Void
+    ) {
+        self.key = key
+        self.frame = frame
+        self.isSelected = isSelected
+        self.onTap = onTap
+    }
+
     var body: some View {
         let targetDimension = min(
             22,
@@ -321,5 +442,63 @@ private struct KeyTargetView: View {
             .contentShape(Circle())
             .onTapGesture(perform: onTap)
             .position(x: frame.midX, y: frame.midY)
+    }
+}
+
+private struct HandLandmarkView: View {
+    let fingertip: TrackedFingertip
+    let showLabel: Bool
+    let showDebug: Bool
+
+    var body: some View {
+        let targetDimension: CGFloat = 16
+
+        Circle()
+            .fill(TypingLensTheme.error)
+            .frame(width: targetDimension, height: targetDimension)
+            .overlay {
+                Circle()
+                    .stroke(TypingLensTheme.text, lineWidth: 1)
+            }
+            .overlay {
+                if showLabel {
+                    Text(fingertip.fingerID)
+                        .font(.system(size: 8, weight: .medium, design: .monospaced))
+                        .foregroundStyle(TypingLensTheme.text)
+                        .offset(y: -16)
+                }
+
+                if showDebug {
+                    Text(String(format: "%.2f", fingertip.confidence))
+                        .font(.system(size: 7, weight: .medium, design: .monospaced))
+                        .foregroundStyle(TypingLensTheme.subdued)
+                        .offset(y: 16)
+                }
+            }
+            .position(x: fingertip.location.x, y: fingertip.location.y)
+    }
+}
+
+private struct CanvasStatusBadge: View {
+    let text: String
+
+    var body: some View {
+        VStack {
+            Text(text)
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(TypingLensTheme.text)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(TypingLensTheme.panel.opacity(0.85))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(TypingLensTheme.panelElevated, lineWidth: 1)
+                        )
+                )
+                .padding(12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }

@@ -78,6 +78,40 @@ struct KeyboardKeyDefinition: Equatable, Identifiable {
     let normalizedHeight: Double
 }
 
+struct CameraOption: Equatable, Identifiable {
+    let id: String
+    let displayName: String
+    let deviceUniqueID: String
+}
+
+struct CapturedFrame: Equatable {
+    let frameID: Int64
+    let timestamp: TimeInterval
+    let image: CGImage
+    let size: CGSize
+
+    static func == (lhs: CapturedFrame, rhs: CapturedFrame) -> Bool {
+        lhs.frameID == rhs.frameID
+            && lhs.timestamp == rhs.timestamp
+            && lhs.size == rhs.size
+    }
+}
+
+struct TrackedFingertip: Equatable, Identifiable {
+    let id: String
+    let fingerID: String
+    let location: CGPoint
+    let confidence: Double
+}
+
+struct TrackedFrame: Equatable, Identifiable {
+    let id: Int64
+    let timestamp: TimeInterval
+    let imageSize: CGSize
+    let fingertips: [TrackedFingertip]
+    let backendStatus: String
+}
+
 struct SavedCalibrationSummary: Equatable, Identifiable {
     let id: UUID
     let name: String
