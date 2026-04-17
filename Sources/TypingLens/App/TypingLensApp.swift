@@ -1,8 +1,13 @@
 import AppKit
 import SwiftUI
 
-@MainActor
-private enum QuitInterception {
+enum QuitInterception {
+    private static var allowsTermination = false
+
+    static func requestTermination() {
+        allowsTermination = true
+    }
+
     static func dismissCurrentUI(application: NSApplication = .shared) {
         if let window = application.keyWindow
             ?? application.mainWindow
@@ -14,12 +19,20 @@ private enum QuitInterception {
 
         application.hide(nil)
     }
+
+    static func terminateReply(for application: NSApplication = .shared) -> NSApplication.TerminateReply {
+        guard !allowsTermination else {
+            return .terminateNow
+        }
+
+        dismissCurrentUI(application: application)
+        return .terminateCancel
+    }
 }
 
 final class TypingLensAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        QuitInterception.dismissCurrentUI(application: sender)
-        return .terminateCancel
+        QuitInterception.terminateReply(for: sender)
     }
 }
 

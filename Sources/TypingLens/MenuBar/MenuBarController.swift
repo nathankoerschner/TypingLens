@@ -202,6 +202,7 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func quit() {
+        QuitInterception.requestTermination()
         NSApp.terminate(nil)
     }
 }
