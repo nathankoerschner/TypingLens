@@ -8,6 +8,8 @@ struct TypingLensApp: App {
     private let menuBarController: MenuBarController
     private let practiceWindowController: PracticeWindowController
     private let analyticsWindowController: AnalyticsWindowController
+    private let fingerCalibrationWindowController: FingerCalibrationWindowController
+    private let screenOrchestrator: ScreenOrchestrator
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
 
@@ -40,6 +42,12 @@ struct TypingLensApp: App {
         }
         self.analyticsWindowController = analyticsWindowController
 
+        let fingerCalibrationWindowController = FingerCalibrationWindowController(appState: state)
+        fingerCalibrationWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "fingerCalibration")
+        }
+        self.fingerCalibrationWindowController = fingerCalibrationWindowController
+
         let loggingCoordinator: LoggingCoordinator
         do {
             loggingCoordinator = try LoggingCoordinator(
@@ -47,13 +55,7 @@ struct TypingLensApp: App {
                 fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
-                transcriptWriter: transcriptWriter,
-                onOpenPractice: { prompt in
-                    practiceWindowController.show(prompt: prompt)
-                },
-                onOpenAnalytics: { result in
-                    analyticsWindowController.show(result: result)
-                }
+                transcriptWriter: transcriptWriter
             )
         } catch {
             state.loggingStatus = .error(message: error.localizedDescription)
@@ -63,22 +65,11 @@ struct TypingLensApp: App {
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter,
-                onOpenPractice: { prompt in
-                    practiceWindowController.show(prompt: prompt)
-                },
-                onOpenAnalytics: { result in
-                    analyticsWindowController.show(result: result)
-                },
                 initialSequence: 1
             )
         }
 
-        practiceWindowController.onRequestNewPrompt = {
-            loggingCoordinator.practiceNowRequested()
-        }
-        analyticsWindowController.onRefreshAnalytics = {
-            loggingCoordinator.showAnalyticsRequested()
-        }
+        var orchestrator: ScreenOrchestrator!
         var menuBarController: MenuBarController!
         let settingsWindowController = SettingsWindowController(
             appState: state,
@@ -104,21 +95,40 @@ struct TypingLensApp: App {
                 loggingCoordinator.exportRankedWordsRequested()
             },
             onPracticeNow: {
-                loggingCoordinator.practiceNowRequested()
+                orchestrator.handle(.openPractice)
             },
             onOpenAnalytics: {
-                loggingCoordinator.showAnalyticsRequested()
+                orchestrator.handle(.openAnalytics)
+            },
+            onOpenFingerCalibration: {
+                orchestrator.handle(.openFingerCalibration)
             }
         )
         settingsWindowController.onWindowVisibilityChanged = {
             windowActivationController.setWindowVisible($0, identifier: "settings")
         }
 
+        orchestrator = ScreenOrchestrator(
+            loggingCoordinator: loggingCoordinator,
+            settingsSceneOpening: SwiftUISettingsSceneOpener(settingsWindow: settingsWindowController),
+            practiceWindowController: practiceWindowController,
+            analyticsWindowController: analyticsWindowController,
+            fingerCalibrationWindowController: fingerCalibrationWindowController
+        )
+        self.screenOrchestrator = orchestrator
+
+        practiceWindowController.onRequestNewPrompt = {
+            orchestrator.handle(.requestNewPracticePrompt)
+        }
+        analyticsWindowController.onRefreshAnalytics = {
+            orchestrator.handle(.refreshAnalytics)
+        }
+
         _appState = StateObject(wrappedValue: state)
         menuBarController = MenuBarController(
             appState: state,
             transcriptWriter: transcriptWriter,
-            settingsSceneOpening: SwiftUISettingsSceneOpener(settingsWindow: settingsWindowController),
+            screenOrchestrator: orchestrator,
             loggingCoordinator: loggingCoordinator
         )
         self.loggingCoordinator = loggingCoordinator
@@ -161,10 +171,13 @@ struct TypingLensApp: App {
                         loggingCoordinator.exportRankedWordsRequested()
                     },
                     onPracticeNow: {
-                        loggingCoordinator.practiceNowRequested()
+                        screenOrchestrator.handle(.openPractice)
                     },
                     onOpenAnalytics: {
-                        loggingCoordinator.showAnalyticsRequested()
+                        screenOrchestrator.handle(.openAnalytics)
+                    },
+                    onOpenFingerCalibration: {
+                        screenOrchestrator.handle(.openFingerCalibration)
                     }
                 )
             )

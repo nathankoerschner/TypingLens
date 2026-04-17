@@ -6,8 +6,6 @@ final class LoggingCoordinator {
     private let permissionManager: PermissionManaging
     private let keyboardMonitor: KeyboardMonitoring
     private let transcriptWriter: TranscriptWriting
-    private let onOpenPractice: (PracticePrompt) -> Void
-    private let onOpenAnalytics: (AnalyticsResult) -> Void
     private var nextSeq: Int64 = 1
 
     init(
@@ -15,17 +13,13 @@ final class LoggingCoordinator {
         fileLocations: FileLocations,
         permissionManager: PermissionManaging,
         keyboardMonitor: KeyboardMonitoring,
-        transcriptWriter: TranscriptWriting,
-        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in },
-        onOpenAnalytics: @escaping (AnalyticsResult) -> Void = { _ in }
+        transcriptWriter: TranscriptWriting
     ) throws {
         self.appState = appState
         self.fileLocations = fileLocations
         self.permissionManager = permissionManager
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
-        self.onOpenPractice = onOpenPractice
-        self.onOpenAnalytics = onOpenAnalytics
         self.nextSeq = try transcriptWriter.initializeNextSequence()
     }
 
@@ -35,8 +29,6 @@ final class LoggingCoordinator {
         permissionManager: PermissionManaging,
         keyboardMonitor: KeyboardMonitoring,
         transcriptWriter: TranscriptWriting,
-        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in },
-        onOpenAnalytics: @escaping (AnalyticsResult) -> Void = { _ in },
         initialSequence: Int64
     ) {
         self.appState = appState
@@ -44,8 +36,6 @@ final class LoggingCoordinator {
         self.permissionManager = permissionManager
         self.keyboardMonitor = keyboardMonitor
         self.transcriptWriter = transcriptWriter
-        self.onOpenPractice = onOpenPractice
-        self.onOpenAnalytics = onOpenAnalytics
         self.nextSeq = initialSequence
     }
 
@@ -141,7 +131,7 @@ final class LoggingCoordinator {
         }
     }
 
-    func practiceNowRequested() {
+    func makePracticePrompt() -> PracticePrompt? {
         let extractionService = WordExtractionService(fileLocations: fileLocations)
         let interpreter = WordInterpreter()
         let ranker = WordRanker()
@@ -156,17 +146,18 @@ final class LoggingCoordinator {
 
             guard !prompt.words.isEmpty else {
                 appState.practiceStatus = "No words available for practice"
-                return
+                return nil
             }
 
             appState.practiceStatus = nil
-            onOpenPractice(prompt)
+            return prompt
         } catch {
             appState.practiceStatus = "Practice generation failed: \(error.localizedDescription)"
+            return nil
         }
     }
 
-    func showAnalyticsRequested() {
+    func makeAnalyticsResult() -> AnalyticsResult? {
         let service = AnalyticsService(fileLocations: fileLocations)
 
         do {
@@ -176,9 +167,10 @@ final class LoggingCoordinator {
             } else {
                 appState.analyticsStatus = nil
             }
-            onOpenAnalytics(result)
+            return result
         } catch {
             appState.analyticsStatus = "Analytics generation failed: \(error.localizedDescription)"
+            return nil
         }
     }
 

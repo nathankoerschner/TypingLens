@@ -59,14 +59,14 @@ final class MenuBarController: NSObject {
     private let statusItem: MenuBarStatusItemPresenting
     private let appState: AppState
     private let transcriptWriter: TranscriptWriting
-    private let settingsSceneOpening: SettingsSceneOpening
+    private let screenOrchestrator: ScreenOrchestrating
     private let loggingCoordinator: LoggingCoordinator
     private let permissionGuidancePresenter: PermissionGuidancePresenting
 
     init(
         appState: AppState,
         transcriptWriter: TranscriptWriting,
-        settingsSceneOpening: SettingsSceneOpening,
+        screenOrchestrator: ScreenOrchestrating,
         loggingCoordinator: LoggingCoordinator,
         permissionGuidancePresenter: PermissionGuidancePresenting = PermissionGuidanceAlertPresenter(),
         statusItem: MenuBarStatusItemPresenting = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -74,7 +74,7 @@ final class MenuBarController: NSObject {
         self.statusItem = statusItem
         self.appState = appState
         self.transcriptWriter = transcriptWriter
-        self.settingsSceneOpening = settingsSceneOpening
+        self.screenOrchestrator = screenOrchestrator
         self.loggingCoordinator = loggingCoordinator
         self.permissionGuidancePresenter = permissionGuidancePresenter
         super.init()
@@ -102,6 +102,7 @@ final class MenuBarController: NSObject {
         menu.addItem(.separator())
         menu.addItem(actionItem(title: "Open Settings…", action: #selector(openSettings), keyEquivalent: ",", target: target))
         menu.addItem(actionItem(title: "Open Analytics", action: #selector(openAnalytics), keyEquivalent: "", target: target))
+        menu.addItem(actionItem(title: "Finger Calibration", action: #selector(openFingerCalibration), keyEquivalent: "", target: target))
         menu.addItem(actionItem(title: "Practice Now", action: #selector(practiceNow), keyEquivalent: "", target: target))
         if state.showOpenSystemSettings {
             menu.addItem(actionItem(title: "Open System Settings", action: #selector(openSystemSettings), keyEquivalent: "", target: target))
@@ -161,7 +162,7 @@ final class MenuBarController: NSObject {
     }
 
     @objc func openSettings() {
-        settingsSceneOpening.openSettingsScene()
+        screenOrchestrator.handle(.openSettings)
     }
 
     @objc func openSystemSettings() {
@@ -170,11 +171,15 @@ final class MenuBarController: NSObject {
     }
 
     @objc func openAnalytics() {
-        loggingCoordinator.showAnalyticsRequested()
+        screenOrchestrator.handle(.openAnalytics)
+    }
+
+    @objc func openFingerCalibration() {
+        screenOrchestrator.handle(.openFingerCalibration)
     }
 
     @objc func practiceNow() {
-        loggingCoordinator.practiceNowRequested()
+        screenOrchestrator.handle(.openPractice)
     }
 
     @objc func revealTranscript() {

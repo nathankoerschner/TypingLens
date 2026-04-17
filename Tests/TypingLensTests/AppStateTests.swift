@@ -12,6 +12,7 @@ final class AppStateTests: XCTestCase {
 
         XCTAssertFalse(appState.isLoggingEnabled)
         XCTAssertNil(appState.currentErrorMessage)
+        XCTAssertNil(appState.fingerCalibrationStatus)
         XCTAssertEqual(appState.transcriptPath, "/tmp/transcript.jsonl")
         XCTAssertEqual(appState.permissionStatus, .unknown)
     }

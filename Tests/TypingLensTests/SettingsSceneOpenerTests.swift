@@ -3,7 +3,7 @@ import XCTest
 @testable import TypingLens
 
 final class SettingsSceneOpenerTests: XCTestCase {
-    func testOpenSettingsDelegatesToInjectedSettingsSceneOpener() {
+    func testOpenSettingsRoutesThroughOrchestrator() {
         let appState = AppState(
             transcriptPath: "/tmp/transcript.jsonl",
             permissionStatus: .unknown,
@@ -11,11 +11,11 @@ final class SettingsSceneOpenerTests: XCTestCase {
             launchAtLoginEnabled: false
         )
         let transcriptWriter = NoopTranscriptWriter()
-        let settingsOpener = RecordingSettingsSceneOpening()
+        let screenOrchestrator = RecordingScreenOrchestrator()
         let controller = MenuBarController(
             appState: appState,
             transcriptWriter: transcriptWriter,
-            settingsSceneOpening: settingsOpener,
+            screenOrchestrator: screenOrchestrator,
             loggingCoordinator: makeCoordinator(
                 appState: appState,
                 permissionManager: StubPermissionManager(status: .granted),
@@ -27,7 +27,7 @@ final class SettingsSceneOpenerTests: XCTestCase {
 
         controller.openSettings()
 
-        XCTAssertTrue(settingsOpener.didOpenSettingsScene)
+        XCTAssertEqual(screenOrchestrator.handledIntents, [.openSettings])
     }
 
     func testSwiftUISettingsSceneOpenerActivatesApplicationAndShowsInjectedSettingsWindow() {
@@ -46,11 +46,11 @@ final class SettingsSceneOpenerTests: XCTestCase {
     }
 }
 
-private final class RecordingSettingsSceneOpening: SettingsSceneOpening {
-    private(set) var didOpenSettingsScene = false
+private final class RecordingScreenOrchestrator: ScreenOrchestrating {
+    private(set) var handledIntents: [ScreenIntent] = []
 
-    func openSettingsScene() {
-        didOpenSettingsScene = true
+    func handle(_ intent: ScreenIntent) {
+        handledIntents.append(intent)
     }
 }
 

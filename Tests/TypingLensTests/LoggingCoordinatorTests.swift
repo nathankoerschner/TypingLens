@@ -141,85 +141,76 @@ final class LoggingCoordinatorTests: XCTestCase {
         XCTAssertEqual(appState.permissionStatus, .needsRetry)
     }
 
-    func testPracticeNowOpensPracticePromptFromTranscript() {
-        var openedPrompts: [PracticePrompt] = []
+    func testMakePracticePromptGeneratesPromptFromTranscript() {
         let appState = makeAppState()
         let monitor = StubKeyboardMonitor()
         let permissionManager = StubPermissionManager(status: .granted)
-        let coordinator = makeCoordinatorWithOpenCallback(
+        let coordinator = makeCoordinatorWithTranscript(
             appState: appState,
             permissionManager: permissionManager,
             keyboardMonitor: monitor,
             transcriptWriter: StubTranscriptWriter(),
-            transcriptEvents: samplePracticeEvents(),
-            onOpenPractice: { openedPrompts.append($0) }
+            transcriptEvents: samplePracticeEvents()
         )
 
-        coordinator.practiceNowRequested()
+        let prompt = coordinator.makePracticePrompt()
 
-        XCTAssertEqual(openedPrompts.count, 1)
-        XCTAssertEqual(openedPrompts.first?.words.count, 50)
+        XCTAssertEqual(prompt?.words.count, 50)
         XCTAssertNil(appState.practiceStatus)
     }
 
     func testPracticeNowUsesCorrectedWordsInPrompt() {
-        var openedPrompts: [PracticePrompt] = []
         let appState = makeAppState()
         let monitor = StubKeyboardMonitor()
         let permissionManager = StubPermissionManager(status: .granted)
-        let coordinator = makeCoordinatorWithOpenCallback(
+        let coordinator = makeCoordinatorWithTranscript(
             appState: appState,
             permissionManager: permissionManager,
             keyboardMonitor: monitor,
             transcriptWriter: StubTranscriptWriter(),
-            transcriptEvents: transcriptEvents(for: ["teh", "the", "teh"]),
-            onOpenPractice: { openedPrompts.append($0) }
+            transcriptEvents: transcriptEvents(for: ["teh", "the", "teh"])
         )
 
-        coordinator.practiceNowRequested()
+        let prompt = coordinator.makePracticePrompt()
 
-        XCTAssertEqual(openedPrompts.count, 1)
-        XCTAssertFalse(openedPrompts[0].words.isEmpty)
-        XCTAssertTrue(openedPrompts[0].words.allSatisfy { $0 == "the" })
+        XCTAssertNotNil(prompt)
+        XCTAssertFalse(prompt!.words.isEmpty)
+        XCTAssertTrue(prompt!.words.allSatisfy { $0 == "the" })
     }
 
     func testPracticeNowDropsUnknownTokensBeforePromptBuild() {
-        var openedPrompts: [PracticePrompt] = []
         let appState = makeAppState()
         let monitor = StubKeyboardMonitor()
         let permissionManager = StubPermissionManager(status: .granted)
-        let coordinator = makeCoordinatorWithOpenCallback(
+        let coordinator = makeCoordinatorWithTranscript(
             appState: appState,
             permissionManager: permissionManager,
             keyboardMonitor: monitor,
             transcriptWriter: StubTranscriptWriter(),
-            transcriptEvents: transcriptEvents(for: ["xqplm", "jjjjkjj"]),
-            onOpenPractice: { openedPrompts.append($0) }
+            transcriptEvents: transcriptEvents(for: ["xqplm", "jjjjkjj"])
         )
 
-        coordinator.practiceNowRequested()
+        let prompt = coordinator.makePracticePrompt()
 
-        XCTAssertTrue(openedPrompts.isEmpty)
+        XCTAssertNil(prompt)
         XCTAssertEqual(appState.practiceStatus, "No words available for practice")
     }
 
-    func testPracticeNowSetsEmptyStatusAndDoesNotOpenWindowWhenNoWordsExist() {
-        var openedPrompts: [PracticePrompt] = []
+    func testPracticeNowSetsEmptyStatusWhenNoWordsExist() {
         let appState = makeAppState()
         let monitor = StubKeyboardMonitor()
         let permissionManager = StubPermissionManager(status: .granted)
-        let coordinator = makeCoordinatorWithOpenCallback(
+        let coordinator = makeCoordinatorWithTranscript(
             appState: appState,
             permissionManager: permissionManager,
             keyboardMonitor: monitor,
             transcriptWriter: StubTranscriptWriter(),
-            transcriptEvents: sampleWhitespaceEvents(),
-            onOpenPractice: { openedPrompts.append($0) }
+            transcriptEvents: sampleWhitespaceEvents()
         )
 
-        coordinator.practiceNowRequested()
+        let prompt = coordinator.makePracticePrompt()
 
-        XCTAssertTrue(openedPrompts.isEmpty)
+        XCTAssertNil(prompt)
         XCTAssertEqual(appState.practiceStatus, "No words available for practice")
     }
 
@@ -234,55 +225,51 @@ final class LoggingCoordinatorTests: XCTestCase {
             transcriptWriter: StubTranscriptWriter()
         )
 
-        coordinator.practiceNowRequested()
+        let prompt = coordinator.makePracticePrompt()
 
+        XCTAssertNil(prompt)
         XCTAssertEqual(appState.practiceStatus, "Practice generation failed: Transcript file not found.")
     }
 
-    func testShowAnalyticsOpensWindowWhenTranscriptProducesRows() {
-        var openedResults: [AnalyticsResult] = []
+    func testMakeAnalyticsResultReturnsResultsWhenTranscriptHasRows() {
         let appState = makeAppState()
         let monitor = StubKeyboardMonitor()
         let permissionManager = StubPermissionManager(status: .granted)
-        let coordinator = makeCoordinatorWithOpenCallback(
+        let coordinator = makeCoordinatorWithTranscript(
             appState: appState,
             permissionManager: permissionManager,
             keyboardMonitor: monitor,
             transcriptWriter: StubTranscriptWriter(),
-            transcriptEvents: transcriptEvents(for: ["hello", "world"]),
-            onOpenAnalytics: { openedResults.append($0) }
+            transcriptEvents: transcriptEvents(for: ["hello", "world"])
         )
 
-        coordinator.showAnalyticsRequested()
+        let result = coordinator.makeAnalyticsResult()
 
-        XCTAssertEqual(openedResults.count, 1)
+        XCTAssertEqual(result?.totalUniqueWords, 2)
         XCTAssertNil(appState.analyticsStatus)
-        XCTAssertGreaterThan(openedResults.first?.totalUniqueWords ?? 0, 0)
+        XCTAssertGreaterThan(result?.totalUniqueWords ?? 0, 0)
     }
 
-    func testShowAnalyticsStillOpensWindowForEmptyResult() {
-        var openedResults: [AnalyticsResult] = []
+    func testMakeAnalyticsResultForEmptyTranscriptReturnsEmptyResult() {
         let appState = makeAppState()
         let monitor = StubKeyboardMonitor()
         let permissionManager = StubPermissionManager(status: .granted)
-        let coordinator = makeCoordinatorWithOpenCallback(
+        let coordinator = makeCoordinatorWithTranscript(
             appState: appState,
             permissionManager: permissionManager,
             keyboardMonitor: monitor,
             transcriptWriter: StubTranscriptWriter(),
-            transcriptEvents: sampleWhitespaceEvents(),
-            onOpenAnalytics: { openedResults.append($0) }
+            transcriptEvents: sampleWhitespaceEvents()
         )
 
-        coordinator.showAnalyticsRequested()
+        let result = coordinator.makeAnalyticsResult()
 
-        XCTAssertEqual(openedResults.count, 1)
-        XCTAssertEqual(openedResults.first?.totalUniqueWords, 0)
-        XCTAssertEqual(openedResults.first?.words.count, 0)
+        XCTAssertEqual(result?.totalUniqueWords, 0)
+        XCTAssertEqual(result?.words.count, 0)
         XCTAssertEqual(appState.analyticsStatus, "No analytics available yet")
     }
 
-    func testShowAnalyticsSetsFailureStatusWhenTranscriptMissing() {
+    func testMakeAnalyticsResultSetsFailureStatusWhenTranscriptMissing() {
         let appState = makeAppState()
         let monitor = StubKeyboardMonitor()
         let permissionManager = StubPermissionManager(status: .granted)
@@ -293,19 +280,18 @@ final class LoggingCoordinatorTests: XCTestCase {
             transcriptWriter: StubTranscriptWriter()
         )
 
-        coordinator.showAnalyticsRequested()
+        let result = coordinator.makeAnalyticsResult()
 
+        XCTAssertNil(result)
         XCTAssertEqual(appState.analyticsStatus, "Analytics generation failed: Transcript file not found.")
     }
 
-    private func makeCoordinatorWithOpenCallback(
+    private func makeCoordinatorWithTranscript(
         appState: AppState,
         permissionManager: PermissionManaging,
         keyboardMonitor: StubKeyboardMonitor,
         transcriptWriter: TranscriptWriting,
-        transcriptEvents: [TranscriptEvent],
-        onOpenPractice: @escaping (PracticePrompt) -> Void = { _ in },
-        onOpenAnalytics: @escaping (AnalyticsResult) -> Void = { _ in }
+        transcriptEvents: [TranscriptEvent]
     ) -> LoggingCoordinator {
         do {
             let tempDir = FileManager.default.temporaryDirectory
@@ -318,9 +304,7 @@ final class LoggingCoordinatorTests: XCTestCase {
                 fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
-                transcriptWriter: transcriptWriter,
-                onOpenPractice: onOpenPractice,
-                onOpenAnalytics: onOpenAnalytics
+                transcriptWriter: transcriptWriter
             )
         } catch {
             fatalError("Unexpected coordinator initialization failure: \(error.localizedDescription)")
