@@ -11,7 +11,6 @@ final class FingerCalibrationWindowController: NSWindowController, NSWindowDeleg
     var onWindowVisibilityChanged: ((Bool) -> Void)?
 
     init(appState: AppState) {
-        _ = appState
         let initialFrame = Self.preferredFrame(
             for: NSScreen.main,
             minimumWindowSize: minimumWindowSize,
@@ -31,7 +30,7 @@ final class FingerCalibrationWindowController: NSWindowController, NSWindowDeleg
         window.isReleasedWhenClosed = false
         window.minSize = minimumWindowSize
 
-        viewModel = FingerCalibrationViewModel()
+        viewModel = FingerCalibrationViewModel(appState: appState)
 
         super.init(window: window)
         window.delegate = self

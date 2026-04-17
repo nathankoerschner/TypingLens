@@ -30,4 +30,8 @@ struct FileLocations {
     var rankedWordsURL: URL {
         appDirectoryURL.appendingPathComponent("ranked-words.json", isDirectory: false)
     }
+
+    var fingerCalibrationsDirectoryURL: URL {
+        appDirectoryURL.appendingPathComponent("finger-calibrations", isDirectory: true)
+    }
 }
