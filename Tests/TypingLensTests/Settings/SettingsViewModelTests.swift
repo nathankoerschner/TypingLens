@@ -14,7 +14,6 @@ final class SettingsViewModelTests: XCTestCase {
         appState.rankedExportStatus = "Ranked 3 unique words"
         appState.practiceStatus = "No words available for practice"
         appState.analyticsStatus = "No analytics available yet"
-        appState.fingerCalibrationStatus = "Ready"
 
         let state = viewModel.state(for: appState)
 
@@ -27,7 +26,6 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(state.rankedExportStatus, "Ranked 3 unique words")
         XCTAssertEqual(state.practiceStatus, "No words available for practice")
         XCTAssertEqual(state.analyticsStatus, "No analytics available yet")
-        XCTAssertEqual(state.fingerCalibrationStatus, "Ready")
     }
 
     func testActionCallbacksAreForwarded() {
@@ -40,7 +38,6 @@ final class SettingsViewModelTests: XCTestCase {
         var didExportRankedWords = false
         var didPracticeNow = false
         var didOpenAnalytics = false
-        var didOpenFingerCalibration = false
 
         let viewModel = SettingsViewModel(
             onRefreshPermissionStatus: { didRefresh = true },
@@ -51,8 +48,7 @@ final class SettingsViewModelTests: XCTestCase {
             onExtractWords: { didExtractWords = true },
             onExportRankedWords: { didExportRankedWords = true },
             onPracticeNow: { didPracticeNow = true },
-            onOpenAnalytics: { didOpenAnalytics = true },
-            onOpenFingerCalibration: { didOpenFingerCalibration = true }
+            onOpenAnalytics: { didOpenAnalytics = true }
         )
 
         viewModel.refreshPermissionStatus()
@@ -64,7 +60,6 @@ final class SettingsViewModelTests: XCTestCase {
         viewModel.exportRankedWords()
         viewModel.practiceNow()
         viewModel.openAnalytics()
-        viewModel.openFingerCalibration()
 
         XCTAssertTrue(didRefresh)
         XCTAssertTrue(didOpenSystemSettings)
@@ -75,7 +70,6 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertTrue(didExportRankedWords)
         XCTAssertTrue(didPracticeNow)
         XCTAssertTrue(didOpenAnalytics)
-        XCTAssertTrue(didOpenFingerCalibration)
     }
 
     private func makeViewModel() -> SettingsViewModel {
@@ -88,8 +82,7 @@ final class SettingsViewModelTests: XCTestCase {
             onExtractWords: {},
             onExportRankedWords: {},
             onPracticeNow: {},
-            onOpenAnalytics: {},
-            onOpenFingerCalibration: {}
+            onOpenAnalytics: {}
         )
     }
 }

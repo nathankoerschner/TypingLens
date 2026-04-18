@@ -10,7 +10,6 @@ struct SettingsViewState: Equatable {
     let rankedExportStatus: String?
     let practiceStatus: String?
     let analyticsStatus: String?
-    let fingerCalibrationStatus: String?
 }
 
 struct SettingsViewModel {
@@ -23,7 +22,6 @@ struct SettingsViewModel {
     let onExportRankedWords: () -> Void
     let onPracticeNow: () -> Void
     let onOpenAnalytics: () -> Void
-    let onOpenFingerCalibration: () -> Void
 
     func state(for appState: AppState) -> SettingsViewState {
         SettingsViewState(
@@ -35,8 +33,7 @@ struct SettingsViewModel {
             extractionStatus: appState.extractionStatus,
             rankedExportStatus: appState.rankedExportStatus,
             practiceStatus: appState.practiceStatus,
-            analyticsStatus: appState.analyticsStatus,
-            fingerCalibrationStatus: appState.fingerCalibrationStatus
+            analyticsStatus: appState.analyticsStatus
         )
     }
 
@@ -74,10 +71,6 @@ struct SettingsViewModel {
 
     func openAnalytics() {
         onOpenAnalytics()
-    }
-
-    func openFingerCalibration() {
-        onOpenFingerCalibration()
     }
 
     private func loggingStatusLabel(for appState: AppState) -> String {

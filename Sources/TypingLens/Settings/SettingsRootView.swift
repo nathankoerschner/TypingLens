@@ -67,9 +67,6 @@ struct SettingsRootView: View {
                             Button("Open Analytics", action: viewModel.openAnalytics)
                                 .frame(maxWidth: .infinity)
                                 .buttonStyle(TypingLensFilledButtonStyle())
-                            Button("Open Finger Calibration", action: viewModel.openFingerCalibration)
-                                .frame(maxWidth: .infinity)
-                                .buttonStyle(TypingLensFilledButtonStyle())
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -98,11 +95,6 @@ struct SettingsRootView: View {
 
                         if let analyticsStatus = state.analyticsStatus {
                             Text(analyticsStatus)
-                                .foregroundStyle(TypingLensTheme.subdued)
-                        }
-
-                        if let fingerCalibrationStatus = state.fingerCalibrationStatus {
-                            Text(fingerCalibrationStatus)
                                 .foregroundStyle(TypingLensTheme.subdued)
                         }
                     }

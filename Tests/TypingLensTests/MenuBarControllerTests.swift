@@ -46,15 +46,6 @@ final class MenuBarControllerTests: XCTestCase {
         )
         try assertActionItem(
             in: menu,
-            title: "Finger Calibration",
-            expectedAction: "openFingerCalibration",
-            target: target,
-            isEnabled: true,
-            keyEquivalent: "",
-            modifiers: []
-        )
-        try assertActionItem(
-            in: menu,
             title: "Practice Now",
             expectedAction: "practiceNow",
             target: target,
@@ -114,7 +105,6 @@ private final class StubMenuActionTarget: NSObject {
     @objc func disableLogging() {}
     @objc func openSettings() {}
     @objc func openAnalytics() {}
-    @objc func openFingerCalibration() {}
     @objc func practiceNow() {}
     @objc func revealTranscript() {}
     @objc func clearTranscript() {}

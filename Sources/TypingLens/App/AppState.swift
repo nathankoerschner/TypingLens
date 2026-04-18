@@ -25,7 +25,6 @@ final class AppState: ObservableObject {
     @Published var rankedExportStatus: String?
     @Published var practiceStatus: String?
     @Published var analyticsStatus: String?
-    @Published var fingerCalibrationStatus: String?
 
     init(
         transcriptPath: String,
@@ -41,7 +40,6 @@ final class AppState: ObservableObject {
         self.rankedExportStatus = nil
         self.practiceStatus = nil
         self.analyticsStatus = nil
-        self.fingerCalibrationStatus = nil
     }
 
     var isLoggingEnabled: Bool {
