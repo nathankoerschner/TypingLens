@@ -64,5 +64,6 @@ fi
 xcodebuild -exportArchive "${EXPORT_ARGS[@]}"
 
 [[ -d "$APP_PATH" ]] || { echo "error: exported app not found at $APP_PATH" >&2; exit 1; }
+assert_camera_usage_description "$APP_PATH"
 
 write_manifest

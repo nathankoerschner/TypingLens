@@ -47,6 +47,26 @@ require_env() {
   fi
 }
 
+require_plist_key() {
+  local plist_path="$1"
+  local key="$2"
+
+  if [[ ! -f "$plist_path" ]]; then
+    echo "error: plist not found: $plist_path" >&2
+    exit 1
+  fi
+
+  if ! /usr/libexec/PlistBuddy -c "Print :$key" "$plist_path" >/dev/null 2>&1; then
+    echo "error: missing required Info.plist key '$key' in $plist_path" >&2
+    exit 1
+  fi
+}
+
+assert_camera_usage_description() {
+  local app_bundle_path="$1"
+  require_plist_key "$app_bundle_path/Contents/Info.plist" "NSCameraUsageDescription"
+}
+
 write_manifest() {
   local manifest_path="$BUILD_DIR/release-manifest.json"
   mkdir -p "$BUILD_DIR"
