@@ -44,6 +44,7 @@ struct TypingLensApp: App {
     private let menuBarController: MenuBarController
     private let practiceWindowController: PracticeWindowController
     private let analyticsWindowController: AnalyticsWindowController
+    private let mediaPipeWindowController: MediaPipeWindowController
     private let settingsSceneOpener: SettingsSceneOpening
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
@@ -76,6 +77,12 @@ struct TypingLensApp: App {
             windowActivationController.setWindowVisible($0, identifier: "analytics")
         }
         self.analyticsWindowController = analyticsWindowController
+
+        let mediaPipeWindowController = MediaPipeWindowController()
+        mediaPipeWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "mediapipe")
+        }
+        self.mediaPipeWindowController = mediaPipeWindowController
 
         let loggingCoordinator: LoggingCoordinator
         do {
@@ -131,6 +138,9 @@ struct TypingLensApp: App {
                 if let result = loggingCoordinator.makeAnalyticsResult() {
                     analyticsWindowController.show(result: result)
                 }
+            },
+            onOpenMediaPipe: {
+                mediaPipeWindowController.show()
             }
         )
         settingsWindowController.onWindowVisibilityChanged = {
@@ -167,6 +177,9 @@ struct TypingLensApp: App {
                 if let prompt = loggingCoordinator.makePracticePrompt() {
                     practiceWindowController.show(prompt: prompt)
                 }
+            },
+            onOpenMediaPipe: {
+                mediaPipeWindowController.show()
             },
             loggingCoordinator: loggingCoordinator
         )
@@ -218,6 +231,9 @@ struct TypingLensApp: App {
                         if let result = loggingCoordinator.makeAnalyticsResult() {
                             analyticsWindowController.show(result: result)
                         }
+                    },
+                    onOpenMediaPipe: {
+                        mediaPipeWindowController.show()
                     }
                 )
             )

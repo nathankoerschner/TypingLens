@@ -67,6 +67,9 @@ struct SettingsRootView: View {
                             Button("Open Analytics", action: viewModel.openAnalytics)
                                 .frame(maxWidth: .infinity)
                                 .buttonStyle(TypingLensFilledButtonStyle())
+                            Button("MediaPipe", action: viewModel.openMediaPipe)
+                                .frame(maxWidth: .infinity)
+                                .buttonStyle(TypingLensFilledButtonStyle())
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
