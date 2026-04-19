@@ -23,7 +23,7 @@ final class FingerAccuracyViewModel: ObservableObject {
     private let cameraController: VisionTrackingCameraControlling
     private let maxResults = 30
 
-    init(cameraController: VisionTrackingCameraControlling = VisionTrackingCameraController()) {
+    init(cameraController: VisionTrackingCameraControlling = VisionTrackingCameraController(runsBodyPose: false)) {
         self.cameraController = cameraController
         cameraController.onFrameUpdate = { [weak self] frame, overlay in
             guard let self else { return }
@@ -71,7 +71,11 @@ final class FingerAccuracyViewModel: ObservableObject {
         guard let key = KeyboardLayout.key(for: lowered) else { return }
         let keyCenter = calibration.keyCenter(for: lowered)
         let attribution = keyCenter.flatMap {
-            FingerAttributor.attribute(keyCenter: $0, fingertips: fingertips)
+            FingerAttributor.attribute(
+                keyCenter: $0,
+                fingertips: fingertips,
+                expectedFinger: key.expectedFinger
+            )
         }
         let result = AttributionResult(
             character: lowered,
@@ -97,9 +101,10 @@ final class FingerAccuracyViewModel: ObservableObject {
     }
 
     var accuracyPercent: Double? {
-        guard !results.isEmpty else { return nil }
-        let correct = results.reduce(0) { $0 + ($1.isCorrect ? 1 : 0) }
-        return Double(correct) / Double(results.count) * 100
+        let scored = results.filter { !$0.isUncertain }
+        guard !scored.isEmpty else { return nil }
+        let correct = scored.reduce(0) { $0 + ($1.isCorrect ? 1 : 0) }
+        return Double(correct) / Double(scored.count) * 100
     }
 
     private static let tipBindings: [(suffix: String, leftFinger: Finger, rightFinger: Finger)] = [
@@ -122,28 +127,60 @@ final class FingerAccuracyViewModel: ObservableObject {
             byHand[handKey, default: []].append(landmark)
         }
 
-        let hands: [(x: Double, landmarks: [VisionTrackingLandmark])] = byHand.values.compactMap { landmarks in
+        let chiralityByPrefix: [String: VisionTrackingHandedness] = Dictionary(
+            uniqueKeysWithValues: overlay.handInfos.map { ($0.prefix, $0.handedness) }
+        )
+
+        struct HandGroup {
+            let prefix: String
+            let averageTipX: Double
+            let handedness: VisionTrackingHandedness
+            let landmarks: [VisionTrackingLandmark]
+        }
+
+        let hands: [HandGroup] = byHand.compactMap { prefix, landmarks in
             let tips = tipBindings.compactMap { suffix, _, _ in
                 landmarks.first(where: { $0.id.hasSuffix(suffix) })
             }
             guard !tips.isEmpty else { return nil }
             let averageX = tips.reduce(0) { $0 + Double($1.x) } / Double(tips.count)
-            return (averageX, landmarks)
-        }.sorted { $0.x < $1.x }
+            return HandGroup(
+                prefix: prefix,
+                averageTipX: averageX,
+                handedness: chiralityByPrefix[prefix] ?? .unknown,
+                landmarks: landmarks
+            )
+        }.sorted { $0.averageTipX < $1.averageTipX }
 
         guard !hands.isEmpty else { return [] }
 
+        // Vision's chirality is unreliable on the mirrored front-camera feed — it can
+        // report both hands with the same side. Trust it only when it yields a clean
+        // one-left / one-right split; otherwise fall back to the centroid heuristic
+        // that was already working in the wild.
+        let leftCount = hands.filter { $0.handedness == .left }.count
+        let rightCount = hands.filter { $0.handedness == .right }.count
+        let chiralityIsDecisive = hands.count == 2 && leftCount == 1 && rightCount == 1
+
         var samples: [FingertipSample] = []
         for (handIndex, hand) in hands.enumerated() {
-            let isLeftHand: Bool
-            if hands.count == 1 {
-                // The preview maps Vision X with `1 - x`, so larger Vision X appears on the left side of the screen.
-                let inferredIsLeftHand = hand.x >= 0.5
-                isLeftHand = swapHands ? !inferredIsLeftHand : inferredIsLeftHand
+            let inferredIsLeftHand: Bool
+            if chiralityIsDecisive {
+                inferredIsLeftHand = hand.handedness == .left
+            } else if hands.count == 1 {
+                // Single hand: prefer chirality when known, otherwise use position.
+                // Vision X is mirrored on the preview (1 - x), so higher Vision X = visually left.
+                switch hand.handedness {
+                case .left: inferredIsLeftHand = true
+                case .right: inferredIsLeftHand = false
+                case .unknown: inferredIsLeftHand = hand.averageTipX >= 0.5
+                }
             } else {
-                let defaultIsLeft = (handIndex == hands.count - 1)
-                isLeftHand = swapHands ? !defaultIsLeft : defaultIsLeft
+                // Two hands, chirality not decisive — original position-sort behavior.
+                inferredIsLeftHand = (handIndex == hands.count - 1)
             }
+            let isLeftHand = swapHands ? !inferredIsLeftHand : inferredIsLeftHand
+
             for (suffix, leftFinger, rightFinger) in tipBindings {
                 guard let tip = hand.landmarks.first(where: { $0.id.hasSuffix(suffix) }) else { continue }
                 let finger = isLeftHand ? leftFinger : rightFinger

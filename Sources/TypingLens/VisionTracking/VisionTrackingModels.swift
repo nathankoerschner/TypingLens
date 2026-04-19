@@ -13,17 +13,30 @@ struct VisionTrackingStroke: Identifiable, Equatable {
     let points: [CGPoint]
 }
 
+enum VisionTrackingHandedness: Equatable {
+    case left
+    case right
+    case unknown
+}
+
+struct VisionTrackingHandInfo: Equatable {
+    let prefix: String
+    let handedness: VisionTrackingHandedness
+}
+
 struct VisionTrackingOverlayState: Equatable {
     var posePoints: [VisionTrackingLandmark]
     var poseStrokes: [VisionTrackingStroke]
     var handPoints: [VisionTrackingLandmark]
     var handStrokes: [VisionTrackingStroke]
+    var handInfos: [VisionTrackingHandInfo]
 
     static let empty = VisionTrackingOverlayState(
         posePoints: [],
         poseStrokes: [],
         handPoints: [],
-        handStrokes: []
+        handStrokes: [],
+        handInfos: []
     )
 }
 
