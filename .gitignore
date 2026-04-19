@@ -4,6 +4,9 @@
 DerivedData/
 .DS_Store
 
+# Xcode user data
+*.xcuserdatad/
+
 # Node / web
 node_modules/
 packages/**/dist/
