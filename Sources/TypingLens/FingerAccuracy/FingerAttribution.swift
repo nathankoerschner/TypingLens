@@ -48,22 +48,50 @@ enum FingerAttributor {
     static func attribute(
         keyCenter: CGPoint,
         fingertips: [FingertipSample],
-        expectedFinger: Finger? = nil
+        expectedFinger: Finger? = nil,
+        contactCentroid: CGPoint? = nil,
+        contactWeight: CGFloat = 0
     ) -> (finger: Finger, distance: Double)? {
         let confident = fingertips.filter { $0.confidence >= minAttributionConfidence }
         guard !confident.isEmpty else { return nil }
+
         var best: (finger: Finger, trueDistance: Double, scoredDistance: Double)?
         for tip in confident {
-            let dx = tip.position.x - keyCenter.x
-            let dy = tip.position.y - keyCenter.y
-            let trueDistance = Double(sqrt(dx * dx + dy * dy))
+            let trueDistance = distance(from: tip.position, to: keyCenter)
+            let blended = blendedDistance(
+                from: tip.position,
+                keyCenter: keyCenter,
+                contactCentroid: contactCentroid,
+                contactWeight: contactWeight
+            )
             let scoredDistance = tip.finger == expectedFinger
-                ? trueDistance * expectedFingerDistanceScale
-                : trueDistance
+                ? blended * expectedFingerDistanceScale
+                : blended
+
             if best == nil || scoredDistance < best!.scoredDistance {
                 best = (tip.finger, trueDistance, scoredDistance)
             }
         }
         return best.map { ($0.finger, $0.trueDistance) }
+    }
+
+    private static func blendedDistance(
+        from fingertip: CGPoint,
+        keyCenter: CGPoint,
+        contactCentroid: CGPoint?,
+        contactWeight: CGFloat
+    ) -> Double {
+        let keyDistance = distance(from: fingertip, to: keyCenter)
+        guard let contactCentroid, contactWeight > 0.01 else { return keyDistance }
+
+        let contactDistance = distance(from: fingertip, to: contactCentroid)
+        let clampedWeight = min(max(contactWeight, 0), 0.9)
+        return ((1 - Double(clampedWeight)) * keyDistance) + (Double(clampedWeight) * contactDistance)
+    }
+
+    private static func distance(from lhs: CGPoint, to rhs: CGPoint) -> Double {
+        let dx = lhs.x - rhs.x
+        let dy = lhs.y - rhs.y
+        return Double(sqrt(dx * dx + dy * dy))
     }
 }

@@ -25,8 +25,10 @@ final class FingerAccuracyViewModel: ObservableObject {
     @Published private(set) var currentPromptIndex: Int = 0
     @Published private(set) var promptFeedback: String?
     @Published private(set) var promptFeedbackIsSuccess: Bool = false
+    @Published private(set) var contactObservations: [FingerAccuracyKeyContactObservation] = []
 
     private let cameraController: VisionTrackingCameraControlling
+    private let keyboardContactEstimator = FingerAccuracyKeyboardContactEstimator()
     private let maxResults = 30
 
     init(
@@ -40,9 +42,11 @@ final class FingerAccuracyViewModel: ObservableObject {
 
         cameraController.onFrameUpdate = { [weak self] frame, overlay in
             guard let self else { return }
+            self.keyboardContactEstimator.ingest(frame: frame, calibration: self.calibration)
             self.frame = frame
             self.overlay = overlay
             self.fingertips = Self.extractFingertips(from: overlay, swapHands: self.swapHands)
+            self.contactObservations = Self.sortedContactObservations(self.keyboardContactEstimator.latestObservations)
         }
         cameraController.onStatusUpdate = { [weak self] status, denied in
             guard let self else { return }
@@ -128,10 +132,28 @@ final class FingerAccuracyViewModel: ObservableObject {
         calibration.project(u: 0.5, v: 0.97)
     }
 
+    static func keyToken(for character: Character) -> String? {
+        if character == " " {
+            return "space"
+        }
+        guard KeyboardLayout.key(for: character) != nil else { return nil }
+        return String(character).lowercased()
+    }
+
     private func makeAttributionResult(for character: Character) -> AttributionResult? {
+        let keyToken = Self.keyToken(for: character)
+        let contactObservation = keyToken.flatMap { keyboardContactEstimator.observation(for: $0) }
+        let contactCentroid = contactObservation?.contactCentroid.map(Self.displayToVision)
+        let contactWeight = contactObservation?.contactLikelihood ?? 0
+
         if character == " " {
             let keyCenter = Self.spacebarCenter(for: calibration)
-            let attribution = FingerAttributor.attribute(keyCenter: keyCenter, fingertips: fingertips)
+            let attribution = FingerAttributor.attribute(
+                keyCenter: keyCenter,
+                fingertips: fingertips,
+                contactCentroid: contactCentroid,
+                contactWeight: contactWeight
+            )
             return AttributionResult(
                 character: character,
                 expectedFinger: .rightThumb,
@@ -149,7 +171,9 @@ final class FingerAccuracyViewModel: ObservableObject {
             FingerAttributor.attribute(
                 keyCenter: $0,
                 fingertips: fingertips,
-                expectedFinger: key.expectedFinger
+                expectedFinger: key.expectedFinger,
+                contactCentroid: contactCentroid,
+                contactWeight: contactWeight
             )
         }
         return AttributionResult(
@@ -207,6 +231,21 @@ final class FingerAccuracyViewModel: ObservableObject {
     private static func normalized(_ character: Character) -> Character {
         let lower = String(character).lowercased()
         return lower.first ?? character
+    }
+
+    private static func displayToVision(_ point: CGPoint) -> CGPoint {
+        CGPoint(x: 1 - point.x, y: 1 - point.y)
+    }
+
+    private static func sortedContactObservations(
+        _ observations: [String: FingerAccuracyKeyContactObservation]
+    ) -> [FingerAccuracyKeyContactObservation] {
+        observations.values.sorted { lhs, rhs in
+            if lhs.contactLikelihood == rhs.contactLikelihood {
+                return lhs.keyToken < rhs.keyToken
+            }
+            return lhs.contactLikelihood > rhs.contactLikelihood
+        }
     }
 
     private static let tipBindings: [(suffix: String, leftFinger: Finger, rightFinger: Finger)] = [
@@ -294,5 +333,228 @@ final class FingerAccuracyViewModel: ObservableObject {
             }
         }
         return samples
+    }
+}
+
+struct FingerAccuracyKeyContactObservation: Identifiable, Equatable {
+    let keyToken: String
+    let contactLikelihood: CGFloat
+    let motionEnergy: CGFloat
+    let occlusionEnergy: CGFloat
+    let contactCentroid: CGPoint?
+
+    var id: String { keyToken }
+}
+
+private struct FingerAccuracyKeyRegion {
+    let keyToken: String
+    let displayCenter: CGPoint
+    let normalizedSize: CGSize
+}
+
+private final class FingerAccuracyKeyboardContactEstimator {
+    private struct LumaFrame {
+        let width: Int
+        let height: Int
+        let pixels: [UInt8]
+    }
+
+    private let sampleWidth = 160
+    private let sampleHeight = 120
+    private let stableMotionThreshold: Float = 6
+    private let motionFloor: Float = 4
+    private let occlusionFloor: Float = 10
+
+    private var previousFrame: LumaFrame?
+    private var baselinePixels: [Float]?
+
+    private(set) var latestObservations: [String: FingerAccuracyKeyContactObservation] = [:]
+
+    func ingest(frame: VisionTrackingCameraFrame, calibration: KeyboardCalibration) {
+        guard let currentFrame = makeLumaFrame(from: frame.cgImage) else { return }
+
+        if baselinePixels == nil {
+            baselinePixels = currentFrame.pixels.map(Float.init)
+        }
+
+        guard let previousFrame, var baselinePixels else {
+            self.previousFrame = currentFrame
+            latestObservations = [:]
+            return
+        }
+
+        let keyRegions = Self.keyRegions(for: calibration)
+        var observations: [String: FingerAccuracyKeyContactObservation] = [:]
+        for region in keyRegions {
+            observations[region.keyToken] = makeObservation(
+                for: region,
+                currentFrame: currentFrame,
+                previousFrame: previousFrame,
+                baselinePixels: baselinePixels
+            )
+        }
+
+        let alpha: Float = 0.04
+        for index in currentFrame.pixels.indices {
+            let current = Float(currentFrame.pixels[index])
+            let previous = Float(previousFrame.pixels[index])
+            let motion = abs(current - previous)
+            if motion <= stableMotionThreshold {
+                baselinePixels[index] = ((1 - alpha) * baselinePixels[index]) + (alpha * current)
+            }
+        }
+
+        self.baselinePixels = baselinePixels
+        self.previousFrame = currentFrame
+        latestObservations = observations
+    }
+
+    func observation(for keyToken: String) -> FingerAccuracyKeyContactObservation? {
+        latestObservations[keyToken]
+    }
+
+    private func makeObservation(
+        for region: FingerAccuracyKeyRegion,
+        currentFrame: LumaFrame,
+        previousFrame: LumaFrame,
+        baselinePixels: [Float]
+    ) -> FingerAccuracyKeyContactObservation {
+        let rect = pixelRect(for: region, in: currentFrame)
+        let minX = max(Int(rect.minX.rounded(.down)), 0)
+        let maxX = min(Int(rect.maxX.rounded(.up)), currentFrame.width - 1)
+        let minY = max(Int(rect.minY.rounded(.down)), 0)
+        let maxY = min(Int(rect.maxY.rounded(.up)), currentFrame.height - 1)
+
+        guard minX <= maxX, minY <= maxY else {
+            return FingerAccuracyKeyContactObservation(
+                keyToken: region.keyToken,
+                contactLikelihood: 0,
+                motionEnergy: 0,
+                occlusionEnergy: 0,
+                contactCentroid: nil
+            )
+        }
+
+        var weightedX: CGFloat = 0
+        var weightedY: CGFloat = 0
+        var weightSum: CGFloat = 0
+        var motionSum: Float = 0
+        var occlusionSum: Float = 0
+        var area = 0
+
+        for y in minY...maxY {
+            for x in minX...maxX {
+                let index = (y * currentFrame.width) + x
+                let current = Float(currentFrame.pixels[index])
+                let previous = Float(previousFrame.pixels[index])
+                let baseline = baselinePixels[index]
+
+                let motion = max(0, abs(current - previous) - motionFloor)
+                let occlusion = max(0, abs(current - baseline) - occlusionFloor)
+                let weight = CGFloat((0.65 * occlusion) + (0.35 * motion))
+
+                weightedX += (CGFloat(x) + 0.5) * weight
+                weightedY += (CGFloat(y) + 0.5) * weight
+                weightSum += weight
+                motionSum += motion
+                occlusionSum += occlusion
+                area += 1
+            }
+        }
+
+        let normalizedMotion = normalizedEnergy(sum: motionSum, area: area, divisor: 18)
+        let normalizedOcclusion = normalizedEnergy(sum: occlusionSum, area: area, divisor: 24)
+        let contactLikelihood = min(1, (0.55 * normalizedOcclusion) + (0.45 * normalizedMotion))
+
+        let centroid: CGPoint?
+        if weightSum > CGFloat(area) * 1.6 {
+            centroid = CGPoint(
+                x: weightedX / weightSum / CGFloat(currentFrame.width),
+                y: weightedY / weightSum / CGFloat(currentFrame.height)
+            )
+        } else {
+            centroid = nil
+        }
+
+        return FingerAccuracyKeyContactObservation(
+            keyToken: region.keyToken,
+            contactLikelihood: contactLikelihood,
+            motionEnergy: normalizedMotion,
+            occlusionEnergy: normalizedOcclusion,
+            contactCentroid: centroid
+        )
+    }
+
+    private func normalizedEnergy(sum: Float, area: Int, divisor: CGFloat) -> CGFloat {
+        guard area > 0 else { return 0 }
+        let average = CGFloat(sum) / CGFloat(area)
+        return min(1, max(0, average / max(divisor, 0.001)))
+    }
+
+    private func pixelRect(for region: FingerAccuracyKeyRegion, in frame: LumaFrame) -> CGRect {
+        let minX = (region.displayCenter.x - (region.normalizedSize.width / 2)) * CGFloat(frame.width)
+        let minY = (region.displayCenter.y - (region.normalizedSize.height / 2)) * CGFloat(frame.height)
+        return CGRect(
+            x: minX,
+            y: minY,
+            width: region.normalizedSize.width * CGFloat(frame.width),
+            height: region.normalizedSize.height * CGFloat(frame.height)
+        )
+    }
+
+    private func makeLumaFrame(from cgImage: CGImage) -> LumaFrame? {
+        let colorSpace = CGColorSpaceCreateDeviceGray()
+        let bytesPerRow = sampleWidth
+        var pixels = [UInt8](repeating: 0, count: sampleWidth * sampleHeight)
+
+        guard let context = CGContext(
+            data: &pixels,
+            width: sampleWidth,
+            height: sampleHeight,
+            bitsPerComponent: 8,
+            bytesPerRow: bytesPerRow,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.none.rawValue
+        ) else {
+            return nil
+        }
+
+        context.interpolationQuality = .medium
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: sampleWidth, height: sampleHeight))
+        return LumaFrame(width: sampleWidth, height: sampleHeight, pixels: pixels)
+    }
+
+    private static func keyRegions(for calibration: KeyboardCalibration) -> [FingerAccuracyKeyRegion] {
+        let displayCorners = CalibrationCorner.allCases.map { displayPoint(from: calibration.corner($0)) }
+        let minX = displayCorners.map(\.x).min() ?? 0
+        let maxX = displayCorners.map(\.x).max() ?? 1
+        let minY = displayCorners.map(\.y).min() ?? 0
+        let maxY = displayCorners.map(\.y).max() ?? 1
+        let keyboardBounds = CGRect(x: minX, y: minY, width: max(maxX - minX, 0.1), height: max(maxY - minY, 0.1))
+        let keyWidth = keyboardBounds.width / 13.2
+        let keyHeight = keyboardBounds.height / 4.1
+
+        var regions = KeyboardLayout.keys.compactMap { key -> FingerAccuracyKeyRegion? in
+            guard let center = calibration.keyCenter(for: key.character) else { return nil }
+            return FingerAccuracyKeyRegion(
+                keyToken: String(key.character).lowercased(),
+                displayCenter: displayPoint(from: center),
+                normalizedSize: CGSize(width: keyWidth * 0.84, height: keyHeight * 0.8)
+            )
+        }
+
+        regions.append(
+            FingerAccuracyKeyRegion(
+                keyToken: "space",
+                displayCenter: displayPoint(from: FingerAccuracyViewModel.spacebarCenter(for: calibration)),
+                normalizedSize: CGSize(width: keyWidth * 4.8, height: keyHeight * 0.9)
+            )
+        )
+
+        return regions
+    }
+
+    private static func displayPoint(from visionPoint: CGPoint) -> CGPoint {
+        CGPoint(x: 1 - visionPoint.x, y: 1 - visionPoint.y)
     }
 }

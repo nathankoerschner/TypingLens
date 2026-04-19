@@ -189,6 +189,26 @@ final class FingerAccuracyFingertipExtractionTests: XCTestCase {
         XCTAssertTrue(viewModel.results.first?.isCorrect ?? false)
     }
 
+    func testFingerAttributorCanBiasTowardMotionDetectedContactPoint() {
+        let keyCenter = CGPoint(x: 0.5, y: 0.5)
+        let contactCentroid = CGPoint(x: 0.72, y: 0.5)
+        let fingertips = [
+            FingertipSample(finger: .leftIndex, position: CGPoint(x: 0.5, y: 0.5), confidence: 1),
+            FingertipSample(finger: .rightIndex, position: CGPoint(x: 0.71, y: 0.5), confidence: 1)
+        ]
+
+        let unbiased = FingerAttributor.attribute(keyCenter: keyCenter, fingertips: fingertips)
+        let biased = FingerAttributor.attribute(
+            keyCenter: keyCenter,
+            fingertips: fingertips,
+            contactCentroid: contactCentroid,
+            contactWeight: 0.8
+        )
+
+        XCTAssertEqual(unbiased?.finger, .leftIndex)
+        XCTAssertEqual(biased?.finger, .rightIndex)
+    }
+
     private static func displayX(
         for character: Character,
         calibration: KeyboardCalibration

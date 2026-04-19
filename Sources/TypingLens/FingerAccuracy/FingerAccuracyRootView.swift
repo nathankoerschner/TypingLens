@@ -116,6 +116,8 @@ struct FingerAccuracyRootView: View {
                     mode: viewModel.mode,
                     latestResult: viewModel.results.first,
                     fingertips: viewModel.fingertips,
+                    contactObservations: viewModel.contactObservations,
+                    targetKeyToken: viewModel.currentPromptCharacter.flatMap(FingerAccuracyViewModel.keyToken(for:)),
                     imageRect: imageRect
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 24))
@@ -362,6 +364,8 @@ private struct FingerAccuracyOverlayView: View {
     let mode: FingerAccuracyViewModel.Mode
     let latestResult: AttributionResult?
     let fingertips: [FingertipSample]
+    let contactObservations: [FingerAccuracyKeyContactObservation]
+    let targetKeyToken: String?
     let imageRect: CGRect
 
     var body: some View {
@@ -370,6 +374,7 @@ private struct FingerAccuracyOverlayView: View {
             drawHandPoints(context: context)
             drawCalibrationQuad(context: context)
             drawKeyGrid(context: context)
+            drawContactEffect(context: context)
             drawLatestAttribution(context: context)
         }
     }
@@ -435,6 +440,34 @@ private struct FingerAccuracyOverlayView: View {
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundColor(Color.white.opacity(mode.isCalibrating ? 0.9 : 0.65)),
                 at: mappedCenter
+            )
+        }
+    }
+
+    private func drawContactEffect(context: GraphicsContext) {
+        for observation in contactObservations {
+            guard let centroid = observation.contactCentroid else { continue }
+
+            let isTargetKey = observation.keyToken == targetKeyToken
+            let minimumLikelihood: CGFloat = isTargetKey ? 0.18 : 0.32
+            guard observation.contactLikelihood >= minimumLikelihood else { continue }
+
+            let center = CGPoint(
+                x: imageRect.minX + (centroid.x * imageRect.width),
+                y: imageRect.minY + (centroid.y * imageRect.height)
+            )
+            let radius: CGFloat = isTargetKey ? 13 : 9
+            let alpha = 0.25 + (0.55 * observation.contactLikelihood)
+
+            context.fill(
+                Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)),
+                with: .color(Color.cyan.opacity(alpha))
+            )
+
+            context.stroke(
+                Path(ellipseIn: CGRect(x: center.x - (radius + 6), y: center.y - (radius + 6), width: (radius + 6) * 2, height: (radius + 6) * 2)),
+                with: .color((isTargetKey ? Color.cyan : Color.white).opacity(isTargetKey ? 0.92 : 0.75)),
+                lineWidth: isTargetKey ? 2 : 1.5
             )
         }
     }
