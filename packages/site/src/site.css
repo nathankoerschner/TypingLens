@@ -922,3 +922,231 @@ code {
     scroll-behavior: auto;
   }
 }
+
+.game {
+  position: relative;
+}
+
+.game-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 2rem;
+  padding: 1rem 1.25rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper-alt) 45%, var(--surface));
+}
+
+.game-stats > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.game-stats dt {
+  margin: 0;
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+  color: var(--quiet);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-stats dd {
+  margin: 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.85rem;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.game-prompt {
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.3rem;
+  line-height: 1.9;
+  padding: 1.25rem 1.15rem;
+  min-height: 8.5rem;
+  cursor: text;
+  user-select: none;
+  outline: none;
+  color: var(--ink);
+}
+
+.game-prompt:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: -2px;
+}
+
+.game-prompt .word {
+  display: inline-block;
+  white-space: nowrap;
+  margin-right: 0.45ch;
+  padding: 0 0.1em;
+  border-radius: 3px;
+}
+
+.game-prompt .word[data-role="active"] {
+  background: var(--accent-soft);
+}
+
+.game-prompt .letter {
+  position: relative;
+}
+
+.game-prompt .letter[data-role="pending"] {
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+}
+
+.game-prompt .letter[data-role="correct"] {
+  color: var(--ink);
+}
+
+.game-prompt .letter[data-role="incorrect"] {
+  color: var(--warn);
+}
+
+.game-prompt .letter[data-role="extra"] {
+  color: var(--warn);
+  opacity: 0.7;
+}
+
+.game-prompt .letter[data-role="missing"] {
+  color: var(--warn);
+  text-decoration: underline dashed;
+  text-underline-offset: 0.22em;
+}
+
+.game-prompt .word[data-role="submitted"] .letter[data-role="correct"] {
+  color: var(--ok);
+}
+
+.game-prompt .caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.25em;
+  margin: 0 -1px;
+  vertical-align: text-bottom;
+  background: var(--accent-strong);
+  animation: game-caret-blink 1.05s steps(2, end) infinite;
+}
+
+.game-prompt:not(:focus) .caret {
+  display: none;
+}
+
+.game-prompt[data-typing] .caret {
+  animation: none;
+}
+
+@keyframes game-caret-blink {
+  50% { opacity: 0; }
+}
+
+.game-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1.15rem;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper-alt) 40%, var(--surface));
+}
+
+.game-controls .button {
+  min-height: 2.2rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.game-hint {
+  margin: 0 0 0 auto;
+  color: var(--quiet);
+  font-size: 0.85rem;
+}
+
+.game-summary {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 1.1rem;
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(6px);
+  text-align: center;
+  animation: game-summary-in 180ms ease-out;
+}
+
+@keyframes game-summary-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.game-summary h3 {
+  margin: 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.game-summary dl {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin: 0;
+}
+
+.game-summary dl > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.game-summary dt {
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  color: var(--quiet);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.game-summary dd {
+  margin: 0;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 2.15rem;
+  font-weight: 500;
+  color: var(--accent-strong);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.game-summary-actions {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+  margin-top: 0.35rem;
+}
+
+.game-summary-actions .button {
+  min-height: 2.3rem;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.9rem;
+}
+
+.mobile-fallback {
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+}
+
+.mobile-fallback p {
+  margin: 0 0 0.4rem;
+  color: var(--muted);
+}
+
+.mobile-fallback p.hint {
+  color: var(--quiet);
+  font-size: 0.9rem;
+}
