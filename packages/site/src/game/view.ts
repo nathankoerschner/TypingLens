@@ -3,7 +3,7 @@ import { buildPrompt } from "./words";
 
 const PROMPT_LENGTH = 25;
 const TYPING_IDLE_MS = 400;
-const LIVE_TICK_MS = 250;
+const LIVE_TICK_MS = 1000;
 const PLACEHOLDER_HTML = `<span class="game-placeholder">Click to start typing</span>`;
 
 const escapeChar = (ch: string): string => {
@@ -95,9 +95,12 @@ export const mountGame = (root: HTMLElement): void => {
   };
 
   const renderStats = () => {
-    statWpm.textContent = Math.round(game.wpm()).toString();
     statAcc.textContent = `${Math.round(game.accuracy())}%`;
     statProgress.textContent = game.progressLabel();
+  };
+
+  const renderWpm = () => {
+    statWpm.textContent = Math.round(game.wpm()).toString();
   };
 
   const renderSummary = () => {
@@ -132,9 +135,10 @@ export const mountGame = (root: HTMLElement): void => {
     liveTimer = window.setInterval(() => {
       if (game.isFinished()) {
         stopLiveTimer();
+        renderWpm();
         return;
       }
-      renderStats();
+      renderWpm();
     }, LIVE_TICK_MS);
   };
   const stopLiveTimer = () => {
@@ -156,8 +160,14 @@ export const mountGame = (root: HTMLElement): void => {
   const afterMutation = () => {
     markTyping();
     render();
-    if (game.isFinished() || !game.hasStarted()) stopLiveTimer();
-    else startLiveTimer();
+    if (game.isFinished()) {
+      stopLiveTimer();
+      renderWpm();
+    } else if (!game.hasStarted()) {
+      stopLiveTimer();
+    } else {
+      startLiveTimer();
+    }
   };
 
   promptEl.addEventListener("focus", () => {

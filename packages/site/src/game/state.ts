@@ -45,6 +45,9 @@ export const createGame = (promptWords: readonly string[], now: () => number = D
     const expected = promptWords[currentWordIndex()] ?? "";
     if (currentInput.length >= expected.length + EXTRA_CAP) return;
     currentInput += ch;
+    if (currentWordIndex() === promptWords.length - 1 && currentInput === expected) {
+      submit();
+    }
   };
 
   const canRewind = () =>
