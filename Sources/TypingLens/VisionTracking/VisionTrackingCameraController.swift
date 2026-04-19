@@ -266,7 +266,7 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         let points = joints.compactMap { joint -> VisionTrackingLandmark? in
             guard let point = recognized[joint], point.confidence > 0.15 else { return nil }
             return VisionTrackingLandmark(
-                id: "\(prefix)-\(joint.rawValue)",
+                id: "\(prefix)-\(joint.rawValue.rawValue)",
                 x: CGFloat(point.location.x),
                 y: CGFloat(point.location.y),
                 confidence: point.confidence
@@ -274,7 +274,7 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         }
 
         let pointMap = Dictionary(uniqueKeysWithValues: points.compactMap { point in
-            joints.first(where: { "\(prefix)-\($0.rawValue)" == point.id }).map { ($0.rawValue, point) }
+            joints.first(where: { "\(prefix)-\($0.rawValue.rawValue)" == point.id }).map { ($0.rawValue, point) }
         })
         let connections: [[VNHumanBodyPoseObservation.JointName]] = [
             [.nose, .neck],
@@ -331,7 +331,7 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         let points = joints.compactMap { joint -> VisionTrackingLandmark? in
             guard let point = recognized[joint], point.confidence > 0.15 else { return nil }
             return VisionTrackingLandmark(
-                id: "\(prefix)-\(joint.rawValue)",
+                id: "\(prefix)-\(joint.rawValue.rawValue)",
                 x: CGFloat(point.location.x),
                 y: CGFloat(point.location.y),
                 confidence: point.confidence
@@ -339,7 +339,7 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         }
 
         let pointMap = Dictionary(uniqueKeysWithValues: points.compactMap { point in
-            joints.first(where: { "\(prefix)-\($0.rawValue)" == point.id }).map { ($0.rawValue, point) }
+            joints.first(where: { "\(prefix)-\($0.rawValue.rawValue)" == point.id }).map { ($0.rawValue, point) }
         })
         let fingers: [[VNHumanHandPoseObservation.JointName]] = [
             [.wrist, .thumbCMC, .thumbMP, .thumbIP, .thumbTip],

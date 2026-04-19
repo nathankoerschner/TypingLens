@@ -63,6 +63,7 @@ final class MenuBarController: NSObject {
     private let onOpenAnalytics: () -> Void
     private let onPracticeNow: () -> Void
     private let onOpenVisionTracking: () -> Void
+    private let onOpenFingerAccuracy: () -> Void
     private let loggingCoordinator: LoggingCoordinator
     private let permissionGuidancePresenter: PermissionGuidancePresenting
 
@@ -73,6 +74,7 @@ final class MenuBarController: NSObject {
         onOpenAnalytics: @escaping () -> Void,
         onPracticeNow: @escaping () -> Void,
         onOpenVisionTracking: @escaping () -> Void,
+        onOpenFingerAccuracy: @escaping () -> Void,
         loggingCoordinator: LoggingCoordinator,
         permissionGuidancePresenter: PermissionGuidancePresenting = PermissionGuidanceAlertPresenter(),
         statusItem: MenuBarStatusItemPresenting = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -84,6 +86,7 @@ final class MenuBarController: NSObject {
         self.onOpenAnalytics = onOpenAnalytics
         self.onPracticeNow = onPracticeNow
         self.onOpenVisionTracking = onOpenVisionTracking
+        self.onOpenFingerAccuracy = onOpenFingerAccuracy
         self.loggingCoordinator = loggingCoordinator
         self.permissionGuidancePresenter = permissionGuidancePresenter
         super.init()
@@ -113,6 +116,7 @@ final class MenuBarController: NSObject {
         menu.addItem(actionItem(title: "Open Analytics", action: #selector(openAnalytics), keyEquivalent: "", target: target))
         menu.addItem(actionItem(title: "Practice Now", action: #selector(practiceNow), keyEquivalent: "", target: target))
         menu.addItem(actionItem(title: "VisionTracking", action: #selector(openVisionTracking), keyEquivalent: "", target: target))
+        menu.addItem(actionItem(title: "Finger Accuracy", action: #selector(openFingerAccuracy), keyEquivalent: "", target: target))
         if state.showOpenSystemSettings {
             menu.addItem(actionItem(title: "Open System Settings", action: #selector(openSystemSettings), keyEquivalent: "", target: target))
         }
@@ -189,6 +193,10 @@ final class MenuBarController: NSObject {
 
     @objc func openVisionTracking() {
         onOpenVisionTracking()
+    }
+
+    @objc func openFingerAccuracy() {
+        onOpenFingerAccuracy()
     }
 
     @objc func revealTranscript() {

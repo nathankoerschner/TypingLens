@@ -60,6 +60,13 @@
 		2d0ac9d69a8a4d77952ab102 /* VisionTrackingCameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2d0ac9d69a8a4d77952ab202; };
 		2d0ac9d69a8a4d77952ab103 /* VisionTrackingRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2d0ac9d69a8a4d77952ab203; };
 		2d0ac9d69a8a4d77952ab104 /* VisionTrackingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2d0ac9d69a8a4d77952ab204; };
+		fa11acc0fa11acc0fa11ac01 /* FingerAccuracyKeyCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = fa11acc0fa11acc0fa11af01; };
+		fa11acc0fa11acc0fa11ac02 /* FingerAccuracyRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = fa11acc0fa11acc0fa11af02; };
+		fa11acc0fa11acc0fa11ac03 /* FingerAccuracyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = fa11acc0fa11acc0fa11af03; };
+		fa11acc0fa11acc0fa11ac04 /* FingerAccuracyWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = fa11acc0fa11acc0fa11af04; };
+		fa11acc0fa11acc0fa11ac05 /* FingerAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = fa11acc0fa11acc0fa11af05; };
+		fa11acc0fa11acc0fa11ac06 /* KeyboardCalibration.swift in Sources */ = {isa = PBXBuildFile; fileRef = fa11acc0fa11acc0fa11af06; };
+		fa11acc0fa11acc0fa11ac07 /* KeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = fa11acc0fa11acc0fa11af07; };
 	/* End PBXBuildFile section */
 
 	/* Begin PBXFileReference section */
@@ -118,6 +125,13 @@
 		2d0ac9d69a8a4d77952ab202 /* VisionTrackingCameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/VisionTracking/VisionTrackingCameraController.swift; sourceTree = SOURCE_ROOT; };
 		2d0ac9d69a8a4d77952ab203 /* VisionTrackingRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/VisionTracking/VisionTrackingRootView.swift; sourceTree = SOURCE_ROOT; };
 		2d0ac9d69a8a4d77952ab204 /* VisionTrackingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/VisionTracking/VisionTrackingWindowController.swift; sourceTree = SOURCE_ROOT; };
+		fa11acc0fa11acc0fa11af01 /* FingerAccuracyKeyCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/FingerAccuracy/FingerAccuracyKeyCaptureView.swift; sourceTree = SOURCE_ROOT; };
+		fa11acc0fa11acc0fa11af02 /* FingerAccuracyRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/FingerAccuracy/FingerAccuracyRootView.swift; sourceTree = SOURCE_ROOT; };
+		fa11acc0fa11acc0fa11af03 /* FingerAccuracyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/FingerAccuracy/FingerAccuracyViewModel.swift; sourceTree = SOURCE_ROOT; };
+		fa11acc0fa11acc0fa11af04 /* FingerAccuracyWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/FingerAccuracy/FingerAccuracyWindowController.swift; sourceTree = SOURCE_ROOT; };
+		fa11acc0fa11acc0fa11af05 /* FingerAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/FingerAccuracy/FingerAttribution.swift; sourceTree = SOURCE_ROOT; };
+		fa11acc0fa11acc0fa11af06 /* KeyboardCalibration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/FingerAccuracy/KeyboardCalibration.swift; sourceTree = SOURCE_ROOT; };
+		fa11acc0fa11acc0fa11af07 /* KeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/FingerAccuracy/KeyboardLayout.swift; sourceTree = SOURCE_ROOT; };
 	/* End PBXFileReference section */
 
 	/* Begin PBXFrameworksBuildPhase section */
@@ -199,6 +213,13 @@
 				2d0ac9d69a8a4d77952ab102,
 				2d0ac9d69a8a4d77952ab103,
 				2d0ac9d69a8a4d77952ab104,
+				fa11acc0fa11acc0fa11ac01,
+				fa11acc0fa11acc0fa11ac02,
+				fa11acc0fa11acc0fa11ac03,
+				fa11acc0fa11acc0fa11ac04,
+				fa11acc0fa11acc0fa11ac05,
+				fa11acc0fa11acc0fa11ac06,
+				fa11acc0fa11acc0fa11ac07,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,6 +279,13 @@
 				2d0ac9d69a8a4d77952ab202,
 				2d0ac9d69a8a4d77952ab203,
 				2d0ac9d69a8a4d77952ab204,
+				fa11acc0fa11acc0fa11af01,
+				fa11acc0fa11acc0fa11af02,
+				fa11acc0fa11acc0fa11af03,
+				fa11acc0fa11acc0fa11af04,
+				fa11acc0fa11acc0fa11af05,
+				fa11acc0fa11acc0fa11af06,
+				fa11acc0fa11acc0fa11af07,
 			);
 			name = Sources;
 			sourceTree = "<group>";
