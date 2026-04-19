@@ -62,10 +62,44 @@ final class FingerAccuracyFingertipExtractionTests: XCTestCase {
             posePoints: [],
             poseStrokes: [],
             handPoints: landmarks,
-            handStrokes: []
+            handStrokes: [],
+            handInfos: []
         )
         let samples = FingerAccuracyViewModel.extractFingertips(from: overlay, swapHands: false)
         XCTAssertEqual(samples.count, 10)
+        let fingers = Set(samples.map { $0.finger })
+        XCTAssertTrue(fingers.contains(.leftIndex))
+        XCTAssertTrue(fingers.contains(.rightIndex))
+    }
+
+    func testChiralityOverridesCentroidHeuristic() {
+        // Single hand on the visually-right side of the screen (low Vision X).
+        // The centroid heuristic would call this a right hand, but chirality says left.
+        var overlay = Self.makeHandOverlay(prefix: "hand-0", wristX: 0.2)
+        overlay.handInfos = [VisionTrackingHandInfo(prefix: "hand-0", handedness: .left)]
+        let samples = FingerAccuracyViewModel.extractFingertips(from: overlay, swapHands: false)
+        let fingers = Set(samples.map { $0.finger })
+        XCTAssertEqual(fingers, [.leftThumb, .leftIndex, .leftMiddle, .leftRing, .leftPinky])
+    }
+
+    func testTwoHandSameChiralityFallsBackToCentroidSort() {
+        // Vision sometimes reports both hands with the same chirality on a mirrored
+        // front-camera feed. In that case we should ignore chirality and fall back
+        // to the centroid-ordered position assignment.
+        var landmarks: [VisionTrackingLandmark] = []
+        landmarks.append(contentsOf: Self.makeHandOverlay(prefix: "hand-0", wristX: 0.2).handPoints)
+        landmarks.append(contentsOf: Self.makeHandOverlay(prefix: "hand-1", wristX: 0.7).handPoints)
+        let overlay = VisionTrackingOverlayState(
+            posePoints: [],
+            poseStrokes: [],
+            handPoints: landmarks,
+            handStrokes: [],
+            handInfos: [
+                VisionTrackingHandInfo(prefix: "hand-0", handedness: .right),
+                VisionTrackingHandInfo(prefix: "hand-1", handedness: .right)
+            ]
+        )
+        let samples = FingerAccuracyViewModel.extractFingertips(from: overlay, swapHands: false)
         let fingers = Set(samples.map { $0.finger })
         XCTAssertTrue(fingers.contains(.leftIndex))
         XCTAssertTrue(fingers.contains(.rightIndex))
@@ -190,7 +224,8 @@ final class FingerAccuracyFingertipExtractionTests: XCTestCase {
             posePoints: [],
             poseStrokes: [],
             handPoints: landmarks,
-            handStrokes: []
+            handStrokes: [],
+            handInfos: []
         )
     }
 }

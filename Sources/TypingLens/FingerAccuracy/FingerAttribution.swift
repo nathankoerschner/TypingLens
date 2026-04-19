@@ -17,6 +17,8 @@ struct AttributionResult: Identifiable, Equatable {
     let keyCenter: CGPoint?
     let timestamp: Date
 
+    var isUncertain: Bool { detectedFinger == nil }
+
     var isCorrect: Bool {
         guard let detectedFinger else { return false }
         return acceptedFingers.contains(detectedFinger)
@@ -34,20 +36,34 @@ struct AttributionResult: Identifiable, Equatable {
 }
 
 enum FingerAttributor {
+    static let minAttributionConfidence: Double = 0.3
+
+    // Distance multiplier applied to the expected finger only. At 0.60 the
+    // expected finger wins when its true distance is within 1/0.60 ≈ 1.67× of
+    // the nearest competitor — generous enough to absorb Vision jitter and
+    // adjacency confusion for most home-row typing, while systematically-wrong
+    // finger use still drives accuracy visibly down over a session.
+    static let expectedFingerDistanceScale: Double = 0.60
+
     static func attribute(
         keyCenter: CGPoint,
-        fingertips: [FingertipSample]
+        fingertips: [FingertipSample],
+        expectedFinger: Finger? = nil
     ) -> (finger: Finger, distance: Double)? {
-        guard !fingertips.isEmpty else { return nil }
-        var best: (finger: Finger, distance: Double)?
-        for tip in fingertips {
+        let confident = fingertips.filter { $0.confidence >= minAttributionConfidence }
+        guard !confident.isEmpty else { return nil }
+        var best: (finger: Finger, trueDistance: Double, scoredDistance: Double)?
+        for tip in confident {
             let dx = tip.position.x - keyCenter.x
             let dy = tip.position.y - keyCenter.y
-            let d = Double(sqrt(dx * dx + dy * dy))
-            if best == nil || d < best!.distance {
-                best = (tip.finger, d)
+            let trueDistance = Double(sqrt(dx * dx + dy * dy))
+            let scoredDistance = tip.finger == expectedFinger
+                ? trueDistance * expectedFingerDistanceScale
+                : trueDistance
+            if best == nil || scoredDistance < best!.scoredDistance {
+                best = (tip.finger, trueDistance, scoredDistance)
             }
         }
-        return best
+        return best.map { ($0.finger, $0.trueDistance) }
     }
 }

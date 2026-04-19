@@ -58,9 +58,15 @@ final class VisionTrackingCameraController: NSObject, VisionTrackingCameraContro
     private let visionQueue = DispatchQueue(label: "typinglens.visiontracking.vision")
     private let sequenceHandler = VNSequenceRequestHandler()
     private let ciContext = CIContext(options: nil)
+    private let runsBodyPose: Bool
     private var isConfigured = false
     private var isRunning = false
     private var isProcessingFrame = false
+
+    init(runsBodyPose: Bool = true) {
+        self.runsBodyPose = runsBodyPose
+        super.init()
+    }
 
     func start() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -175,15 +181,25 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         let orientation: CGImagePropertyOrientation = connection.isVideoMirrored ? .upMirrored : .up
         let requestTime = CACurrentMediaTime()
 
-        let poseRequest = VNDetectHumanBodyPoseRequest()
         let handRequest = VNDetectHumanHandPoseRequest()
         handRequest.maximumHandCount = 2
 
+        var requests: [VNRequest] = []
+        let poseRequest: VNDetectHumanBodyPoseRequest?
+        if runsBodyPose {
+            let request = VNDetectHumanBodyPoseRequest()
+            requests.append(request)
+            poseRequest = request
+        } else {
+            poseRequest = nil
+        }
+        requests.append(handRequest)
+
         do {
-            try sequenceHandler.perform([poseRequest, handRequest], on: pixelBuffer, orientation: orientation)
+            try sequenceHandler.perform(requests, on: pixelBuffer, orientation: orientation)
 
             let overlay = Self.makeOverlay(
-                poseObservations: poseRequest.results ?? [],
+                poseObservations: poseRequest?.results ?? [],
                 handObservations: handRequest.results ?? []
             )
             guard let frame = makeFrame(from: pixelBuffer) else {
@@ -194,7 +210,8 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
             DispatchQueue.main.async { [weak self] in
                 self?.onFrameUpdate?(frame, overlay)
                 let elapsedMs = Int((CACurrentMediaTime() - requestTime) * 1000)
-                self?.onStatusUpdate?("Live body + hand landmarks • \(elapsedMs) ms", false)
+                let summary = self?.runsBodyPose == false ? "Live hand landmarks" : "Live body + hand landmarks"
+                self?.onStatusUpdate?("\(summary) • \(elapsedMs) ms", false)
             }
         } catch {
             DispatchQueue.main.async { [weak self] in
@@ -222,6 +239,7 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         var poseStrokes: [VisionTrackingStroke] = []
         var handPoints: [VisionTrackingLandmark] = []
         var handStrokes: [VisionTrackingStroke] = []
+        var handInfos: [VisionTrackingHandInfo] = []
 
         for (index, observation) in poseObservations.enumerated() {
             if let result = makePoseLandmarks(from: observation, prefix: "pose-\(index)") {
@@ -231,9 +249,14 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         }
 
         for (index, observation) in handObservations.enumerated() {
-            if let result = makeHandLandmarks(from: observation, prefix: "hand-\(index)") {
+            let prefix = "hand-\(index)"
+            if let result = makeHandLandmarks(from: observation, prefix: prefix) {
                 handPoints.append(contentsOf: result.points)
                 handStrokes.append(contentsOf: result.strokes)
+                handInfos.append(VisionTrackingHandInfo(
+                    prefix: prefix,
+                    handedness: handedness(from: observation.chirality)
+                ))
             }
         }
 
@@ -241,8 +264,18 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
             posePoints: posePoints,
             poseStrokes: poseStrokes,
             handPoints: handPoints,
-            handStrokes: handStrokes
+            handStrokes: handStrokes,
+            handInfos: handInfos
         )
+    }
+
+    private static func handedness(from chirality: VNChirality) -> VisionTrackingHandedness {
+        switch chirality {
+        case .left: return .left
+        case .right: return .right
+        case .unknown: return .unknown
+        @unknown default: return .unknown
+        }
     }
 
     private static func makePoseLandmarks(
@@ -318,7 +351,6 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
         prefix: String
     ) -> (points: [VisionTrackingLandmark], strokes: [VisionTrackingStroke])? {
         let joints: [VNHumanHandPoseObservation.JointName] = [
-            .wrist,
             .thumbCMC, .thumbMP, .thumbIP, .thumbTip,
             .indexMCP, .indexPIP, .indexDIP, .indexTip,
             .middleMCP, .middlePIP, .middleDIP, .middleTip,
@@ -342,11 +374,11 @@ extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDe
             joints.first(where: { "\(prefix)-\($0.rawValue.rawValue)" == point.id }).map { ($0.rawValue, point) }
         })
         let fingers: [[VNHumanHandPoseObservation.JointName]] = [
-            [.wrist, .thumbCMC, .thumbMP, .thumbIP, .thumbTip],
-            [.wrist, .indexMCP, .indexPIP, .indexDIP, .indexTip],
-            [.wrist, .middleMCP, .middlePIP, .middleDIP, .middleTip],
-            [.wrist, .ringMCP, .ringPIP, .ringDIP, .ringTip],
-            [.wrist, .littleMCP, .littlePIP, .littleDIP, .littleTip]
+            [.thumbCMC, .thumbMP, .thumbIP, .thumbTip],
+            [.indexMCP, .indexPIP, .indexDIP, .indexTip],
+            [.middleMCP, .middlePIP, .middleDIP, .middleTip],
+            [.ringMCP, .ringPIP, .ringDIP, .ringTip],
+            [.littleMCP, .littlePIP, .littleDIP, .littleTip]
         ]
 
         let strokes = fingers.flatMap { finger -> [VisionTrackingStroke] in
