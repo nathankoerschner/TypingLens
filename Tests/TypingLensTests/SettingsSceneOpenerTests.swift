@@ -19,6 +19,7 @@ final class SettingsSceneOpenerTests: XCTestCase {
             onOpenAnalytics: {},
             onPracticeNow: {},
             onOpenVisionTracking: {},
+            onOpenFingerAccuracy: {},
             loggingCoordinator: makeCoordinator(
                 appState: appState,
                 permissionManager: StubPermissionManager(status: .granted),

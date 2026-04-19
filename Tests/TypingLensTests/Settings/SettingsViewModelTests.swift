@@ -39,6 +39,7 @@ final class SettingsViewModelTests: XCTestCase {
         var didPracticeNow = false
         var didOpenAnalytics = false
         var didOpenVisionTracking = false
+        var didOpenFingerAccuracy = false
 
         let viewModel = SettingsViewModel(
             onRefreshPermissionStatus: { didRefresh = true },
@@ -50,7 +51,8 @@ final class SettingsViewModelTests: XCTestCase {
             onExportRankedWords: { didExportRankedWords = true },
             onPracticeNow: { didPracticeNow = true },
             onOpenAnalytics: { didOpenAnalytics = true },
-            onOpenVisionTracking: { didOpenVisionTracking = true }
+            onOpenVisionTracking: { didOpenVisionTracking = true },
+            onOpenFingerAccuracy: { didOpenFingerAccuracy = true }
         )
 
         viewModel.refreshPermissionStatus()
@@ -63,6 +65,7 @@ final class SettingsViewModelTests: XCTestCase {
         viewModel.practiceNow()
         viewModel.openAnalytics()
         viewModel.openVisionTracking()
+        viewModel.openFingerAccuracy()
 
         XCTAssertTrue(didRefresh)
         XCTAssertTrue(didOpenSystemSettings)
@@ -74,6 +77,7 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertTrue(didPracticeNow)
         XCTAssertTrue(didOpenAnalytics)
         XCTAssertTrue(didOpenVisionTracking)
+        XCTAssertTrue(didOpenFingerAccuracy)
     }
 
     private func makeViewModel() -> SettingsViewModel {
@@ -87,7 +91,8 @@ final class SettingsViewModelTests: XCTestCase {
             onExportRankedWords: {},
             onPracticeNow: {},
             onOpenAnalytics: {},
-            onOpenVisionTracking: {}
+            onOpenVisionTracking: {},
+            onOpenFingerAccuracy: {}
         )
     }
 }

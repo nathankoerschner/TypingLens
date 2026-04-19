@@ -45,6 +45,7 @@ struct TypingLensApp: App {
     private let practiceWindowController: PracticeWindowController
     private let analyticsWindowController: AnalyticsWindowController
     private let visionTrackingWindowController: VisionTrackingWindowController
+    private let fingerAccuracyWindowController: FingerAccuracyWindowController
     private let settingsSceneOpener: SettingsSceneOpening
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
@@ -83,6 +84,12 @@ struct TypingLensApp: App {
             windowActivationController.setWindowVisible($0, identifier: "visiontracking")
         }
         self.visionTrackingWindowController = visionTrackingWindowController
+
+        let fingerAccuracyWindowController = FingerAccuracyWindowController()
+        fingerAccuracyWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "fingeraccuracy")
+        }
+        self.fingerAccuracyWindowController = fingerAccuracyWindowController
 
         let loggingCoordinator: LoggingCoordinator
         do {
@@ -141,6 +148,9 @@ struct TypingLensApp: App {
             },
             onOpenVisionTracking: {
                 visionTrackingWindowController.show()
+            },
+            onOpenFingerAccuracy: {
+                fingerAccuracyWindowController.show()
             }
         )
         settingsWindowController.onWindowVisibilityChanged = {
@@ -180,6 +190,9 @@ struct TypingLensApp: App {
             },
             onOpenVisionTracking: {
                 visionTrackingWindowController.show()
+            },
+            onOpenFingerAccuracy: {
+                fingerAccuracyWindowController.show()
             },
             loggingCoordinator: loggingCoordinator
         )
@@ -234,6 +247,9 @@ struct TypingLensApp: App {
                     },
                     onOpenVisionTracking: {
                         visionTrackingWindowController.show()
+                    },
+                    onOpenFingerAccuracy: {
+                        fingerAccuracyWindowController.show()
                     }
                 )
             )

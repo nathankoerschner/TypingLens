@@ -23,6 +23,7 @@ struct SettingsViewModel {
     let onPracticeNow: () -> Void
     let onOpenAnalytics: () -> Void
     let onOpenVisionTracking: () -> Void
+    let onOpenFingerAccuracy: () -> Void
 
     func state(for appState: AppState) -> SettingsViewState {
         SettingsViewState(
@@ -76,6 +77,10 @@ struct SettingsViewModel {
 
     func openVisionTracking() {
         onOpenVisionTracking()
+    }
+
+    func openFingerAccuracy() {
+        onOpenFingerAccuracy()
     }
 
     private func loggingStatusLabel(for appState: AppState) -> String {

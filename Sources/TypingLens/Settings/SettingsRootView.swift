@@ -70,6 +70,9 @@ struct SettingsRootView: View {
                             Button("VisionTracking", action: viewModel.openVisionTracking)
                                 .frame(maxWidth: .infinity)
                                 .buttonStyle(TypingLensFilledButtonStyle())
+                            Button("Finger Accuracy", action: viewModel.openFingerAccuracy)
+                                .frame(maxWidth: .infinity)
+                                .buttonStyle(TypingLensFilledButtonStyle())
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
