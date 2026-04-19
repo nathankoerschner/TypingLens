@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nathankoerschner/TypingLens/main/docs/banner.png?v=2" alt="TypingLens" width="800">
+  <img src="https://raw.githubusercontent.com/nathankoerschner/TypingLens/main/docs/banner.png?v=3" alt="TypingLens" width="800">
 </p>
 
 <p align="center">
