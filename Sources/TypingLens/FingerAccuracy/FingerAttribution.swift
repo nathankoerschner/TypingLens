@@ -38,12 +38,12 @@ struct AttributionResult: Identifiable, Equatable {
 enum FingerAttributor {
     static let minAttributionConfidence: Double = 0.3
 
-    // Distance multiplier applied to the expected finger only. At 0.65 the
-    // expected finger wins when its true distance is within 1/0.65 ≈ 1.54× of
+    // Distance multiplier applied to the expected finger only. At 0.60 the
+    // expected finger wins when its true distance is within 1/0.60 ≈ 1.67× of
     // the nearest competitor — generous enough to absorb Vision jitter and
     // adjacency confusion for most home-row typing, while systematically-wrong
     // finger use still drives accuracy visibly down over a session.
-    static let expectedFingerDistanceScale: Double = 0.65
+    static let expectedFingerDistanceScale: Double = 0.60
 
     static func attribute(
         keyCenter: CGPoint,
