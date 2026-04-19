@@ -1,11 +1,6 @@
 export type Committed = { expected: string; typed: string };
 
-export type LetterRole =
-  | "correct"
-  | "incorrect"
-  | "pending"
-  | "extra"
-  | "missing";
+export type LetterRole = "correct" | "incorrect" | "pending" | "extra" | "missing";
 
 export type WordRole = "submitted" | "active" | "upcoming";
 
@@ -15,10 +10,7 @@ export type CaretPosition = { wordIndex: number; letterIndex: number } | null;
 
 const EXTRA_CAP = 4;
 
-export const createGame = (
-  promptWords: readonly string[],
-  now: () => number = Date.now,
-) => {
+export const createGame = (promptWords: readonly string[], now: () => number = Date.now) => {
   let committedWords: Committed[] = [];
   let currentInput = "";
   let startedAt: number | null = null;
@@ -56,9 +48,7 @@ export const createGame = (
   };
 
   const canRewind = () =>
-    currentInput === "" &&
-    !didRestoreInCurrentWord &&
-    committedWords.length > 0;
+    currentInput === "" && !didRestoreInCurrentWord && committedWords.length > 0;
 
   const deleteBackward = () => {
     if (currentInput !== "") {
@@ -87,10 +77,7 @@ export const createGame = (
     const end = finishedAt ?? now();
     const elapsed = end - startedAt;
     if (elapsed <= 0) return 0;
-    const expectedChars = committedWords.reduce(
-      (sum, c) => sum + c.expected.length,
-      0,
-    );
+    const expectedChars = committedWords.reduce((sum, c) => sum + c.expected.length, 0);
     return expectedChars / 5 / (elapsed / 60000);
   };
 
@@ -108,11 +95,7 @@ export const createGame = (
     return (correct / total) * 100;
   };
 
-  const renderLetters = (
-    role: WordRole,
-    expected: string,
-    typed: string,
-  ): RenderLetter[] => {
+  const renderLetters = (role: WordRole, expected: string, typed: string): RenderLetter[] => {
     const n = Math.max(expected.length, typed.length);
     if (n === 0) return [];
     const out: RenderLetter[] = [];
@@ -150,15 +133,10 @@ export const createGame = (
       if (role === "upcoming") {
         return {
           role,
-          letters: expected
-            .split("")
-            .map((ch) => ({ char: ch, role: "pending" as const })),
+          letters: expected.split("").map((ch) => ({ char: ch, role: "pending" as const })),
         };
       }
-      const typed =
-        role === "submitted"
-          ? (committedWords[i]?.typed ?? "")
-          : currentInput;
+      const typed = role === "submitted" ? (committedWords[i]?.typed ?? "") : currentInput;
       return { role, letters: renderLetters(role, expected, typed) };
     });
   };

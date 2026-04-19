@@ -7,12 +7,18 @@ const LIVE_TICK_MS = 250;
 
 const escapeChar = (ch: string): string => {
   switch (ch) {
-    case "&": return "&amp;";
-    case "<": return "&lt;";
-    case ">": return "&gt;";
-    case '"': return "&quot;";
-    case "'": return "&#39;";
-    default: return ch;
+    case "&":
+      return "&amp;";
+    case "<":
+      return "&lt;";
+    case ">":
+      return "&gt;";
+    case '"':
+      return "&quot;";
+    case "'":
+      return "&#39;";
+    default:
+      return ch;
   }
 };
 
@@ -67,36 +73,25 @@ export const mountGame = (root: HTMLElement): void => {
   let liveTimer: number | null = null;
   let typingTimer: number | null = null;
 
+  const CARET = `<span class="caret" aria-hidden="true"></span>`;
+
   const renderPrompt = () => {
     const words = game.renderWords();
     const caret = game.caret();
-    const parts: string[] = [];
-    for (let wi = 0; wi < words.length; wi++) {
-      const w = words[wi];
-      if (!w) continue;
-      const letterParts: string[] = [];
-      for (let li = 0; li < w.letters.length; li++) {
-        const l = w.letters[li];
-        if (!l) continue;
-        if (caret && caret.wordIndex === wi && caret.letterIndex === li) {
-          letterParts.push(`<span class="caret" aria-hidden="true"></span>`);
-        }
-        letterParts.push(
-          `<span class="letter" data-role="${l.role}">${escapeChar(l.char)}</span>`,
-        );
-      }
-      if (
-        caret &&
-        caret.wordIndex === wi &&
-        caret.letterIndex >= w.letters.length
-      ) {
-        letterParts.push(`<span class="caret" aria-hidden="true"></span>`);
-      }
-      parts.push(
-        `<span class="word" data-role="${w.role}">${letterParts.join("")}</span>`,
-      );
-    }
-    promptEl.innerHTML = parts.join(" ");
+    const html = words
+      .map((w, wi) => {
+        const letters = w.letters
+          .map((l, li) => {
+            const pre = caret?.wordIndex === wi && caret.letterIndex === li ? CARET : "";
+            return `${pre}<span class="letter" data-role="${l.role}">${escapeChar(l.char)}</span>`;
+          })
+          .join("");
+        const trailingCaret =
+          caret?.wordIndex === wi && caret.letterIndex >= w.letters.length ? CARET : "";
+        return `<span class="word" data-role="${w.role}">${letters}${trailingCaret}</span>`;
+      })
+      .join(" ");
+    promptEl.innerHTML = html;
   };
 
   const renderStats = () => {
