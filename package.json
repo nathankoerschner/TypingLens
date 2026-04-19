@@ -1,0 +1,19 @@
+{
+  "name": "typinglens",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -F @typinglens/site dev",
+    "build": "pnpm -F @typinglens/site build",
+    "test": "pnpm -F @typinglens/site test",
+    "lint": "biome check .",
+    "format": "biome format --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.12",
+    "typescript": "5.6.3"
+  }
+}
