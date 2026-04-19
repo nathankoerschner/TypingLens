@@ -15,12 +15,15 @@ struct FingerAccuracyRootView: View {
     var body: some View {
         VStack(spacing: 16) {
             header
+            if !viewModel.mode.isCalibrating {
+                promptPanel
+            }
             preview
             toolbar
             resultsList
         }
         .padding(20)
-        .frame(minWidth: 960, minHeight: 720)
+        .frame(minWidth: 960, minHeight: 780)
         .background(TypingLensTheme.background)
         .foregroundStyle(TypingLensTheme.text)
         .onAppear { viewModel.start() }
@@ -48,10 +51,47 @@ struct FingerAccuracyRootView: View {
             return "Drag the labeled corners to match your keyboard. The letters show where keys will map."
         case .typing:
             if let pct = viewModel.accuracyPercent {
-                return String(format: "Type to see finger attribution • Accuracy: %.0f%%", pct)
+                return String(format: "Type the prompt with the correct finger • Accuracy: %.0f%%", pct)
             }
-            return "Focus this window and type to see finger attribution."
+            return "Type the prompt with the correct finger and follow the highlighted target."
         }
+    }
+
+    private var promptPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Touch typing game")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                    Text("Target: \(viewModel.currentTargetLabel) • Progress: \(viewModel.promptProgressLabel)")
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .foregroundStyle(TypingLensTheme.subdued)
+                }
+
+                Spacer()
+
+                if let feedback = viewModel.promptFeedback {
+                    Text(feedback)
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(viewModel.promptFeedbackIsSuccess ? Color.black : Color.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            viewModel.promptFeedbackIsSuccess
+                            ? Color(nsColor: .systemGreen)
+                            : Color(nsColor: .systemRed),
+                            in: RoundedRectangle(cornerRadius: 12)
+                        )
+                }
+            }
+
+            FingerAccuracyPromptView(
+                text: viewModel.promptText,
+                currentIndex: viewModel.currentPromptIndex
+            )
+        }
+        .padding(18)
+        .background(TypingLensTheme.panel, in: RoundedRectangle(cornerRadius: 24))
     }
 
     private var preview: some View {
@@ -156,6 +196,8 @@ struct FingerAccuracyRootView: View {
                 Button("Recalibrate") { viewModel.beginCalibration() }
                     .buttonStyle(TypingLensFilledButtonStyle())
                     .disabled(viewModel.frame == nil)
+                Button("Restart Prompt") { viewModel.restartPrompt() }
+                    .buttonStyle(TypingLensFilledButtonStyle())
             }
 
             Button(viewModel.swapHands ? "Swap Hands: ON" : "Swap Hands: OFF") {
@@ -198,6 +240,43 @@ struct FingerAccuracyRootView: View {
             }
         }
         .typingLensCard()
+    }
+}
+
+private struct FingerAccuracyPromptView: View {
+    let text: String
+    let currentIndex: Int
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 4) {
+                ForEach(Array(text.enumerated()), id: \.offset) { index, character in
+                    Text(character == " " ? "␣" : String(character))
+                        .font(.system(size: 20, weight: index == currentIndex ? .black : .medium, design: .monospaced))
+                        .foregroundStyle(color(for: index))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 6)
+                        .background(background(for: index), in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+    }
+
+    private func color(for index: Int) -> Color {
+        if index <= currentIndex {
+            return Color.black
+        }
+        return TypingLensTheme.text
+    }
+
+    private func background(for index: Int) -> Color {
+        if index < currentIndex {
+            return Color(nsColor: .systemGreen).opacity(0.9)
+        }
+        if index == currentIndex {
+            return Color(nsColor: .systemYellow).opacity(0.95)
+        }
+        return TypingLensTheme.panelElevated
     }
 }
 
@@ -247,7 +326,7 @@ private struct AttributionChip: View {
                 Image(systemName: symbolName)
                     .foregroundStyle(symbolColor)
             }
-            Text("exp: \(result.expectedFinger.displayName)")
+            Text("exp: \(result.expectedFingerDisplayName)")
                 .font(.system(size: 10, design: .monospaced))
                 .foregroundStyle(TypingLensTheme.subdued)
             Text("got: \(result.detectedFinger?.displayName ?? "—")")
@@ -362,6 +441,7 @@ private struct FingerAccuracyOverlayView: View {
 
     private func drawLatestAttribution(context: GraphicsContext) {
         guard case .typing = mode, let result = latestResult else { return }
+        guard result.character != " " else { return }
         guard let keyCenter = result.keyCenter else { return }
         let mappedKey = mapped(keyCenter)
         let keyColor: Color = result.isCorrect ? .green : TypingLensTheme.error
