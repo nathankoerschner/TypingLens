@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none';"
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="TypingLens is a local-only Mac typing coach that ranks the words slowing you down and turns them into focused practice."
+    />
+    <meta property="og:title" content="TypingLens — type better by fixing what actually slows you down." />
+    <meta
+      property="og:description"
+      content="TypingLens captures your typing locally on Mac, ranks your weak words, and generates drills from your own history."
+    />
+    <link rel="icon" href="/typing-lens-mark.svg" type="image/svg+xml" />
+    <title>TypingLens</title>
+  </head>
+  <body>
+    <header class="site-header" aria-label="TypingLens">
+      <a class="brand" href="#top" aria-label="TypingLens home">
+        <img src="/typing-lens-mark.svg" width="34" height="34" alt="" />
+        <span>TypingLens</span>
+      </a>
+      <div class="header-actions">
+        <nav aria-label="Primary">
+          <a href="#how-it-works">How it works</a>
+          <a href="#why-install">Mac app</a>
+        </nav>
+        <a class="github-link" href="https://github.com/nathankoerschner/TypingLens" aria-label="GitHub repository">
+          <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 3.86c.68.003 1.36.092 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+            />
+          </svg>
+        </a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section id="demo" class="hero-section" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <span class="accent-line" aria-hidden="true"></span>
+          <p class="eyebrow">A typing coach for proficient typists</p>
+          <h1 id="hero-title">Type better by fixing what actually slows you down.</h1>
+          <p class="lede">
+            TypingLens watches your typing locally on your Mac, ranks the words and patterns
+            costing you speed and accuracy, and turns them into drills shaped by your own history.
+          </p>
+          <div class="cta-row" aria-label="Primary actions">
+            <a
+              class="button primary"
+              href="https://github.com/nathankoerschner/TypingLens/releases/latest"
+            >
+              Download for Mac
+            </a>
+          </div>
+          <p class="trust-line">Local only. No account. macOS 13+.</p>
+          <p class="mobile-note">
+            TypingLens runs on macOS with a physical keyboard. Phones are best for reading the story.
+          </p>
+        </div>
+
+        <section id="practice-mount" aria-label="TypingLens practice preview">
+          <div class="trainer-shell">
+            <div
+              id="prompt"
+              tabindex="-1"
+              aria-label="Static preview of a practice prompt"
+              style="font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.45rem; line-height: 1.75; white-space: pre-wrap; min-height: 8rem; padding: 1.1rem; display: block;"
+            >
+              <span style="color: var(--muted);">the </span><span style="color: var(--muted);">quick </span><span style="color: var(--muted);">brown </span><span style="background: var(--accent-soft); color: var(--accent-strong); border-bottom: 2px solid var(--accent); border-radius: 3px; padding: 0 2px;">fox</span><span style="color: color-mix(in srgb, var(--ink) 45%, transparent);"> jumps </span><span style="color: color-mix(in srgb, var(--ink) 45%, transparent);">over </span><span style="color: color-mix(in srgb, var(--ink) 45%, transparent);">the </span><span style="color: color-mix(in srgb, var(--ink) 45%, transparent);">lazy</span>
+            </div>
+            <p style="color: var(--quiet); font-size: 0.88rem; padding: 0 1.1rem 1.1rem; margin: 0;">
+              Preview of TypingLens practice — download the Mac app to try it on your own typing.
+            </p>
+          </div>
+        </section>
+      </section>
+
+      <section id="how-it-works" class="flow-section" aria-labelledby="how-title">
+        <div class="section-heading">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">Capture, rank, practice.</h2>
+        </div>
+        <ol class="step-list">
+          <li>
+            <span>1</span>
+            <div>
+              <h3>Capture local typing data</h3>
+              <p>TypingLens records your typing activity locally on your Mac.</p>
+            </div>
+          </li>
+          <li>
+            <span>2</span>
+            <div>
+              <h3>Rank what slows you down</h3>
+              <p>It surfaces the words and patterns most associated with lost speed and mistakes.</p>
+            </div>
+          </li>
+          <li>
+            <span>3</span>
+            <div>
+              <h3>Practice against real weaknesses</h3>
+              <p>Drills and analytics come from your history, not from generic word lists.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section id="why-install" class="mac-section" aria-labelledby="install-title">
+        <div class="mac-copy">
+          <p class="eyebrow">The Mac app</p>
+          <h2 id="install-title">Built around how you actually type.</h2>
+          <p>
+            TypingLens is a SwiftUI app for macOS 13 and up. It keeps your typing data on your
+            machine and practice adapts as your typing changes.
+          </p>
+          <div class="cta-row" aria-label="Mac app downloads">
+            <a
+              class="button primary"
+              href="https://github.com/nathankoerschner/TypingLens/releases/latest"
+            >
+              Download for Mac
+            </a>
+            <a
+              class="button secondary"
+              href="https://github.com/nathankoerschner/TypingLens"
+            >
+              View on GitHub
+            </a>
+          </div>
+        </div>
+        <div class="feature-flow" aria-label="TypingLens qualities">
+          <article>
+            <h3>Local only by design</h3>
+            <p>Typing history stays on your Mac. No account, no sync, no telemetry.</p>
+          </article>
+          <article>
+            <h3>Shaped by your history</h3>
+            <p>Practice reflects the words and patterns you actually struggle with.</p>
+          </article>
+          <article>
+            <h3>Open source</h3>
+            <p>Licensed GPL-3.0, in the same spirit as Monkeytype.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand muted" href="#top" aria-label="TypingLens home">
+          <img src="/typing-lens-mark.svg" width="24" height="24" alt="" />
+          <span>TypingLens</span>
+        </a>
+        <span>A typing coach for proficient typists</span>
+      </div>
+      <nav aria-label="Footer">
+        <a href="https://github.com/nathankoerschner/TypingLens/releases/latest">Releases</a>
+        <a href="https://github.com/nathankoerschner/TypingLens">GitHub</a>
+      </nav>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

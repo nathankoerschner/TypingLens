@@ -1,0 +1,12 @@
+Portions of this package were adapted from the upstream project
+`typing-lens` by Sean Flanagan:
+
+    https://github.com/FlanaganSe/TypingLens
+
+Upstream licence: MIT.
+
+Adapted files include `src/site.css`, the SVG assets in `public/`, and
+the HTML scaffolding in `index.html` (copy has been rewritten for this
+repository). The resulting combined work is distributed under the
+GPL-3.0 licence of this repository; compatibility of the two licences
+is flagged for review before any public release of this site.
