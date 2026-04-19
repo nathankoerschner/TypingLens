@@ -32,11 +32,13 @@ struct KeyboardCalibration: Equatable {
     var bottomRight: CGPoint
     var bottomLeft: CGPoint
 
+    // Calibration points live in Vision coordinates. The preview draws them with
+    // `1 - x`, so the keyboard's visual left edge has the higher Vision X value.
     static let defaultNormalized = KeyboardCalibration(
-        topLeft: CGPoint(x: 0.15, y: 0.65),
-        topRight: CGPoint(x: 0.85, y: 0.65),
-        bottomRight: CGPoint(x: 0.85, y: 0.25),
-        bottomLeft: CGPoint(x: 0.15, y: 0.25)
+        topLeft: CGPoint(x: 0.85, y: 0.65),
+        topRight: CGPoint(x: 0.15, y: 0.65),
+        bottomRight: CGPoint(x: 0.15, y: 0.25),
+        bottomLeft: CGPoint(x: 0.85, y: 0.25)
     )
 
     func corner(_ corner: CalibrationCorner) -> CGPoint {

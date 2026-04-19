@@ -7,6 +7,28 @@ final class FingerAccuracyFingertipExtractionTests: XCTestCase {
         XCTAssertNil(KeyboardLayout.key(for: " "))
     }
 
+    func testDefaultCalibrationUsesMirroredVisionCoordinates() {
+        let calibration = KeyboardCalibration.defaultNormalized
+
+        XCTAssertGreaterThan(calibration.topLeft.x, calibration.topRight.x)
+        XCTAssertGreaterThan(calibration.bottomLeft.x, calibration.bottomRight.x)
+    }
+
+    func testDefaultCalibrationDrawsLeftKeysToTheVisualLeft() throws {
+        let calibration = KeyboardCalibration.defaultNormalized
+
+        let qDisplayX = try XCTUnwrap(Self.displayX(for: "q", calibration: calibration))
+        let pDisplayX = try XCTUnwrap(Self.displayX(for: "p", calibration: calibration))
+        let aDisplayX = try XCTUnwrap(Self.displayX(for: "a", calibration: calibration))
+        let semicolonDisplayX = try XCTUnwrap(Self.displayX(for: ";", calibration: calibration))
+        let zDisplayX = try XCTUnwrap(Self.displayX(for: "z", calibration: calibration))
+        let slashDisplayX = try XCTUnwrap(Self.displayX(for: "/", calibration: calibration))
+
+        XCTAssertLessThan(qDisplayX, pDisplayX)
+        XCTAssertLessThan(aDisplayX, semicolonDisplayX)
+        XCTAssertLessThan(zDisplayX, slashDisplayX)
+    }
+
     func testExtractFingertipsFindsAllFiveTipsOnOneHand() {
         let overlay = Self.makeHandOverlay(prefix: "hand-0", wristX: 0.3)
         let samples = FingerAccuracyViewModel.extractFingertips(from: overlay, swapHands: false)
@@ -54,6 +76,13 @@ final class FingerAccuracyFingertipExtractionTests: XCTestCase {
 
         XCTAssertEqual(samples.count, 5)
         XCTAssertTrue(samples.contains { $0.finger == .rightIndex })
+    }
+
+    private static func displayX(
+        for character: Character,
+        calibration: KeyboardCalibration
+    ) -> CGFloat? {
+        calibration.keyCenter(for: character).map { 1 - $0.x }
     }
 
     private static func makeHandOverlay(
