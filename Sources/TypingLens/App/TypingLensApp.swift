@@ -44,7 +44,7 @@ struct TypingLensApp: App {
     private let menuBarController: MenuBarController
     private let practiceWindowController: PracticeWindowController
     private let analyticsWindowController: AnalyticsWindowController
-    private let mediaPipeWindowController: MediaPipeWindowController
+    private let visionTrackingWindowController: VisionTrackingWindowController
     private let settingsSceneOpener: SettingsSceneOpening
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
@@ -78,11 +78,11 @@ struct TypingLensApp: App {
         }
         self.analyticsWindowController = analyticsWindowController
 
-        let mediaPipeWindowController = MediaPipeWindowController()
-        mediaPipeWindowController.onWindowVisibilityChanged = {
-            windowActivationController.setWindowVisible($0, identifier: "mediapipe")
+        let visionTrackingWindowController = VisionTrackingWindowController()
+        visionTrackingWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "visiontracking")
         }
-        self.mediaPipeWindowController = mediaPipeWindowController
+        self.visionTrackingWindowController = visionTrackingWindowController
 
         let loggingCoordinator: LoggingCoordinator
         do {
@@ -139,8 +139,8 @@ struct TypingLensApp: App {
                     analyticsWindowController.show(result: result)
                 }
             },
-            onOpenMediaPipe: {
-                mediaPipeWindowController.show()
+            onOpenVisionTracking: {
+                visionTrackingWindowController.show()
             }
         )
         settingsWindowController.onWindowVisibilityChanged = {
@@ -178,8 +178,8 @@ struct TypingLensApp: App {
                     practiceWindowController.show(prompt: prompt)
                 }
             },
-            onOpenMediaPipe: {
-                mediaPipeWindowController.show()
+            onOpenVisionTracking: {
+                visionTrackingWindowController.show()
             },
             loggingCoordinator: loggingCoordinator
         )
@@ -232,8 +232,8 @@ struct TypingLensApp: App {
                             analyticsWindowController.show(result: result)
                         }
                     },
-                    onOpenMediaPipe: {
-                        mediaPipeWindowController.show()
+                    onOpenVisionTracking: {
+                        visionTrackingWindowController.show()
                     }
                 )
             )

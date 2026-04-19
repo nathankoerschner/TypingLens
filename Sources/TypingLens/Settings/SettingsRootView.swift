@@ -67,7 +67,7 @@ struct SettingsRootView: View {
                             Button("Open Analytics", action: viewModel.openAnalytics)
                                 .frame(maxWidth: .infinity)
                                 .buttonStyle(TypingLensFilledButtonStyle())
-                            Button("MediaPipe", action: viewModel.openMediaPipe)
+                            Button("VisionTracking", action: viewModel.openVisionTracking)
                                 .frame(maxWidth: .infinity)
                                 .buttonStyle(TypingLensFilledButtonStyle())
                         }

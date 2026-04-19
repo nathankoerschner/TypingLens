@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-final class MediaPipeWindowController: NSWindowController, NSWindowDelegate {
+final class VisionTrackingWindowController: NSWindowController, NSWindowDelegate {
     private let defaultWindowSize = NSSize(width: 1_120, height: 820)
     private let minimumWindowSize = NSSize(width: 920, height: 680)
     private let targetWidthRatio: CGFloat = 0.72
@@ -23,7 +23,7 @@ final class MediaPipeWindowController: NSWindowController, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "MediaPipe"
+        window.title = "VisionTracking"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
@@ -43,7 +43,7 @@ final class MediaPipeWindowController: NSWindowController, NSWindowDelegate {
     func show() {
         guard let window else { return }
 
-        let rootView = MediaPipeRootView(onClose: { [weak self] in
+        let rootView = VisionTrackingRootView(onClose: { [weak self] in
             self?.closeWindow()
         })
         let anyRootView = AnyView(rootView)

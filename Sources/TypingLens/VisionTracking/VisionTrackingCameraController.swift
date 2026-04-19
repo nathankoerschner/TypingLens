@@ -6,12 +6,12 @@ import ImageIO
 import QuartzCore
 import Vision
 
-final class MediaPipeViewModel: ObservableObject {
-    @Published private(set) var state: MediaPipeViewState = .initial
+final class VisionTrackingViewModel: ObservableObject {
+    @Published private(set) var state: VisionTrackingViewState = .initial
 
-    private let cameraController: MediaPipeCameraControlling
+    private let cameraController: VisionTrackingCameraControlling
 
-    init(cameraController: MediaPipeCameraControlling = MediaPipeCameraController()) {
+    init(cameraController: VisionTrackingCameraControlling = VisionTrackingCameraController()) {
         self.cameraController = cameraController
         cameraController.onFrameUpdate = { [weak self] frame, overlay in
             guard let self else { return }
@@ -40,22 +40,22 @@ final class MediaPipeViewModel: ObservableObject {
     }
 }
 
-protocol MediaPipeCameraControlling: AnyObject {
-    var onFrameUpdate: ((MediaPipeCameraFrame, MediaPipeOverlayState) -> Void)? { get set }
+protocol VisionTrackingCameraControlling: AnyObject {
+    var onFrameUpdate: ((VisionTrackingCameraFrame, VisionTrackingOverlayState) -> Void)? { get set }
     var onStatusUpdate: ((String, Bool) -> Void)? { get set }
     func start()
     func stop()
     func requestCameraAccess()
 }
 
-final class MediaPipeCameraController: NSObject, MediaPipeCameraControlling {
-    var onFrameUpdate: ((MediaPipeCameraFrame, MediaPipeOverlayState) -> Void)?
+final class VisionTrackingCameraController: NSObject, VisionTrackingCameraControlling {
+    var onFrameUpdate: ((VisionTrackingCameraFrame, VisionTrackingOverlayState) -> Void)?
     var onStatusUpdate: ((String, Bool) -> Void)?
 
     private let session = AVCaptureSession()
     private let output = AVCaptureVideoDataOutput()
-    private let sessionQueue = DispatchQueue(label: "typinglens.mediapipe.session")
-    private let visionQueue = DispatchQueue(label: "typinglens.mediapipe.vision")
+    private let sessionQueue = DispatchQueue(label: "typinglens.visiontracking.session")
+    private let visionQueue = DispatchQueue(label: "typinglens.visiontracking.vision")
     private let sequenceHandler = VNSequenceRequestHandler()
     private let ciContext = CIContext(options: nil)
     private var isConfigured = false
@@ -74,12 +74,12 @@ final class MediaPipeCameraController: NSObject, MediaPipeCameraControlling {
                     if granted {
                         self.configureAndStartIfNeeded()
                     } else {
-                        self.onStatusUpdate?("Camera access is required to use MediaPipe.", true)
+                        self.onStatusUpdate?("Camera access is required to use VisionTracking.", true)
                     }
                 }
             }
         default:
-            onStatusUpdate?("Camera access is required to use MediaPipe.", true)
+            onStatusUpdate?("Camera access is required to use VisionTracking.", true)
         }
     }
 
@@ -125,12 +125,12 @@ final class MediaPipeCameraController: NSObject, MediaPipeCameraControlling {
         session.sessionPreset = .high
 
         guard let device = preferredCameraDevice() else {
-            throw NSError(domain: "MediaPipeCameraController", code: -1, userInfo: [NSLocalizedDescriptionKey: "No camera device found"])
+            throw NSError(domain: "VisionTrackingCameraController", code: -1, userInfo: [NSLocalizedDescriptionKey: "No camera device found"])
         }
 
         let input = try AVCaptureDeviceInput(device: device)
         guard session.canAddInput(input) else {
-            throw NSError(domain: "MediaPipeCameraController", code: -2, userInfo: [NSLocalizedDescriptionKey: "Unable to attach camera input"])
+            throw NSError(domain: "VisionTrackingCameraController", code: -2, userInfo: [NSLocalizedDescriptionKey: "Unable to attach camera input"])
         }
         session.addInput(input)
 
@@ -141,7 +141,7 @@ final class MediaPipeCameraController: NSObject, MediaPipeCameraControlling {
         output.setSampleBufferDelegate(self, queue: visionQueue)
 
         guard session.canAddOutput(output) else {
-            throw NSError(domain: "MediaPipeCameraController", code: -3, userInfo: [NSLocalizedDescriptionKey: "Unable to attach camera output"])
+            throw NSError(domain: "VisionTrackingCameraController", code: -3, userInfo: [NSLocalizedDescriptionKey: "Unable to attach camera output"])
         }
         session.addOutput(output)
         output.connection(with: .video)?.isVideoMirrored = true
@@ -166,7 +166,7 @@ final class MediaPipeCameraController: NSObject, MediaPipeCameraControlling {
     }
 }
 
-extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegate {
+extension VisionTrackingCameraController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard !isProcessingFrame else { return }
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
@@ -205,23 +205,23 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
         isProcessingFrame = false
     }
 
-    private func makeFrame(from pixelBuffer: CVPixelBuffer) -> MediaPipeCameraFrame? {
+    private func makeFrame(from pixelBuffer: CVPixelBuffer) -> VisionTrackingCameraFrame? {
         let image = CIImage(cvPixelBuffer: pixelBuffer)
         let rect = CGRect(origin: .zero, size: CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer)))
         guard let cgImage = ciContext.createCGImage(image, from: rect) else {
             return nil
         }
-        return MediaPipeCameraFrame(cgImage: cgImage, size: rect.size)
+        return VisionTrackingCameraFrame(cgImage: cgImage, size: rect.size)
     }
 
     private static func makeOverlay(
         poseObservations: [VNHumanBodyPoseObservation],
         handObservations: [VNHumanHandPoseObservation]
-    ) -> MediaPipeOverlayState {
-        var posePoints: [MediaPipeLandmark] = []
-        var poseStrokes: [MediaPipeStroke] = []
-        var handPoints: [MediaPipeLandmark] = []
-        var handStrokes: [MediaPipeStroke] = []
+    ) -> VisionTrackingOverlayState {
+        var posePoints: [VisionTrackingLandmark] = []
+        var poseStrokes: [VisionTrackingStroke] = []
+        var handPoints: [VisionTrackingLandmark] = []
+        var handStrokes: [VisionTrackingStroke] = []
 
         for (index, observation) in poseObservations.enumerated() {
             if let result = makePoseLandmarks(from: observation, prefix: "pose-\(index)") {
@@ -237,7 +237,7 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
             }
         }
 
-        return MediaPipeOverlayState(
+        return VisionTrackingOverlayState(
             posePoints: posePoints,
             poseStrokes: poseStrokes,
             handPoints: handPoints,
@@ -248,7 +248,7 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
     private static func makePoseLandmarks(
         from observation: VNHumanBodyPoseObservation,
         prefix: String
-    ) -> (points: [MediaPipeLandmark], strokes: [MediaPipeStroke])? {
+    ) -> (points: [VisionTrackingLandmark], strokes: [VisionTrackingStroke])? {
         let joints: [VNHumanBodyPoseObservation.JointName] = [
             .nose,
             .neck,
@@ -263,9 +263,9 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
         let recognized = try? observation.recognizedPoints(.all)
         guard let recognized else { return nil }
 
-        let points = joints.compactMap { joint -> MediaPipeLandmark? in
+        let points = joints.compactMap { joint -> VisionTrackingLandmark? in
             guard let point = recognized[joint], point.confidence > 0.15 else { return nil }
-            return MediaPipeLandmark(
+            return VisionTrackingLandmark(
                 id: "\(prefix)-\(joint.rawValue)",
                 x: CGFloat(point.location.x),
                 y: CGFloat(point.location.y),
@@ -295,7 +295,7 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
             [.leftHip, .rightHip]
         ]
 
-        let strokes = connections.compactMap { pair -> MediaPipeStroke? in
+        let strokes = connections.compactMap { pair -> VisionTrackingStroke? in
             let startName = pair[0].rawValue
             let endName = pair[1].rawValue
             guard
@@ -304,7 +304,7 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
             else {
                 return nil
             }
-            return MediaPipeStroke(
+            return VisionTrackingStroke(
                 id: "\(prefix)-\(startName)-\(endName)",
                 points: [CGPoint(x: start.x, y: start.y), CGPoint(x: end.x, y: end.y)]
             )
@@ -316,7 +316,7 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
     private static func makeHandLandmarks(
         from observation: VNHumanHandPoseObservation,
         prefix: String
-    ) -> (points: [MediaPipeLandmark], strokes: [MediaPipeStroke])? {
+    ) -> (points: [VisionTrackingLandmark], strokes: [VisionTrackingStroke])? {
         let joints: [VNHumanHandPoseObservation.JointName] = [
             .wrist,
             .thumbCMC, .thumbMP, .thumbIP, .thumbTip,
@@ -328,9 +328,9 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
         let recognized = try? observation.recognizedPoints(.all)
         guard let recognized else { return nil }
 
-        let points = joints.compactMap { joint -> MediaPipeLandmark? in
+        let points = joints.compactMap { joint -> VisionTrackingLandmark? in
             guard let point = recognized[joint], point.confidence > 0.15 else { return nil }
-            return MediaPipeLandmark(
+            return VisionTrackingLandmark(
                 id: "\(prefix)-\(joint.rawValue)",
                 x: CGFloat(point.location.x),
                 y: CGFloat(point.location.y),
@@ -349,7 +349,7 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
             [.wrist, .littleMCP, .littlePIP, .littleDIP, .littleTip]
         ]
 
-        let strokes = fingers.flatMap { finger -> [MediaPipeStroke] in
+        let strokes = fingers.flatMap { finger -> [VisionTrackingStroke] in
             zip(finger, finger.dropFirst()).compactMap { startJoint, endJoint in
                 let startName = startJoint.rawValue
                 let endName = endJoint.rawValue
@@ -359,7 +359,7 @@ extension MediaPipeCameraController: AVCaptureVideoDataOutputSampleBufferDelegat
                 else {
                     return nil
                 }
-                return MediaPipeStroke(
+                return VisionTrackingStroke(
                     id: "\(prefix)-\(startName)-\(endName)",
                     points: [CGPoint(x: start.x, y: start.y), CGPoint(x: end.x, y: end.y)]
                 )

@@ -1,11 +1,11 @@
 import AppKit
 import SwiftUI
 
-struct MediaPipeRootView: View {
-    @StateObject private var viewModel: MediaPipeViewModel
+struct VisionTrackingRootView: View {
+    @StateObject private var viewModel: VisionTrackingViewModel
     let onClose: () -> Void
 
-    init(viewModel: MediaPipeViewModel = MediaPipeViewModel(), onClose: @escaping () -> Void = {}) {
+    init(viewModel: VisionTrackingViewModel = VisionTrackingViewModel(), onClose: @escaping () -> Void = {}) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onClose = onClose
     }
@@ -14,7 +14,7 @@ struct MediaPipeRootView: View {
         VStack(spacing: 16) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("MediaPipe")
+                    Text("VisionTracking")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                     Text("Native camera capture with live body and hand landmarks")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -31,10 +31,10 @@ struct MediaPipeRootView: View {
                         .fill(TypingLensTheme.panel)
 
                     if let frame = viewModel.state.frame {
-                        MediaPipeFrameView(frame: frame)
+                        VisionTrackingFrameView(frame: frame)
                             .clipShape(RoundedRectangle(cornerRadius: 24))
 
-                        MediaPipeOverlayView(overlay: viewModel.state.overlay)
+                        VisionTrackingOverlayView(overlay: viewModel.state.overlay)
                             .clipShape(RoundedRectangle(cornerRadius: 24))
                     } else {
                         VStack(spacing: 14) {
@@ -88,8 +88,8 @@ struct MediaPipeRootView: View {
     }
 }
 
-private struct MediaPipeFrameView: View {
-    let frame: MediaPipeCameraFrame
+private struct VisionTrackingFrameView: View {
+    let frame: VisionTrackingCameraFrame
 
     var body: some View {
         Image(decorative: frame.cgImage, scale: 1.0)
@@ -99,8 +99,8 @@ private struct MediaPipeFrameView: View {
     }
 }
 
-private struct MediaPipeOverlayView: View {
-    let overlay: MediaPipeOverlayState
+private struct VisionTrackingOverlayView: View {
+    let overlay: VisionTrackingOverlayState
 
     var body: some View {
         GeometryReader { proxy in

@@ -62,7 +62,7 @@ final class MenuBarController: NSObject {
     private let onOpenSettings: () -> Void
     private let onOpenAnalytics: () -> Void
     private let onPracticeNow: () -> Void
-    private let onOpenMediaPipe: () -> Void
+    private let onOpenVisionTracking: () -> Void
     private let loggingCoordinator: LoggingCoordinator
     private let permissionGuidancePresenter: PermissionGuidancePresenting
 
@@ -72,7 +72,7 @@ final class MenuBarController: NSObject {
         onOpenSettings: @escaping () -> Void,
         onOpenAnalytics: @escaping () -> Void,
         onPracticeNow: @escaping () -> Void,
-        onOpenMediaPipe: @escaping () -> Void,
+        onOpenVisionTracking: @escaping () -> Void,
         loggingCoordinator: LoggingCoordinator,
         permissionGuidancePresenter: PermissionGuidancePresenting = PermissionGuidanceAlertPresenter(),
         statusItem: MenuBarStatusItemPresenting = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -83,7 +83,7 @@ final class MenuBarController: NSObject {
         self.onOpenSettings = onOpenSettings
         self.onOpenAnalytics = onOpenAnalytics
         self.onPracticeNow = onPracticeNow
-        self.onOpenMediaPipe = onOpenMediaPipe
+        self.onOpenVisionTracking = onOpenVisionTracking
         self.loggingCoordinator = loggingCoordinator
         self.permissionGuidancePresenter = permissionGuidancePresenter
         super.init()
@@ -112,7 +112,7 @@ final class MenuBarController: NSObject {
         menu.addItem(actionItem(title: "Open Settings…", action: #selector(openSettings), keyEquivalent: ",", target: target))
         menu.addItem(actionItem(title: "Open Analytics", action: #selector(openAnalytics), keyEquivalent: "", target: target))
         menu.addItem(actionItem(title: "Practice Now", action: #selector(practiceNow), keyEquivalent: "", target: target))
-        menu.addItem(actionItem(title: "MediaPipe", action: #selector(openMediaPipe), keyEquivalent: "", target: target))
+        menu.addItem(actionItem(title: "VisionTracking", action: #selector(openVisionTracking), keyEquivalent: "", target: target))
         if state.showOpenSystemSettings {
             menu.addItem(actionItem(title: "Open System Settings", action: #selector(openSystemSettings), keyEquivalent: "", target: target))
         }
@@ -187,8 +187,8 @@ final class MenuBarController: NSObject {
         onPracticeNow()
     }
 
-    @objc func openMediaPipe() {
-        onOpenMediaPipe()
+    @objc func openVisionTracking() {
+        onOpenVisionTracking()
     }
 
     @objc func revealTranscript() {
