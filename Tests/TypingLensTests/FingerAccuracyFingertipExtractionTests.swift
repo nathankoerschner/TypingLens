@@ -1,3 +1,4 @@
+import CoreGraphics
 import XCTest
 import Vision
 @testable import TypingLens
@@ -78,6 +79,82 @@ final class FingerAccuracyFingertipExtractionTests: XCTestCase {
         XCTAssertTrue(samples.contains { $0.finger == .rightIndex })
     }
 
+    func testHandleKeyDownAdvancesPromptWhenKeyAndFingerMatch() throws {
+        let calibration = KeyboardCalibration.defaultNormalized
+        let keyCenter = try XCTUnwrap(calibration.keyCenter(for: "a"))
+        let viewModel = FingerAccuracyViewModel(
+            cameraController: MockVisionTrackingCameraController(),
+            promptText: "ab",
+            initialFingertips: [FingertipSample(finger: .leftPinky, position: keyCenter, confidence: 1)]
+        )
+
+        viewModel.finishCalibration()
+        viewModel.handleKeyDown("a")
+
+        XCTAssertEqual(viewModel.currentPromptIndex, 1)
+        XCTAssertEqual(viewModel.promptFeedback, "Right key, right finger")
+        XCTAssertTrue(viewModel.promptFeedbackIsSuccess)
+        XCTAssertEqual(viewModel.results.first?.character, "a")
+        XCTAssertTrue(viewModel.results.first?.isCorrect ?? false)
+    }
+
+    func testHandleKeyDownDoesNotAdvancePromptWhenFingerIsWrong() throws {
+        let calibration = KeyboardCalibration.defaultNormalized
+        let keyCenter = try XCTUnwrap(calibration.keyCenter(for: "a"))
+        let viewModel = FingerAccuracyViewModel(
+            cameraController: MockVisionTrackingCameraController(),
+            promptText: "ab",
+            initialFingertips: [FingertipSample(finger: .rightIndex, position: keyCenter, confidence: 1)]
+        )
+
+        viewModel.finishCalibration()
+        viewModel.handleKeyDown("a")
+
+        XCTAssertEqual(viewModel.currentPromptIndex, 0)
+        XCTAssertEqual(viewModel.promptFeedback, "Right key, wrong finger")
+        XCTAssertFalse(viewModel.promptFeedbackIsSuccess)
+        XCTAssertEqual(viewModel.results.first?.character, "a")
+        XCTAssertFalse(viewModel.results.first?.isCorrect ?? true)
+    }
+
+    func testHandleKeyDownShowsWrongKeyWhenPromptCharacterDoesNotMatch() throws {
+        let calibration = KeyboardCalibration.defaultNormalized
+        let keyCenter = try XCTUnwrap(calibration.keyCenter(for: "s"))
+        let viewModel = FingerAccuracyViewModel(
+            cameraController: MockVisionTrackingCameraController(),
+            promptText: "ab",
+            initialFingertips: [FingertipSample(finger: .leftRing, position: keyCenter, confidence: 1)]
+        )
+
+        viewModel.finishCalibration()
+        viewModel.handleKeyDown("s")
+
+        XCTAssertEqual(viewModel.currentPromptIndex, 0)
+        XCTAssertEqual(viewModel.promptFeedback, "Wrong key")
+        XCTAssertFalse(viewModel.promptFeedbackIsSuccess)
+        XCTAssertEqual(viewModel.results.first?.character, "s")
+        XCTAssertTrue(viewModel.results.first?.isCorrect ?? false)
+    }
+
+    func testHandleKeyDownAcceptsSpaceFromAnyFinger() {
+        let calibration = KeyboardCalibration.defaultNormalized
+        let spacebarCenter = FingerAccuracyViewModel.spacebarCenter(for: calibration)
+        let viewModel = FingerAccuracyViewModel(
+            cameraController: MockVisionTrackingCameraController(),
+            promptText: " a",
+            initialFingertips: [FingertipSample(finger: .leftPinky, position: spacebarCenter, confidence: 1)]
+        )
+
+        viewModel.finishCalibration()
+        viewModel.handleKeyDown(" ")
+
+        XCTAssertEqual(viewModel.currentPromptIndex, 1)
+        XCTAssertEqual(viewModel.promptFeedback, "Right key")
+        XCTAssertTrue(viewModel.promptFeedbackIsSuccess)
+        XCTAssertEqual(viewModel.results.first?.expectedFingerDisplayName, "Any finger")
+        XCTAssertTrue(viewModel.results.first?.isCorrect ?? false)
+    }
+
     private static func displayX(
         for character: Character,
         calibration: KeyboardCalibration
@@ -116,4 +193,13 @@ final class FingerAccuracyFingertipExtractionTests: XCTestCase {
             handStrokes: []
         )
     }
+}
+
+private final class MockVisionTrackingCameraController: VisionTrackingCameraControlling {
+    var onFrameUpdate: ((VisionTrackingCameraFrame, VisionTrackingOverlayState) -> Void)?
+    var onStatusUpdate: ((String, Bool) -> Void)?
+
+    func start() {}
+    func stop() {}
+    func requestCameraAccess() {}
 }

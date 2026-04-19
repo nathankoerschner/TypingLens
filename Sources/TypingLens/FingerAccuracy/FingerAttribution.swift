@@ -11,6 +11,7 @@ struct AttributionResult: Identifiable, Equatable {
     let id = UUID()
     let character: Character
     let expectedFinger: Finger
+    let acceptedFingers: Set<Finger>
     let detectedFinger: Finger?
     let distance: Double?
     let keyCenter: CGPoint?
@@ -18,7 +19,17 @@ struct AttributionResult: Identifiable, Equatable {
 
     var isCorrect: Bool {
         guard let detectedFinger else { return false }
-        return detectedFinger == expectedFinger
+        return acceptedFingers.contains(detectedFinger)
+    }
+
+    var expectedFingerDisplayName: String {
+        if acceptedFingers == Set(Finger.allCases) {
+            return "Any finger"
+        }
+        if acceptedFingers == Set([.leftThumb, .rightThumb]) {
+            return "Thumbs"
+        }
+        return expectedFinger.displayName
     }
 }
 
