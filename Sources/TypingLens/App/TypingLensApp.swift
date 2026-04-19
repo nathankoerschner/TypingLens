@@ -1,13 +1,51 @@
 import AppKit
 import SwiftUI
 
+enum QuitInterception {
+    private static var allowsTermination = false
+
+    static func requestTermination() {
+        allowsTermination = true
+    }
+
+    static func dismissCurrentUI(application: NSApplication = .shared) {
+        if let window = application.keyWindow
+            ?? application.mainWindow
+            ?? application.orderedWindows.first(where: { $0.isVisible })
+        {
+            window.performClose(nil)
+            return
+        }
+
+        application.hide(nil)
+    }
+
+    static func terminateReply(for application: NSApplication = .shared) -> NSApplication.TerminateReply {
+        guard !allowsTermination else {
+            return .terminateNow
+        }
+
+        dismissCurrentUI(application: application)
+        return .terminateCancel
+    }
+}
+
+final class TypingLensAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        QuitInterception.terminateReply(for: sender)
+    }
+}
+
 @main
 struct TypingLensApp: App {
+    @NSApplicationDelegateAdaptor(TypingLensAppDelegate.self) private var appDelegate
     @StateObject private var appState: AppState
     private let loggingCoordinator: LoggingCoordinator
     private let menuBarController: MenuBarController
     private let practiceWindowController: PracticeWindowController
     private let analyticsWindowController: AnalyticsWindowController
+    private let visionTrackingWindowController: VisionTrackingWindowController
+    private let settingsSceneOpener: SettingsSceneOpening
     private let launchAtLoginManager: LaunchAtLoginManager
     private let didBecomeActiveObserver: NSObjectProtocol
 
@@ -40,6 +78,12 @@ struct TypingLensApp: App {
         }
         self.analyticsWindowController = analyticsWindowController
 
+        let visionTrackingWindowController = VisionTrackingWindowController()
+        visionTrackingWindowController.onWindowVisibilityChanged = {
+            windowActivationController.setWindowVisible($0, identifier: "visiontracking")
+        }
+        self.visionTrackingWindowController = visionTrackingWindowController
+
         let loggingCoordinator: LoggingCoordinator
         do {
             loggingCoordinator = try LoggingCoordinator(
@@ -47,13 +91,7 @@ struct TypingLensApp: App {
                 fileLocations: fileLocations,
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
-                transcriptWriter: transcriptWriter,
-                onOpenPractice: { prompt in
-                    practiceWindowController.show(prompt: prompt)
-                },
-                onOpenAnalytics: { result in
-                    analyticsWindowController.show(result: result)
-                }
+                transcriptWriter: transcriptWriter
             )
         } catch {
             state.loggingStatus = .error(message: error.localizedDescription)
@@ -63,22 +101,10 @@ struct TypingLensApp: App {
                 permissionManager: permissionManager,
                 keyboardMonitor: keyboardMonitor,
                 transcriptWriter: transcriptWriter,
-                onOpenPractice: { prompt in
-                    practiceWindowController.show(prompt: prompt)
-                },
-                onOpenAnalytics: { result in
-                    analyticsWindowController.show(result: result)
-                },
                 initialSequence: 1
             )
         }
 
-        practiceWindowController.onRequestNewPrompt = {
-            loggingCoordinator.practiceNowRequested()
-        }
-        analyticsWindowController.onRefreshAnalytics = {
-            loggingCoordinator.showAnalyticsRequested()
-        }
         var menuBarController: MenuBarController!
         let settingsWindowController = SettingsWindowController(
             appState: state,
@@ -104,21 +130,57 @@ struct TypingLensApp: App {
                 loggingCoordinator.exportRankedWordsRequested()
             },
             onPracticeNow: {
-                loggingCoordinator.practiceNowRequested()
+                if let prompt = loggingCoordinator.makePracticePrompt() {
+                    practiceWindowController.show(prompt: prompt)
+                }
             },
             onOpenAnalytics: {
-                loggingCoordinator.showAnalyticsRequested()
+                if let result = loggingCoordinator.makeAnalyticsResult() {
+                    analyticsWindowController.show(result: result)
+                }
+            },
+            onOpenVisionTracking: {
+                visionTrackingWindowController.show()
             }
         )
         settingsWindowController.onWindowVisibilityChanged = {
             windowActivationController.setWindowVisible($0, identifier: "settings")
         }
 
+        let settingsSceneOpener = SwiftUISettingsSceneOpener(settingsWindow: settingsWindowController)
+        self.settingsSceneOpener = settingsSceneOpener
+
+        practiceWindowController.onRequestNewPrompt = {
+            if let prompt = loggingCoordinator.makePracticePrompt() {
+                practiceWindowController.show(prompt: prompt)
+            }
+        }
+        analyticsWindowController.onRefreshAnalytics = {
+            if let result = loggingCoordinator.makeAnalyticsResult() {
+                analyticsWindowController.show(result: result)
+            }
+        }
+
         _appState = StateObject(wrappedValue: state)
         menuBarController = MenuBarController(
             appState: state,
             transcriptWriter: transcriptWriter,
-            settingsSceneOpening: SwiftUISettingsSceneOpener(settingsWindow: settingsWindowController),
+            onOpenSettings: {
+                settingsSceneOpener.openSettingsScene()
+            },
+            onOpenAnalytics: {
+                if let result = loggingCoordinator.makeAnalyticsResult() {
+                    analyticsWindowController.show(result: result)
+                }
+            },
+            onPracticeNow: {
+                if let prompt = loggingCoordinator.makePracticePrompt() {
+                    practiceWindowController.show(prompt: prompt)
+                }
+            },
+            onOpenVisionTracking: {
+                visionTrackingWindowController.show()
+            },
             loggingCoordinator: loggingCoordinator
         )
         self.loggingCoordinator = loggingCoordinator
@@ -161,10 +223,17 @@ struct TypingLensApp: App {
                         loggingCoordinator.exportRankedWordsRequested()
                     },
                     onPracticeNow: {
-                        loggingCoordinator.practiceNowRequested()
+                        if let prompt = loggingCoordinator.makePracticePrompt() {
+                            practiceWindowController.show(prompt: prompt)
+                        }
                     },
                     onOpenAnalytics: {
-                        loggingCoordinator.showAnalyticsRequested()
+                        if let result = loggingCoordinator.makeAnalyticsResult() {
+                            analyticsWindowController.show(result: result)
+                        }
+                    },
+                    onOpenVisionTracking: {
+                        visionTrackingWindowController.show()
                     }
                 )
             )

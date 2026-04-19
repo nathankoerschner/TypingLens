@@ -59,14 +59,20 @@ final class MenuBarController: NSObject {
     private let statusItem: MenuBarStatusItemPresenting
     private let appState: AppState
     private let transcriptWriter: TranscriptWriting
-    private let settingsSceneOpening: SettingsSceneOpening
+    private let onOpenSettings: () -> Void
+    private let onOpenAnalytics: () -> Void
+    private let onPracticeNow: () -> Void
+    private let onOpenVisionTracking: () -> Void
     private let loggingCoordinator: LoggingCoordinator
     private let permissionGuidancePresenter: PermissionGuidancePresenting
 
     init(
         appState: AppState,
         transcriptWriter: TranscriptWriting,
-        settingsSceneOpening: SettingsSceneOpening,
+        onOpenSettings: @escaping () -> Void,
+        onOpenAnalytics: @escaping () -> Void,
+        onPracticeNow: @escaping () -> Void,
+        onOpenVisionTracking: @escaping () -> Void,
         loggingCoordinator: LoggingCoordinator,
         permissionGuidancePresenter: PermissionGuidancePresenting = PermissionGuidanceAlertPresenter(),
         statusItem: MenuBarStatusItemPresenting = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -74,7 +80,10 @@ final class MenuBarController: NSObject {
         self.statusItem = statusItem
         self.appState = appState
         self.transcriptWriter = transcriptWriter
-        self.settingsSceneOpening = settingsSceneOpening
+        self.onOpenSettings = onOpenSettings
+        self.onOpenAnalytics = onOpenAnalytics
+        self.onPracticeNow = onPracticeNow
+        self.onOpenVisionTracking = onOpenVisionTracking
         self.loggingCoordinator = loggingCoordinator
         self.permissionGuidancePresenter = permissionGuidancePresenter
         super.init()
@@ -103,6 +112,7 @@ final class MenuBarController: NSObject {
         menu.addItem(actionItem(title: "Open Settings…", action: #selector(openSettings), keyEquivalent: ",", target: target))
         menu.addItem(actionItem(title: "Open Analytics", action: #selector(openAnalytics), keyEquivalent: "", target: target))
         menu.addItem(actionItem(title: "Practice Now", action: #selector(practiceNow), keyEquivalent: "", target: target))
+        menu.addItem(actionItem(title: "VisionTracking", action: #selector(openVisionTracking), keyEquivalent: "", target: target))
         if state.showOpenSystemSettings {
             menu.addItem(actionItem(title: "Open System Settings", action: #selector(openSystemSettings), keyEquivalent: "", target: target))
         }
@@ -161,7 +171,7 @@ final class MenuBarController: NSObject {
     }
 
     @objc func openSettings() {
-        settingsSceneOpening.openSettingsScene()
+        onOpenSettings()
     }
 
     @objc func openSystemSettings() {
@@ -170,11 +180,15 @@ final class MenuBarController: NSObject {
     }
 
     @objc func openAnalytics() {
-        loggingCoordinator.showAnalyticsRequested()
+        onOpenAnalytics()
     }
 
     @objc func practiceNow() {
-        loggingCoordinator.practiceNowRequested()
+        onPracticeNow()
+    }
+
+    @objc func openVisionTracking() {
+        onOpenVisionTracking()
     }
 
     @objc func revealTranscript() {
@@ -197,6 +211,7 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func quit() {
+        QuitInterception.requestTermination()
         NSApp.terminate(nil)
     }
 }

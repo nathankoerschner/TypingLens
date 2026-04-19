@@ -24,6 +24,8 @@
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
+    <key>NSCameraUsageDescription</key>
+    <string>TypingLens uses the camera to show live body and hand landmark tracking in the MediaPipe view.</string>
     <key>LSUIElement</key>
     <true/>
 </dict>

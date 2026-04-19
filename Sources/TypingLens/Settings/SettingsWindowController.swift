@@ -13,7 +13,8 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing,
         onExtractWords: @escaping () -> Void,
         onExportRankedWords: @escaping () -> Void,
         onPracticeNow: @escaping () -> Void,
-        onOpenAnalytics: @escaping () -> Void
+        onOpenAnalytics: @escaping () -> Void,
+        onOpenVisionTracking: @escaping () -> Void
     ) {
         let rootView = SettingsRootView(
             appState: appState,
@@ -26,7 +27,8 @@ final class SettingsWindowController: NSWindowController, SettingsWindowShowing,
                 onExtractWords: onExtractWords,
                 onExportRankedWords: onExportRankedWords,
                 onPracticeNow: onPracticeNow,
-                onOpenAnalytics: onOpenAnalytics
+                onOpenAnalytics: onOpenAnalytics,
+                onOpenVisionTracking: onOpenVisionTracking
             )
         )
         let hostingController = NSHostingController(rootView: rootView)

@@ -22,6 +22,7 @@ struct SettingsViewModel {
     let onExportRankedWords: () -> Void
     let onPracticeNow: () -> Void
     let onOpenAnalytics: () -> Void
+    let onOpenVisionTracking: () -> Void
 
     func state(for appState: AppState) -> SettingsViewState {
         SettingsViewState(
@@ -71,6 +72,10 @@ struct SettingsViewModel {
 
     func openAnalytics() {
         onOpenAnalytics()
+    }
+
+    func openVisionTracking() {
+        onOpenVisionTracking()
     }
 
     private func loggingStatusLabel(for appState: AppState) -> String {

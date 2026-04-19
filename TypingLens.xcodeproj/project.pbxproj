@@ -56,6 +56,10 @@
 		f5413298fe1dfcea8b90534d /* common-words-en.txt in Resources */ = {isa = PBXBuildFile; fileRef = bca1f2c43e0da4492cef9448; };
 		7bd76a2bc9c11866072ea052 /* logging-enabled.png in Resources */ = {isa = PBXBuildFile; fileRef = cbf05361cdd94c063d8fb8a0; };
 		8f1b9e4a2c3d4e5f60718293 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 91a2b3c4d5e6f708192a3b4c; };
+		2d0ac9d69a8a4d77952ab101 /* VisionTrackingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2d0ac9d69a8a4d77952ab201; };
+		2d0ac9d69a8a4d77952ab102 /* VisionTrackingCameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2d0ac9d69a8a4d77952ab202; };
+		2d0ac9d69a8a4d77952ab103 /* VisionTrackingRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2d0ac9d69a8a4d77952ab203; };
+		2d0ac9d69a8a4d77952ab104 /* VisionTrackingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2d0ac9d69a8a4d77952ab204; };
 	/* End PBXBuildFile section */
 
 	/* Begin PBXFileReference section */
@@ -110,6 +114,10 @@
 		cbf05361cdd94c063d8fb8a0 /* logging-enabled.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Sources/TypingLens/Resources/logging-enabled.png; sourceTree = SOURCE_ROOT; };
 		91a2b3c4d5e6f708192a3b4c /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = TypingLens/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		d40b6daa369c26672a202a04 /* TypingLens.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TypingLens.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2d0ac9d69a8a4d77952ab201 /* VisionTrackingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/VisionTracking/VisionTrackingModels.swift; sourceTree = SOURCE_ROOT; };
+		2d0ac9d69a8a4d77952ab202 /* VisionTrackingCameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/VisionTracking/VisionTrackingCameraController.swift; sourceTree = SOURCE_ROOT; };
+		2d0ac9d69a8a4d77952ab203 /* VisionTrackingRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/VisionTracking/VisionTrackingRootView.swift; sourceTree = SOURCE_ROOT; };
+		2d0ac9d69a8a4d77952ab204 /* VisionTrackingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/TypingLens/VisionTracking/VisionTrackingWindowController.swift; sourceTree = SOURCE_ROOT; };
 	/* End PBXFileReference section */
 
 	/* Begin PBXFrameworksBuildPhase section */
@@ -187,6 +195,10 @@
 				1f31a7a1b8a64f4e9c3d1004,
 				1f31a7a1b8a64f4e9c3d1005,
 				1f31a7a1b8a64f4e9c3d1006,
+				2d0ac9d69a8a4d77952ab101,
+				2d0ac9d69a8a4d77952ab102,
+				2d0ac9d69a8a4d77952ab103,
+				2d0ac9d69a8a4d77952ab104,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +254,10 @@
 				1f31a7a1b8a64f4e9c3d2004,
 				1f31a7a1b8a64f4e9c3d2005,
 				1f31a7a1b8a64f4e9c3d2006,
+				2d0ac9d69a8a4d77952ab201,
+				2d0ac9d69a8a4d77952ab202,
+				2d0ac9d69a8a4d77952ab203,
+				2d0ac9d69a8a4d77952ab204,
 			);
 			name = Sources;
 			sourceTree = "<group>";
