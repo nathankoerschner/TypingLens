@@ -83,27 +83,8 @@ final class FingerAccuracyViewModel: ObservableObject {
 
     func handleKeyDown(_ character: Character) {
         guard case .typing = mode else { return }
-        let lowered: Character = {
-            let lower = String(character).lowercased()
-            return lower.first ?? character
-        }()
-        guard let key = KeyboardLayout.key(for: lowered) else { return }
-        let keyCenter = calibration.keyCenter(for: lowered)
-        let attribution = keyCenter.flatMap {
-            FingerAttributor.attribute(
-                keyCenter: $0,
-                fingertips: fingertips,
-                expectedFinger: key.expectedFinger
-            )
-        }
-        let result = AttributionResult(
-            character: lowered,
-            expectedFinger: key.expectedFinger,
-            detectedFinger: attribution?.finger,
-            distance: attribution?.distance,
-            keyCenter: keyCenter,
-            timestamp: Date()
-        )
+        let lowered = Self.normalized(character)
+        guard let result = makeAttributionResult(for: lowered) else { return }
         results.insert(result, at: 0)
         if results.count > maxResults {
             results.removeLast(results.count - maxResults)
@@ -165,7 +146,11 @@ final class FingerAccuracyViewModel: ObservableObject {
         guard let key = KeyboardLayout.key(for: character) else { return nil }
         let keyCenter = calibration.keyCenter(for: character)
         let attribution = keyCenter.flatMap {
-            FingerAttributor.attribute(keyCenter: $0, fingertips: fingertips)
+            FingerAttributor.attribute(
+                keyCenter: $0,
+                fingertips: fingertips,
+                expectedFinger: key.expectedFinger
+            )
         }
         return AttributionResult(
             character: character,
