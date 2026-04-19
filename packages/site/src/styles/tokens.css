@@ -1,0 +1,79 @@
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("@fontsource/newsreader/files/newsreader-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-display: swap;
+  font-weight: 500;
+  src: url("@fontsource/newsreader/files/newsreader-latin-500-italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist Sans";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("@fontsource/geist-sans/files/geist-sans-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist Sans";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url("@fontsource/geist-sans/files/geist-sans-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist Sans";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("@fontsource/geist-sans/files/geist-sans-latin-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("@fontsource/geist-mono/files/geist-mono-latin-500-normal.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: light;
+  --ink: #18221d;
+  --muted: #59635d;
+  --quiet: #7b8580;
+  --paper: #f3f7f2;
+  --paper-alt: #e9f0e8;
+  --surface: #ffffff;
+  --line: #cfd9d1;
+  --line-strong: #9fb0a5;
+  --accent: #277c68;
+  --accent-strong: #155c4d;
+  --accent-soft: #dceee8;
+  --warn: #a3302b;
+  --ok: #176a3d;
+  --max: 1140px;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  --section-y: clamp(2.65rem, 6vw, 4.15rem);
+  --font-sans: "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-sans);
+}

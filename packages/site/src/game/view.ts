@@ -4,6 +4,7 @@ import { buildPrompt } from "./words";
 const PROMPT_LENGTH = 25;
 const TYPING_IDLE_MS = 400;
 const LIVE_TICK_MS = 250;
+const PLACEHOLDER_HTML = `<span class="game-placeholder">Click to start typing</span>`;
 
 const escapeChar = (ch: string): string => {
   switch (ch) {
@@ -38,25 +39,17 @@ const shellHtml = (promptLength: number) => `
       role="textbox"
       aria-label="Typing practice — click and type"
       aria-multiline="false"
-    ></div>
+    >${PLACEHOLDER_HTML}</div>
     <div class="game-controls">
       <button type="button" class="button secondary" data-action="restart">Restart</button>
       <button type="button" class="button secondary" data-action="new">New prompt</button>
-      <p class="game-hint">Click to start.</p>
     </div>
-  </div>
-`;
-
-const mobileFallbackHtml = () => `
-  <div class="trainer-shell mobile-fallback">
-    <p>TypingLens practice needs a physical keyboard.</p>
-    <p class="hint">Grab the Mac app to try it on your own typing.</p>
   </div>
 `;
 
 export const mountGame = (root: HTMLElement): void => {
   if (matchMedia("(pointer: coarse)").matches) {
-    root.innerHTML = mobileFallbackHtml();
+    root.setAttribute("hidden", "");
     return;
   }
 
@@ -72,8 +65,14 @@ export const mountGame = (root: HTMLElement): void => {
   let game: Game = createGame(buildPrompt(PROMPT_LENGTH));
   let liveTimer: number | null = null;
   let typingTimer: number | null = null;
+  let showingPlaceholder = true;
 
   const CARET = `<span class="caret" aria-hidden="true"></span>`;
+
+  const renderPlaceholder = () => {
+    promptEl.innerHTML = PLACEHOLDER_HTML;
+    showingPlaceholder = true;
+  };
 
   const renderPrompt = () => {
     const words = game.renderWords();
@@ -92,6 +91,7 @@ export const mountGame = (root: HTMLElement): void => {
       })
       .join(" ");
     promptEl.innerHTML = html;
+    showingPlaceholder = false;
   };
 
   const renderStats = () => {
@@ -160,6 +160,14 @@ export const mountGame = (root: HTMLElement): void => {
     else startLiveTimer();
   };
 
+  promptEl.addEventListener("focus", () => {
+    if (showingPlaceholder) render();
+  });
+
+  promptEl.addEventListener("blur", () => {
+    if (!game.hasStarted() && !game.isFinished()) renderPlaceholder();
+  });
+
   promptEl.addEventListener("keydown", (e) => {
     if (e.isComposing) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -220,5 +228,5 @@ export const mountGame = (root: HTMLElement): void => {
     handleAction(btn.getAttribute("data-action"));
   });
 
-  render();
+  renderStats();
 };
