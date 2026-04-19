@@ -13,7 +13,8 @@
       "!**/generated",
       "!TypingLens",
       "!TypingLens.xcodeproj",
-      "!**/*.md"
+      "!**/*.md",
+      "!**/*.css"
     ]
   },
   "formatter": {
