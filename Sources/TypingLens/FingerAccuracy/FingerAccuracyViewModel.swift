@@ -10,6 +10,8 @@ final class FingerAccuracyViewModel: ObservableObject {
         var isCalibrating: Bool { self == .calibrating }
     }
 
+    static let defaultPromptText = "the quick brown fox jumps over the lazy dog"
+
     @Published var mode: Mode = .calibrating
     @Published var calibration: KeyboardCalibration = .defaultNormalized
     @Published var swapHands: Bool = false
@@ -18,13 +20,24 @@ final class FingerAccuracyViewModel: ObservableObject {
     @Published private(set) var statusText: String = "Starting camera…"
     @Published private(set) var permissionDenied: Bool = false
     @Published private(set) var results: [AttributionResult] = []
-    @Published private(set) var fingertips: [FingertipSample] = []
+    @Published private(set) var fingertips: [FingertipSample]
+    @Published private(set) var promptText: String
+    @Published private(set) var currentPromptIndex: Int = 0
+    @Published private(set) var promptFeedback: String?
+    @Published private(set) var promptFeedbackIsSuccess: Bool = false
 
     private let cameraController: VisionTrackingCameraControlling
     private let maxResults = 30
 
-    init(cameraController: VisionTrackingCameraControlling = VisionTrackingCameraController(runsBodyPose: false)) {
+    init(
+        cameraController: VisionTrackingCameraControlling = VisionTrackingCameraController(runsBodyPose: false),
+        promptText: String = FingerAccuracyViewModel.defaultPromptText,
+        initialFingertips: [FingertipSample] = []
+    ) {
         self.cameraController = cameraController
+        self.promptText = promptText
+        self.fingertips = initialFingertips
+
         cameraController.onFrameUpdate = { [weak self] frame, overlay in
             guard let self else { return }
             self.frame = frame
@@ -62,6 +75,12 @@ final class FingerAccuracyViewModel: ObservableObject {
         calibration = .defaultNormalized
     }
 
+    func restartPrompt() {
+        currentPromptIndex = 0
+        promptFeedback = nil
+        promptFeedbackIsSuccess = false
+    }
+
     func handleKeyDown(_ character: Character) {
         guard case .typing = mode else { return }
         let lowered: Character = {
@@ -89,6 +108,8 @@ final class FingerAccuracyViewModel: ObservableObject {
         if results.count > maxResults {
             results.removeLast(results.count - maxResults)
         }
+
+        evaluatePromptProgress(with: lowered, result: result)
     }
 
     func clearResults() {
@@ -105,6 +126,102 @@ final class FingerAccuracyViewModel: ObservableObject {
         guard !scored.isEmpty else { return nil }
         let correct = scored.reduce(0) { $0 + ($1.isCorrect ? 1 : 0) }
         return Double(correct) / Double(scored.count) * 100
+    }
+
+    var currentPromptCharacter: Character? {
+        guard currentPromptIndex < promptText.count else { return nil }
+        let index = promptText.index(promptText.startIndex, offsetBy: currentPromptIndex)
+        return promptText[index]
+    }
+
+    var currentTargetLabel: String {
+        guard let currentPromptCharacter else { return "Done" }
+        return currentPromptCharacter == " " ? "SPACE" : String(currentPromptCharacter).uppercased()
+    }
+
+    var promptProgressLabel: String {
+        "\(currentPromptIndex) / \(promptText.count)"
+    }
+
+    static func spacebarCenter(for calibration: KeyboardCalibration) -> CGPoint {
+        calibration.project(u: 0.5, v: 0.97)
+    }
+
+    private func makeAttributionResult(for character: Character) -> AttributionResult? {
+        if character == " " {
+            let keyCenter = Self.spacebarCenter(for: calibration)
+            let attribution = FingerAttributor.attribute(keyCenter: keyCenter, fingertips: fingertips)
+            return AttributionResult(
+                character: character,
+                expectedFinger: .rightThumb,
+                acceptedFingers: Set(Finger.allCases),
+                detectedFinger: attribution?.finger,
+                distance: attribution?.distance,
+                keyCenter: keyCenter,
+                timestamp: Date()
+            )
+        }
+
+        guard let key = KeyboardLayout.key(for: character) else { return nil }
+        let keyCenter = calibration.keyCenter(for: character)
+        let attribution = keyCenter.flatMap {
+            FingerAttributor.attribute(keyCenter: $0, fingertips: fingertips)
+        }
+        return AttributionResult(
+            character: character,
+            expectedFinger: key.expectedFinger,
+            acceptedFingers: Set([key.expectedFinger]),
+            detectedFinger: attribution?.finger,
+            distance: attribution?.distance,
+            keyCenter: keyCenter,
+            timestamp: Date()
+        )
+    }
+
+    private func evaluatePromptProgress(with typedCharacter: Character, result: AttributionResult?) {
+        guard let currentPromptCharacter else {
+            promptFeedback = "Prompt complete"
+            promptFeedbackIsSuccess = true
+            return
+        }
+
+        guard typedCharacter == currentPromptCharacter else {
+            promptFeedback = "Wrong key"
+            promptFeedbackIsSuccess = false
+            return
+        }
+
+        guard let result else {
+            promptFeedback = "Unsupported key"
+            promptFeedbackIsSuccess = false
+            return
+        }
+
+        guard result.detectedFinger != nil else {
+            promptFeedback = "Track your hands to validate finger choice"
+            promptFeedbackIsSuccess = false
+            return
+        }
+
+        guard result.isCorrect else {
+            promptFeedback = "Right key, wrong finger"
+            promptFeedbackIsSuccess = false
+            return
+        }
+
+        currentPromptIndex += 1
+        if currentPromptIndex >= promptText.count {
+            restartPrompt()
+            promptFeedback = "Prompt complete — nice work"
+        } else {
+            promptFeedback = currentPromptCharacter == " " ? "Right key" : "Right key, right finger"
+        }
+        promptFeedbackIsSuccess = true
+    }
+
+    private static func normalized(_ character: Character) -> Character {
+        let lower = String(character).lowercased()
+        return lower.first ?? character
     }
 
     private static let tipBindings: [(suffix: String, leftFinger: Finger, rightFinger: Finger)] = [
