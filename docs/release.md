@@ -31,7 +31,7 @@ APPLE_SIGNING_IDENTITY
 ## CI behavior
 
 - **Push to `main`**: Runs tests and release scripts, then uploads `TypingLens-*.dmg` as a workflow artifact.
-- **Push of tag `v*`**: Runs tests and release scripts, then creates a GitHub Release and attaches the DMG artifacts.
+- **Push of tag `v*`**: Runs tests and release scripts, then creates or updates the GitHub Release and attaches the DMG artifact. Re-running the workflow will re-upload the DMG.
 
 ## Recovery
 
