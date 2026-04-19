@@ -1,0 +1,20 @@
+{
+  "name": "@typinglens/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "pnpm run build && node tests/run.mjs"
+  },
+  "dependencies": {
+    "@fontsource/geist-mono": "5.2.7",
+    "@fontsource/geist-sans": "5.2.5",
+    "@fontsource/newsreader": "5.2.10"
+  },
+  "devDependencies": {
+    "vite": "^8.0.8"
+  }
+}

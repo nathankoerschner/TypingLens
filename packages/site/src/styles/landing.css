@@ -1,0 +1,160 @@
+.hero-section {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.92fr) minmax(30rem, 1.08fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+  padding: clamp(2.25rem, 6vw, 4.2rem) 0 clamp(2.7rem, 7vw, 5rem);
+}
+
+.hero-copy {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.lede,
+.hero-copy > p:not(.eyebrow):not(.trust-line),
+.section-heading p,
+.mac-copy p {
+  max-width: 42rem;
+  font-size: 1.04rem;
+}
+
+.trust-line {
+  color: var(--quiet);
+  font-size: 0.82rem;
+}
+
+#practice-mount {
+  min-height: 15rem;
+}
+
+.flow-section {
+  border-top: 1px solid var(--line);
+  padding: var(--section-y) 0;
+}
+
+.section-heading {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: clamp(1.75rem, 4vw, 2.6rem);
+}
+
+.section-heading h2 {
+  max-width: 18ch;
+}
+
+.step-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0;
+}
+
+.step-list li {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  gap: 1.15rem;
+  border-top: 1px solid var(--line);
+  padding: 1.45rem 0;
+}
+
+.step-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.step-list li:last-child {
+  padding-bottom: 0;
+}
+
+:where(.step-list li > span) {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.step-list p,
+.feature-flow p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.mac-section {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.88fr) minmax(24rem, 1.12fr);
+  align-items: stretch;
+  gap: clamp(1.75rem, 4vw, 3.25rem);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent-soft) 46%, transparent),
+      transparent 42%
+    ), var(--surface);
+  box-shadow: 0 18px 42px color-mix(in srgb, var(--ink) 6%, transparent);
+  padding: clamp(2rem, 5vw, 3.35rem);
+}
+
+.mac-copy {
+  align-content: center;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.feature-flow {
+  display: grid;
+  align-self: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--paper) 70%, var(--surface));
+  padding: 0.2rem clamp(1rem, 2.5vw, 1.35rem);
+}
+
+.feature-flow article {
+  border-top: 1px solid var(--line);
+  padding: 1.25rem 0;
+}
+
+.feature-flow article:first-child {
+  border-top: 0;
+  padding-top: 1rem;
+}
+
+.feature-flow article:last-child {
+  padding-bottom: 1rem;
+}
+
+@media (max-width: 980px) {
+  .hero-section,
+  .mac-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    padding-top: 2rem;
+  }
+
+  #practice-mount {
+    min-height: 0;
+  }
+
+  .mac-section {
+    padding-block: var(--section-y);
+  }
+
+  .step-list li {
+    grid-template-columns: 2.8rem 1fr;
+    gap: 0.9rem;
+    padding: 1.2rem 0;
+  }
+
+  :where(.step-list li > span) {
+    font-size: 2.35rem;
+  }
+}

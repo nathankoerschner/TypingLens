@@ -1,0 +1,291 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: color-mix(in srgb, currentColor 36%, transparent);
+  text-underline-offset: 0.18em;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, white);
+  outline-offset: 4px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+h1,
+h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+h1 {
+  max-width: 11ch;
+  font-size: clamp(3rem, 7vw, 4.65rem);
+  font-style: italic;
+  line-height: 0.98;
+}
+
+h2 {
+  max-width: 15ch;
+  font-size: clamp(2.15rem, 4.5vw, 3.25rem);
+  line-height: 1.04;
+}
+
+h3 {
+  font-size: 1.02rem;
+  line-height: 1.25;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+code {
+  font-family: var(--font-mono);
+}
+
+.site-header,
+.hero-section,
+.flow-section,
+.mac-section,
+.site-footer {
+  width: min(var(--max), calc(100% - (var(--gutter) * 2)));
+  margin-inline: auto;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1rem 0 0.75rem;
+}
+
+.brand,
+.header-actions,
+.site-header nav,
+.site-footer nav,
+.cta-row {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  gap: 0.55rem;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1.12rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.brand img {
+  display: block;
+}
+
+.header-actions {
+  gap: clamp(0.8rem, 2vw, 1.35rem);
+}
+
+.brand.muted,
+.site-footer {
+  color: var(--quiet);
+}
+
+.site-header nav,
+.site-footer nav {
+  gap: clamp(0.8rem, 2vw, 1.65rem);
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: 6px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.github-link svg {
+  display: block;
+  flex: none;
+  fill: currentColor;
+}
+
+.github-link:hover {
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  color: var(--ink);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  padding: 0.78rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.button.secondary {
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  color: var(--ink);
+}
+
+.button:hover {
+  border-color: var(--accent);
+}
+
+.cta-row {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.eyebrow,
+.trust-line {
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.eyebrow {
+  color: var(--accent-strong);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.accent-line {
+  display: block;
+  width: 3.25rem;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-top: 1px solid var(--line);
+  padding: 1.7rem 0;
+  font-size: 0.9rem;
+}
+
+.site-footer > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 980px) {
+  .site-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  h1 {
+    max-width: 13ch;
+  }
+
+  .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --gutter: 0.85rem;
+    --section-y: 2.45rem;
+  }
+
+  .site-header nav,
+  .site-footer nav,
+  .cta-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .site-header nav,
+  .site-footer nav {
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  h1 {
+    font-size: 2.7rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  .button {
+    width: fit-content;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

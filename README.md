@@ -26,6 +26,16 @@ Instead of drilling random word lists, you practice against your actual weakness
 3. **Practice against real weaknesses**  
    It generates drills and analytics from those results, giving you practice that reflects how you actually type.
 
+## Marketing site
+
+The marketing site lives in [`packages/site/`](packages/site/). See [`packages/site/README.md`](packages/site/README.md) for more.
+
+From the repo root:
+
+- `pnpm install` — install Node toolchain (requires Node 22 and pnpm 10)
+- `pnpm build` — build the site into `packages/site/dist/`
+- `pnpm test` — build, then run the privacy/CSP scan
+
 ## License
 
 TypingLens is licensed under the GNU General Public License v3.0, in the same spirit as Monkeytype.
