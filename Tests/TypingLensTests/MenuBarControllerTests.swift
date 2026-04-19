@@ -55,8 +55,8 @@ final class MenuBarControllerTests: XCTestCase {
         )
         try assertActionItem(
             in: menu,
-            title: "MediaPipe",
-            expectedAction: "openMediaPipe",
+            title: "VisionTracking",
+            expectedAction: "openVisionTracking",
             target: target,
             isEnabled: true,
             keyEquivalent: "",
@@ -115,7 +115,7 @@ private final class StubMenuActionTarget: NSObject {
     @objc func openSettings() {}
     @objc func openAnalytics() {}
     @objc func practiceNow() {}
-    @objc func openMediaPipe() {}
+    @objc func openVisionTracking() {}
     @objc func revealTranscript() {}
     @objc func clearTranscript() {}
     @objc func quit() {}
