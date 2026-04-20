@@ -155,7 +155,7 @@ final class LoggingCoordinatorTests: XCTestCase {
 
         let prompt = coordinator.makePracticePrompt()
 
-        XCTAssertEqual(prompt?.words.count, 50)
+        XCTAssertEqual(prompt?.words.count, 15)
         XCTAssertNil(appState.practiceStatus)
     }
 

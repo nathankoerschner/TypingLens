@@ -141,7 +141,7 @@ Instead it is a generated stream where harder words appear more often.
 1. take ranked words in descending score order
 2. select a source pool from the top ranked words
 3. derive sampling weights from `compositeScore`
-4. generate 50 output words by weighted sampling
+4. generate 15 output words by weighted sampling
 5. if the chosen word matches the immediately previous word, retry when the pool has alternatives
 6. if very few words exist, repeat as needed until the prompt reaches the target size
 
@@ -152,7 +152,7 @@ let pool = Array(ranked.words.prefix(30))
 let weights = pool.map { max($0.compositeScore, 0.01) }
 
 var output: [String] = []
-while output.count < 50 {
+while output.count < 15 {
     let next = weightedPick(from: pool, weights: weights)
 
     if output.last == next.word && pool.count > 1 {
@@ -354,7 +354,7 @@ func practiceNowRequested()
 ```swift
 let extraction = try extractionService.extractInMemory()
 let ranked = ranker.rank(extraction.words)
-let prompt = promptBuilder.build(from: ranked, wordCount: 50)
+let prompt = promptBuilder.build(from: ranked, wordCount: 15)
 onOpenPractice(prompt)
 ```
 

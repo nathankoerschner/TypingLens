@@ -142,7 +142,7 @@ final class LoggingCoordinator {
             // Practice uses the same extract -> interpret -> rank pipeline as ranked export.
             let interpretation = interpreter.interpret(extraction.words)
             let ranked = ranker.rank(interpretation.words)
-            let prompt = builder.build(from: ranked, wordCount: 50)
+            let prompt = builder.build(from: ranked, wordCount: 15)
 
             guard !prompt.words.isEmpty else {
                 appState.practiceStatus = "No words available for practice"
