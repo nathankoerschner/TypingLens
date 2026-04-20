@@ -11,8 +11,8 @@ import {
   LoadingManager,
   Mesh,
   MeshStandardMaterial,
-  PerspectiveCamera,
   PCFSoftShadowMap,
+  PerspectiveCamera,
   PlaneGeometry,
   Scene,
   ShadowMaterial,
@@ -20,9 +20,9 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
-import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 
 const PAPER = 0xf3f7f2;
 const ACCENT = 0x277c68;
@@ -125,9 +125,9 @@ function mount(viewportEl: HTMLDivElement, canvasEl: HTMLCanvasElement) {
       controls.autoRotate = true;
     }, 3200);
   };
-  ["pointerdown", "wheel", "touchstart"].forEach((evt) =>
-    canvasEl.addEventListener(evt, pauseAutoRotate, { passive: true }),
-  );
+  ["pointerdown", "wheel", "touchstart"].forEach((evt) => {
+    canvasEl.addEventListener(evt, pauseAutoRotate, { passive: true });
+  });
 
   // Reset on R.
   const homeCam = camera.position.clone();
@@ -287,5 +287,4 @@ function mount(viewportEl: HTMLDivElement, canvasEl: HTMLCanvasElement) {
     ro.disconnect();
     renderer.dispose();
   });
-
 }

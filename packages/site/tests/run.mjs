@@ -34,10 +34,7 @@ try {
 }
 check("dist/index.html is non-empty", html.length > 0);
 
-check(
-  "CSP meta is present",
-  /<meta[^>]+Content-Security-Policy/i.test(html),
-);
+check("CSP meta is present", /<meta[^>]+Content-Security-Policy/i.test(html));
 check(
   "CSP meta sets base-uri 'none'",
   /<meta[^>]+Content-Security-Policy[\s\S]*?base-uri\s+'none'/i.test(html),
