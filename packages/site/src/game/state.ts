@@ -1,3 +1,5 @@
+import { median } from "./stats";
+
 export type Committed = { expected: string; typed: string };
 
 export type LetterRole = "correct" | "incorrect" | "pending" | "extra" | "missing";
@@ -8,7 +10,17 @@ export type RenderLetter = { char: string; role: LetterRole };
 export type RenderWord = { role: WordRole; letters: RenderLetter[] };
 export type CaretPosition = { wordIndex: number; letterIndex: number } | null;
 
+export type LetterTiming = { letter: string; medianMs: number; samples: number };
+export type BigramTiming = { bigram: string; medianMs: number; samples: number };
+export type WpmPoint = { t: number; wpm: number };
+
+type Keystroke = { ch: string; at: number; wordIndex: number; correct: boolean };
+
 const EXTRA_CAP = 4;
+const MAX_INTERVAL_MS = 1500;
+const SPARKLINE_SPAN_MS = 10_000;
+const SPARKLINE_WINDOW_MS = 5_000;
+const SPARKLINE_STEP_MS = 1_000;
 
 export const createGame = (promptWords: readonly string[], now: () => number = Date.now) => {
   let committedWords: Committed[] = [];
@@ -16,6 +28,7 @@ export const createGame = (promptWords: readonly string[], now: () => number = D
   let startedAt: number | null = null;
   let finishedAt: number | null = null;
   let didRestoreInCurrentWord = false;
+  let keystrokes: Keystroke[] = [];
 
   const currentWordIndex = () => committedWords.length;
   const isFinished = () => currentWordIndex() >= promptWords.length;
@@ -44,6 +57,9 @@ export const createGame = (promptWords: readonly string[], now: () => number = D
     if (isFinished()) return;
     const expected = promptWords[currentWordIndex()] ?? "";
     if (currentInput.length >= expected.length + EXTRA_CAP) return;
+    const expectedCh = expected[currentInput.length];
+    const correct = expectedCh !== undefined && expectedCh === ch;
+    keystrokes.push({ ch, at: now(), wordIndex: currentWordIndex(), correct });
     currentInput += ch;
     if (currentWordIndex() === promptWords.length - 1 && currentInput === expected) {
       submit();
@@ -72,6 +88,7 @@ export const createGame = (promptWords: readonly string[], now: () => number = D
     startedAt = null;
     finishedAt = null;
     didRestoreInCurrentWord = false;
+    keystrokes = [];
   };
 
   const wpm = () => {
@@ -161,6 +178,66 @@ export const createGame = (promptWords: readonly string[], now: () => number = D
   const progressLabel = () =>
     `${Math.min(currentWordIndex(), promptWords.length)} / ${promptWords.length}`;
 
+  const collectIntervals = <K extends string>(
+    key: (prev: Keystroke, cur: Keystroke) => K | null,
+  ): Map<K, number[]> => {
+    const out = new Map<K, number[]>();
+    for (let i = 1; i < keystrokes.length; i++) {
+      const cur = keystrokes[i];
+      const prev = keystrokes[i - 1];
+      if (!cur || !prev) continue;
+      if (cur.wordIndex !== prev.wordIndex) continue;
+      const delta = cur.at - prev.at;
+      if (delta <= 0 || delta > MAX_INTERVAL_MS) continue;
+      const k = key(prev, cur);
+      if (k === null) continue;
+      const list = out.get(k) ?? [];
+      list.push(delta);
+      out.set(k, list);
+    }
+    return out;
+  };
+
+  const letterTimings = (): LetterTiming[] => {
+    const grouped = collectIntervals((_prev, cur) => (cur.correct ? cur.ch : null));
+    const rows: LetterTiming[] = [];
+    for (const [letter, xs] of grouped) {
+      rows.push({ letter, medianMs: median(xs), samples: xs.length });
+    }
+    rows.sort((a, b) => b.medianMs - a.medianMs);
+    return rows;
+  };
+
+  const bigramTimings = (): BigramTiming[] => {
+    const grouped = collectIntervals((prev, cur) =>
+      prev.correct && cur.correct ? `${prev.ch}${cur.ch}` : null,
+    );
+    const rows: BigramTiming[] = [];
+    for (const [bigram, xs] of grouped) {
+      rows.push({ bigram, medianMs: median(xs), samples: xs.length });
+    }
+    rows.sort((a, b) => b.medianMs - a.medianMs);
+    return rows;
+  };
+
+  const wpmHistory = (): WpmPoint[] => {
+    if (keystrokes.length === 0) return [];
+    const last = keystrokes[keystrokes.length - 1];
+    if (!last) return [];
+    const t1 = last.at;
+    const t0 = t1 - SPARKLINE_SPAN_MS;
+    const points: WpmPoint[] = [];
+    for (let t = t0; t <= t1; t += SPARKLINE_STEP_MS) {
+      let count = 0;
+      for (const k of keystrokes) {
+        if (k.correct && k.at > t - SPARKLINE_WINDOW_MS && k.at <= t) count++;
+      }
+      const wpmAt = count / 5 / (SPARKLINE_WINDOW_MS / 60000);
+      points.push({ t, wpm: wpmAt });
+    }
+    return points;
+  };
+
   return {
     insert,
     submit,
@@ -174,6 +251,9 @@ export const createGame = (promptWords: readonly string[], now: () => number = D
     elapsedMs,
     progressLabel,
     hasStarted: () => startedAt !== null,
+    letterTimings,
+    bigramTimings,
+    wpmHistory,
   };
 };
 

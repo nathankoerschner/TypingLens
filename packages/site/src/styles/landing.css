@@ -1,31 +1,5 @@
-.hero-section {
-  display: grid;
-  grid-template-columns: minmax(18rem, 0.92fr) minmax(30rem, 1.08fr);
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: center;
-  padding: clamp(2.25rem, 6vw, 4.2rem) 0 clamp(2.7rem, 7vw, 5rem);
-}
-
-.hero-copy {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.lede,
-.hero-copy > p:not(.eyebrow):not(.trust-line),
-.section-heading p,
-.mac-copy p {
-  max-width: 42rem;
-  font-size: 1.04rem;
-}
-
-.trust-line {
-  color: var(--quiet);
-  font-size: 0.82rem;
-}
-
 #practice-mount {
-  min-height: 15rem;
+  min-height: 17rem;
 }
 
 .flow-section {
@@ -43,118 +17,327 @@
   max-width: 18ch;
 }
 
-.step-list {
+.section-heading p {
+  max-width: 42rem;
+  font-size: 1.02rem;
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.section-label::before {
+  content: "";
+  display: inline-block;
+  width: 1rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+.vignettes {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  counter-reset: step;
 }
 
-.step-list li {
+.vignette {
   display: grid;
-  grid-template-columns: 4rem 1fr;
-  gap: 1.15rem;
-  border-top: 1px solid var(--line);
-  padding: 1.45rem 0;
+  gap: 1rem;
+  grid-template-rows: auto 1fr auto;
 }
 
-.step-list li:first-child {
-  border-top: 0;
-  padding-top: 0;
+.vignette-mark {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.step-list li:last-child {
-  padding-bottom: 0;
+.vignette-mark::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+  transform: translateY(-2px);
 }
 
-:where(.step-list li > span) {
-  color: var(--accent);
-  font-family: var(--font-serif);
-  font-size: 3rem;
-  font-weight: 500;
-  line-height: 1;
+.vignette-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--ink) 4%, transparent);
+  padding: 1.1rem 1.2rem;
+  display: grid;
+  gap: 0.8rem;
+  min-height: 11rem;
 }
 
-.step-list p,
-.feature-flow p {
+.vignette-note {
+  margin: 0;
   color: var(--muted);
+  font-size: 0.95rem;
   line-height: 1.55;
 }
 
-.mac-section {
-  display: grid;
-  grid-template-columns: minmax(18rem, 0.88fr) minmax(24rem, 1.12fr);
-  align-items: stretch;
-  gap: clamp(1.75rem, 4vw, 3.25rem);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+/* Menu-bar vignette */
+.vignette-menubar {
   background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--accent-soft) 46%, transparent),
-      transparent 42%
-    ), var(--surface);
-  box-shadow: 0 18px 42px color-mix(in srgb, var(--ink) 6%, transparent);
-  padding: clamp(2rem, 5vw, 3.35rem);
+    linear-gradient(180deg, color-mix(in srgb, var(--paper-alt) 55%, transparent), var(--surface));
 }
 
-.mac-copy {
-  align-content: center;
-  display: grid;
-  gap: 1.1rem;
-}
-
-.feature-flow {
-  display: grid;
-  align-self: center;
+.menubar-chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.7rem;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--paper) 70%, var(--surface));
-  padding: 0.2rem clamp(1rem, 2.5vw, 1.35rem);
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--ink);
 }
 
-.feature-flow article {
+.menubar-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 20%, transparent);
+  animation: menubar-pulse 2.2s ease-in-out infinite;
+}
+
+.menubar-name {
+  font-weight: 500;
+}
+
+.menubar-state {
+  margin-left: auto;
+  color: var(--quiet);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.menubar-trace {
+  display: grid;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--quiet);
+}
+
+.menubar-trace span {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed var(--rule);
+  padding-bottom: 0.2rem;
+}
+
+.menubar-trace span b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+@keyframes menubar-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Rank table vignette */
+.vignette-rank table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.vignette-rank th {
+  text-align: left;
+  color: var(--quiet);
+  font-weight: 500;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 0 0.45rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.vignette-rank td {
+  padding: 0.42rem 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+}
+
+.vignette-rank th:not(:first-child),
+.vignette-rank td:not(:first-child) {
+  text-align: right;
+}
+
+.vignette-rank tr:last-child td {
+  border-bottom: 0;
+}
+
+.vignette-rank tr.highlight td:first-child {
+  color: var(--accent-strong);
+  position: relative;
+}
+
+.vignette-rank tr.highlight td:first-child::before {
+  content: "";
+  position: absolute;
+  left: -0.7rem;
+  top: 50%;
+  width: 3px;
+  height: 1rem;
+  transform: translateY(-50%);
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* Drill vignette */
+.vignette-drill {
+  justify-content: space-between;
+}
+
+.drill-label {
+  margin: 0;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.drill-words {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.drill-words .emph {
+  color: var(--accent-strong);
+}
+
+.drill-progress {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.85rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.drill-progress > div:not(.drill-arrow) {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.drill-progress span {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.drill-progress strong {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.55rem;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.drill-progress > div:last-child strong {
+  color: var(--accent-strong);
+}
+
+.drill-arrow {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+}
+
+/* Positioning */
+.positioning-section {
   border-top: 1px solid var(--line);
-  padding: 1.25rem 0;
+  padding: var(--section-y) 0;
 }
 
-.feature-flow article:first-child {
-  border-top: 0;
-  padding-top: 1rem;
+.positioning-section p {
+  max-width: 52ch;
+  font-family: var(--font-serif);
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  line-height: 1.55;
+  color: var(--ink);
 }
 
-.feature-flow article:last-child {
-  padding-bottom: 1rem;
+.positioning-section p em {
+  font-style: italic;
+  color: var(--accent-strong);
+}
+
+.positioning-section .section-label {
+  margin-bottom: 0.9rem;
+}
+
+/* Closing */
+.closing-line {
+  padding: clamp(2.75rem, 6vw, 4.5rem) 0 clamp(2rem, 4.5vw, 3rem);
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.closing-line p {
+  margin: 0 auto;
+  max-width: 36ch;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.closing-line em {
+  font-style: italic;
+  color: var(--accent-strong);
 }
 
 @media (max-width: 980px) {
-  .hero-section,
-  .mac-section {
+  .vignettes {
     grid-template-columns: 1fr;
+  }
+
+  .vignette-card {
+    min-height: 0;
   }
 }
 
 @media (max-width: 640px) {
-  .hero-section {
-    padding-top: 2rem;
-  }
-
-  #practice-mount {
-    min-height: 0;
-  }
-
-  .mac-section {
-    padding-block: var(--section-y);
-  }
-
-  .step-list li {
-    grid-template-columns: 2.8rem 1fr;
-    gap: 0.9rem;
-    padding: 1.2rem 0;
-  }
-
-  :where(.step-list li > span) {
-    font-size: 2.35rem;
+  .positioning-section p {
+    font-size: 1.15rem;
+    line-height: 1.55;
   }
 }

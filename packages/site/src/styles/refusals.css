@@ -1,0 +1,107 @@
+.refusals-band {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  background:
+    radial-gradient(
+      ellipse at top left,
+      color-mix(in srgb, var(--accent-strong) 18%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(180deg, var(--ink-band-edge), var(--ink-band) 40%);
+  color: var(--paper);
+  padding-block: clamp(3.5rem, 7vw, 5.5rem);
+  position: relative;
+  overflow: hidden;
+  border-block: 1px solid color-mix(in srgb, var(--accent-strong) 35%, transparent);
+}
+
+.refusals-band::before,
+.refusals-band::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--paper) 14%, transparent), transparent);
+}
+
+.refusals-band::before { top: 0; }
+.refusals-band::after  { bottom: 0; }
+
+.refusals-inner {
+  width: min(var(--max), calc(100% - (var(--gutter) * 2)));
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.9fr) minmax(16rem, 1fr);
+  gap: clamp(2rem, 5vw, 3.75rem);
+  align-items: start;
+}
+
+.refusals-head {
+  display: grid;
+  gap: 1rem;
+}
+
+.refusals-head .section-label {
+  color: color-mix(in srgb, var(--paper) 60%, transparent);
+}
+
+.refusals-head h2 {
+  color: var(--paper);
+  max-width: 13ch;
+  font-size: clamp(2rem, 4vw, 2.9rem);
+  line-height: 1.05;
+  font-style: italic;
+}
+
+.refusals-head .refusals-note {
+  color: color-mix(in srgb, var(--paper) 65%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  max-width: 36ch;
+  margin: 0;
+}
+
+.refusals-head .refusals-note a {
+  color: var(--paper);
+  text-decoration-color: color-mix(in srgb, var(--paper) 45%, transparent);
+}
+
+.refusals-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(1rem, 1.6vw, 1.1rem);
+}
+
+.refusals-list li {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--paper) 12%, transparent);
+  color: color-mix(in srgb, var(--paper) 92%, transparent);
+}
+
+.refusals-list li:first-child {
+  border-top: 0;
+  padding-top: 0.25rem;
+}
+
+.refusals-list li::before {
+  content: attr(data-mark);
+  color: color-mix(in srgb, var(--paper) 32%, transparent);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  align-self: center;
+}
+
+@media (max-width: 860px) {
+  .refusals-inner {
+    grid-template-columns: 1fr;
+  }
+}

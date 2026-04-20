@@ -57,18 +57,24 @@
 :root {
   color-scheme: light;
   --ink: #18221d;
+  --ink-band: #0c1311;
+  --ink-band-edge: #1c2a24;
   --muted: #59635d;
   --quiet: #7b8580;
   --paper: #f3f7f2;
   --paper-alt: #e9f0e8;
+  --paper-edge: #d9e3dc;
   --surface: #ffffff;
   --line: #cfd9d1;
   --line-strong: #9fb0a5;
+  --rule: color-mix(in srgb, var(--ink) 12%, transparent);
   --accent: #277c68;
   --accent-strong: #155c4d;
   --accent-soft: #dceee8;
   --warn: #a3302b;
   --ok: #176a3d;
+  --stall-soft: color-mix(in srgb, var(--warn) 55%, transparent);
+  --stall-mark: color-mix(in srgb, var(--warn) 14%, transparent);
   --max: 1140px;
   --gutter: clamp(1rem, 4vw, 2rem);
   --section-y: clamp(2.65rem, 6vw, 4.15rem);

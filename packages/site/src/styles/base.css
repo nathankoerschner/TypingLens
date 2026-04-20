@@ -82,7 +82,10 @@ code {
 .site-header,
 .hero-section,
 .flow-section,
-.mac-section,
+.fingers-section,
+.spec-section,
+.positioning-section,
+.closing-line,
 .site-footer {
   width: min(var(--max), calc(100% - (var(--gutter) * 2)));
   margin-inline: auto;
@@ -120,6 +123,13 @@ code {
 
 .header-actions {
   gap: clamp(0.8rem, 2vw, 1.35rem);
+}
+
+.header-cta.button {
+  min-height: 2.2rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.86rem;
+  font-weight: 600;
 }
 
 .brand.muted,
@@ -181,6 +191,19 @@ code {
 .button.secondary {
   background: color-mix(in srgb, var(--surface) 84%, transparent);
   color: var(--ink);
+}
+
+.button.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 500;
+  text-underline-offset: 0.18em;
+}
+
+.button.ghost:hover {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border-color: var(--line);
 }
 
 .button:hover {
