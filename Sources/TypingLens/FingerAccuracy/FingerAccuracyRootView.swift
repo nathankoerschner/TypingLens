@@ -19,8 +19,9 @@ struct FingerAccuracyRootView: View {
                 promptPanel
             }
             preview
-            toolbar
-            resultsList
+            if viewModel.mode.isCalibrating {
+                toolbar
+            }
         }
         .padding(20)
         .frame(minWidth: 960, minHeight: 780)
@@ -59,15 +60,7 @@ struct FingerAccuracyRootView: View {
 
     private var promptPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Touch typing game")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                    Text("Target: \(viewModel.currentTargetLabel) • Progress: \(viewModel.promptProgressLabel)")
-                        .font(.system(size: 13, weight: .medium, design: .monospaced))
-                        .foregroundStyle(TypingLensTheme.subdued)
-                }
-
+            HStack {
                 Spacer()
 
                 if let feedback = viewModel.promptFeedback {
@@ -186,30 +179,13 @@ struct FingerAccuracyRootView: View {
 
     private var toolbar: some View {
         HStack(spacing: 12) {
-            if viewModel.mode.isCalibrating {
-                Button("Done Calibrating") { viewModel.finishCalibration() }
-                    .buttonStyle(TypingLensFilledButtonStyle(
-                        backgroundColor: TypingLensTheme.primary,
-                        foregroundColor: .black
-                    ))
-                Button("Reset Corners") { viewModel.resetCalibration() }
-                    .buttonStyle(TypingLensFilledButtonStyle())
-            } else {
-                Button("Recalibrate") { viewModel.beginCalibration() }
-                    .buttonStyle(TypingLensFilledButtonStyle())
-                    .disabled(viewModel.frame == nil)
-                Button("Restart Prompt") { viewModel.restartPrompt() }
-                    .buttonStyle(TypingLensFilledButtonStyle())
-            }
-
-            Button(viewModel.swapHands ? "Swap Hands: ON" : "Swap Hands: OFF") {
-                viewModel.toggleSwapHands()
-            }
-            .buttonStyle(TypingLensFilledButtonStyle())
-
-            Button("Clear Results") { viewModel.clearResults() }
+            Button("Done Calibrating") { viewModel.finishCalibration() }
+                .buttonStyle(TypingLensFilledButtonStyle(
+                    backgroundColor: TypingLensTheme.primary,
+                    foregroundColor: .black
+                ))
+            Button("Reset Corners") { viewModel.resetCalibration() }
                 .buttonStyle(TypingLensFilledButtonStyle())
-                .disabled(viewModel.results.isEmpty)
 
             Spacer()
 
@@ -217,31 +193,6 @@ struct FingerAccuracyRootView: View {
                 .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundStyle(TypingLensTheme.subdued)
         }
-    }
-
-    private var resultsList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Recent keystrokes")
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                .foregroundStyle(TypingLensTheme.subdued)
-
-            if viewModel.results.isEmpty {
-                Text("No keystrokes yet")
-                    .font(.system(size: 13, design: .monospaced))
-                    .foregroundStyle(TypingLensTheme.subdued)
-                    .padding(.vertical, 6)
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(viewModel.results) { result in
-                            AttributionChip(result: result)
-                        }
-                    }
-                    .padding(.vertical, 2)
-                }
-            }
-        }
-        .typingLensCard()
     }
 }
 
