@@ -1,4 +1,8 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 const stripCspInDev: Plugin = {
   name: "strip-csp-in-dev",
@@ -16,5 +20,11 @@ export default defineConfig({
     modulePreload: { polyfill: false },
     outDir: "dist",
     sourcemap: false,
+    rollupOptions: {
+      input: {
+        main: resolve(here, "index.html"),
+        camera: resolve(here, "camera.html"),
+      },
+    },
   },
 });
