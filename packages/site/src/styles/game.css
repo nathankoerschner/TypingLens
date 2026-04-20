@@ -1,20 +1,37 @@
 .trainer-shell {
   align-self: stretch;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  box-shadow: 0 18px 44px color-mix(in srgb, var(--ink) 9%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 22px 50px color-mix(in srgb, var(--ink) 8%, transparent);
   overflow: hidden;
 }
 
-.game {
+.calibrator {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(22rem, 1.55fr) minmax(16rem, 1fr);
+}
+
+.calibrator-main {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 22rem;
+}
+
+.calibrator-aside {
+  border-left: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--paper-alt) 40%, var(--surface)) 0%, var(--surface) 60%);
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
 .game-stats {
   display: flex;
   align-items: baseline;
   gap: 2rem;
+  margin: 0;
   padding: 1rem 1.25rem 0.9rem;
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--paper-alt) 45%, var(--surface));
@@ -31,7 +48,7 @@
   font-family: var(--font-mono);
   font-size: 0.66rem;
   color: var(--quiet);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -40,7 +57,7 @@
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 500;
-  font-size: 1.85rem;
+  font-size: 1.7rem;
   line-height: 1;
   color: var(--ink);
   font-variant-numeric: tabular-nums lining-nums;
@@ -48,14 +65,15 @@
 
 .game-prompt {
   font-family: var(--font-mono);
-  font-size: 1.3rem;
-  line-height: 1.9;
-  padding: 1.25rem 1.15rem;
-  min-height: 8.5rem;
+  font-size: 1.22rem;
+  line-height: 1.95;
+  padding: 1.4rem 1.3rem;
+  min-height: 9rem;
   cursor: text;
   user-select: none;
   outline: none;
   color: var(--ink);
+  align-self: start;
 }
 
 .game-prompt:focus-visible {
@@ -68,8 +86,9 @@
   text-align: center;
   color: var(--quiet);
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: 0.98rem;
   line-height: 8.5rem;
+  letter-spacing: 0.02em;
 }
 
 .game-prompt .word {
@@ -141,7 +160,7 @@
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.8rem 1.15rem;
+  padding: 0.85rem 1.2rem;
   border-top: 1px solid var(--line);
   background: color-mix(in srgb, var(--paper-alt) 40%, var(--surface));
 }
@@ -153,6 +172,178 @@
   font-weight: 600;
 }
 
+.game-controls .controls-hint {
+  margin-left: auto;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Calibrator stats pane */
+.calibrator-aside-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 1rem 1.15rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper-alt) 50%, var(--surface));
+}
+
+.calibrator-aside-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.calibrator-aside-hint {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--quiet);
+}
+
+.calibrator-aside-body {
+  display: grid;
+  gap: 1.15rem;
+  padding: 1rem 1.2rem 1.2rem;
+  align-content: start;
+}
+
+.stats-block {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.stats-block h4 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.stats-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-rows li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.32rem 0;
+  border-bottom: 1px dashed var(--rule);
+  color: var(--ink);
+}
+
+.stats-rows li:last-child {
+  border-bottom: 0;
+}
+
+.stats-rows li[data-empty] {
+  grid-template-columns: 1fr;
+  color: var(--quiet);
+  font-style: italic;
+  border-bottom: 0;
+  padding: 0.1rem 0;
+}
+
+.stats-rows .stats-key {
+  color: var(--ink);
+}
+
+.stats-rows .stats-key.is-bigram {
+  letter-spacing: 0.05em;
+}
+
+.stats-rows .stats-val {
+  color: var(--accent-strong);
+  font-weight: 500;
+}
+
+.wpm-sparkline {
+  display: block;
+  position: relative;
+  height: 3.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 28%, transparent), transparent 70%);
+  overflow: hidden;
+}
+
+.wpm-sparkline svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.wpm-sparkline .spark-line {
+  fill: none;
+  stroke: var(--accent-strong);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.wpm-sparkline .spark-area {
+  fill: color-mix(in srgb, var(--accent) 18%, transparent);
+  stroke: none;
+}
+
+.wpm-sparkline .spark-axis {
+  stroke: var(--rule);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.wpm-sparkline[data-empty] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.wpm-readout {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--quiet);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wpm-readout strong {
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.1rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* End-of-run summary */
 .game-summary {
   position: absolute;
   inset: 0;
@@ -160,7 +351,7 @@
   place-content: center;
   gap: 1.1rem;
   padding: 1.5rem;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(6px);
   text-align: center;
   animation: game-summary-in 180ms ease-out;
@@ -203,7 +394,7 @@
 .game-summary dd {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: 2.15rem;
+  font-size: 2.05rem;
   font-weight: 500;
   color: var(--accent-strong);
   font-variant-numeric: tabular-nums;
@@ -233,8 +424,42 @@
   color: var(--muted);
 }
 
+@media (max-width: 860px) {
+  .calibrator {
+    grid-template-columns: 1fr;
+  }
+
+  .calibrator-aside {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
 @media (max-width: 640px) {
   .trainer-shell {
     box-shadow: none;
+  }
+
+  .game-stats {
+    gap: 1.25rem;
+  }
+
+  .game-prompt {
+    font-size: 1.08rem;
+    padding: 1.1rem 1rem;
+  }
+
+  .game-controls .controls-hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menubar-dot {
+    animation: none;
+  }
+
+  .game-summary {
+    animation: none;
   }
 }

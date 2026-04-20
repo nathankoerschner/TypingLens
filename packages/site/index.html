@@ -9,15 +9,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       name="description"
-      content="TypingLens is a local-only Mac typing coach that ranks the words slowing you down and turns them into focused practice."
+      content="TypingLens is a local-only Mac typing coach that learns from the typing you already do, ranks the words and bigrams that slow you down, and drills them back — on your machine, from your own history."
     />
-    <meta property="og:title" content="TypingLens — type better by fixing what actually slows you down." />
+    <meta property="og:title" content="TypingLens — the typing you've already done is the training set." />
     <meta
       property="og:description"
-      content="TypingLens captures your typing locally on Mac, ranks your weak words, and generates drills from your own history."
+      content="A local-only Mac typing coach. It learns from the words you actually type and drills the ones you stall on."
     />
     <link rel="icon" href="/typing-lens-mark.png" type="image/png" />
-    <title>TypingLens</title>
+    <title>TypingLens — a typing coach for proficient typists</title>
   </head>
   <body>
     <header class="site-header" aria-label="TypingLens">
@@ -27,8 +27,10 @@
       </a>
       <div class="header-actions">
         <nav aria-label="Primary">
+          <a href="#calibrator">Calibrator</a>
           <a href="#how-it-works">How it works</a>
-          <a href="#why-install">Mac app</a>
+          <a href="#fingers">Fingering</a>
+          <a href="#spec">Spec</a>
         </nav>
         <a class="github-link" href="https://github.com/nathankoerschner/TypingLens" aria-label="GitHub repository">
           <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false">
@@ -37,106 +39,315 @@
             />
           </svg>
         </a>
+        <a
+          class="button primary header-cta"
+          href="https://github.com/nathankoerschner/TypingLens/releases/latest"
+        >
+          Download for Mac
+        </a>
       </div>
     </header>
 
     <main id="top">
-      <section id="demo" class="hero-section" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <span class="accent-line" aria-hidden="true"></span>
-          <p class="eyebrow">A typing coach for proficient typists</p>
-          <h1 id="hero-title">Type better by fixing what actually slows you down.</h1>
-          <p class="lede">
-            TypingLens watches your typing locally on your Mac, ranks the words and patterns
-            costing you speed and accuracy, and turns them into drills shaped by your own history.
-          </p>
-          <div class="cta-row" aria-label="Primary actions">
-            <a
-              class="button primary"
-              href="https://github.com/nathankoerschner/TypingLens/releases/latest"
-            >
-              Download for Mac
-            </a>
+      <section id="hero" class="hero-section" aria-labelledby="hero-title">
+        <div class="hero-inner">
+          <div class="hero-kicker">
+            <p class="eyebrow">A Mac typing coach for proficient typists</p>
+            <h1 id="hero-title">Type better by fixing what actually slows you down.</h1>
+            <p class="hero-lede">
+              TypingLens learns from the typing you already do, locally on your Mac.
+              It ranks the words, bigrams, and fingerings that actually slow you down —
+              and drills them back.
+            </p>
           </div>
-          <p class="trust-line">Local only. No account. macOS 13+.</p>
-        </div>
 
-        <section id="practice-mount" aria-label="TypingLens practice demo">
-          <noscript>
-            <div class="trainer-shell mobile-fallback">
-              <p>Enable JavaScript to try the practice demo, or download the Mac app.</p>
+          <section id="calibrator" class="hero-calibrator" aria-label="TypingLens calibrator">
+            <span class="section-label hero-calibrator-mark">Try it</span>
+            <div id="practice-mount" aria-label="TypingLens calibration demo">
+              <noscript>
+                <div class="trainer-shell mobile-fallback">
+                  <p>Enable JavaScript to try the calibrator, or download the Mac app.</p>
+                </div>
+              </noscript>
             </div>
-          </noscript>
-        </section>
+          </section>
+
+          <figure class="readout" aria-label="Example of typing analysis">
+            <figcaption class="readout-head"><span>A sample week of your typing</span></figcaption>
+            <p class="readout-paragraph">
+              …refactored the <span class="tl-token" data-delta="−18&#8239;wpm">implementation</span>
+              so th<span class="tl-token" data-delta="3× stall">e</span>
+              <span class="tl-token" data-delta="−11&#8239;wpm">bec</span>omes cleaner — with
+              <span class="tl-token" data-delta="−22&#8239;wpm">th&nbsp;the</span>
+              caveat that <span class="tl-heatmap">concurrent writes still need</span>
+              <span class="tl-heatmap">the reader lock before we can</span> ship it.
+            </p>
+            <p class="readout-footer">These would be your drills tomorrow.</p>
+          </figure>
+
+          <div class="hero-cta">
+            <div class="cta-row" aria-label="Primary actions">
+              <a
+                class="button primary"
+                href="https://github.com/nathankoerschner/TypingLens/releases/latest"
+              >
+                Download for Mac
+              </a>
+              <a class="button ghost" href="#how-it-works">How it works&nbsp;↓</a>
+            </div>
+            <ul class="trust-chips" aria-label="Install facts">
+              <li>Local only</li>
+              <li>No account</li>
+              <li>macOS 13+</li>
+              <li>GPL-3.0</li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       <section id="how-it-works" class="flow-section" aria-labelledby="how-title">
         <div class="section-heading">
-          <p class="eyebrow">How it works</p>
+          <span class="section-label">How it works</span>
           <h2 id="how-title">Capture, rank, practice.</h2>
         </div>
-        <ol class="step-list">
-          <li>
-            <span>1</span>
-            <div>
-              <h3>Capture local typing data</h3>
-              <p>TypingLens records your typing activity locally on your Mac.</p>
+        <ol class="vignettes">
+          <li class="vignette">
+            <span class="vignette-mark">I. Capture</span>
+            <div class="vignette-card vignette-menubar" aria-hidden="true">
+              <div class="menubar-chrome">
+                <span class="menubar-dot"></span>
+                <span class="menubar-name">TypingLens</span>
+                <span class="menubar-state">active</span>
+              </div>
+              <div class="menubar-trace">
+                <span><em>implementation</em><b>48 wpm</b></span>
+                <span><em>th the</em><b>52 wpm</b></span>
+                <span><em>because</em><b>61 wpm</b></span>
+              </div>
             </div>
+            <p class="vignette-note">
+              Runs quietly in the menu bar. Your keystroke timing stays on your Mac.
+            </p>
           </li>
-          <li>
-            <span>2</span>
-            <div>
-              <h3>Rank what slows you down</h3>
-              <p>It surfaces the words and patterns most associated with lost speed and mistakes.</p>
+          <li class="vignette">
+            <span class="vignette-mark">II. Rank</span>
+            <div class="vignette-card vignette-rank" aria-hidden="true">
+              <table>
+                <thead><tr><th>Word</th><th>WPM</th><th>Err</th></tr></thead>
+                <tbody>
+                  <tr class="highlight"><td>implementation</td><td>48</td><td>12</td></tr>
+                  <tr><td>th the</td><td>52</td><td>8</td></tr>
+                  <tr><td>because</td><td>61</td><td>5</td></tr>
+                  <tr><td>ly</td><td>64</td><td>3</td></tr>
+                </tbody>
+              </table>
             </div>
+            <p class="vignette-note">
+              Words, bigrams, and fingerings — all ranked the same way. The
+              slower the habit, the more it matters.
+            </p>
           </li>
-          <li>
-            <span>3</span>
-            <div>
-              <h3>Practice against real weaknesses</h3>
-              <p>Drills and analytics come from your history, not from generic word lists.</p>
+          <li class="vignette">
+            <span class="vignette-mark">III. Practice</span>
+            <div class="vignette-card vignette-drill" aria-hidden="true">
+              <p class="drill-label">Drill · 50 slowest this week</p>
+              <p class="drill-words">
+                <span class="emph">implementation</span> · th the · because · ly · concurrent
+              </p>
+              <div class="drill-progress">
+                <div><span>before</span><strong>48</strong></div>
+                <div class="drill-arrow">→</div>
+                <div><span>after</span><strong>58</strong></div>
+              </div>
             </div>
+            <p class="vignette-note">
+              Drills are built from your own backlog, not a generic wordlist.
+            </p>
           </li>
         </ol>
       </section>
 
-      <section id="why-install" class="mac-section" aria-labelledby="install-title">
-        <div class="mac-copy">
-          <p class="eyebrow">The Mac app</p>
-          <h2 id="install-title">Built around how you actually type.</h2>
+      <section id="fingers" class="fingers-section" aria-labelledby="fingers-title">
+        <div class="section-heading">
+          <span class="section-label">Fingering</span>
+          <h2 id="fingers-title">Not just the words. The hands.</h2>
           <p>
-            TypingLens is a SwiftUI app for macOS 13 and up. It keeps your typing data on your
-            machine and practice adapts as your typing changes.
+            Point your Mac's camera at the keyboard. TypingLens reads which
+            finger landed on which key — so the wrong-finger habits you
+            didn't know you had get ranked alongside the words you stall on.
           </p>
-          <div class="cta-row" aria-label="Mac app downloads">
-            <a
-              class="button primary"
-              href="https://github.com/nathankoerschner/TypingLens/releases/latest"
-            >
-              Download for Mac
-            </a>
-            <a
-              class="button secondary"
-              href="https://github.com/nathankoerschner/TypingLens"
-            >
-              View on GitHub
-            </a>
+        </div>
+
+        <div class="fingers-stage">
+          <figure class="fingers-figure" aria-label="A camera view of a keyboard with home-row anchors and a flagged cross-hand reach">
+            <div class="fingers-frame-head" aria-hidden="true">
+              <span class="fingers-frame-dot"></span>
+              <span>camera · live</span>
+              <span class="fingers-frame-mode">tracking</span>
+            </div>
+
+            <div class="fingers-figure-canvas">
+              <svg class="fingers-svg" viewBox="0 0 600 240" role="img" aria-labelledby="fingers-diagram-title fingers-diagram-desc">
+                <title id="fingers-diagram-title">Top-down keyboard with finger anchors and a flagged cross-hand reach</title>
+                <desc id="fingers-diagram-desc">Eight green dots mark the home-row anchors for each finger. A dashed warm-colored arc traces a cross-hand reach from the left index finger up to the Y key, which belongs to the right index.</desc>
+
+                <g class="fingers-frame-marks">
+                  <path d="M 12 28 L 12 12 L 28 12" />
+                  <path d="M 572 12 L 588 12 L 588 28" />
+                  <path d="M 12 212 L 12 228 L 28 228" />
+                  <path d="M 588 212 L 588 228 L 572 228" />
+                </g>
+
+                <g class="fingers-keys">
+                  <g><rect x="60"  y="60" width="36" height="30" rx="4" /><text x="78"  y="75">Q</text></g>
+                  <g><rect x="102" y="60" width="36" height="30" rx="4" /><text x="120" y="75">W</text></g>
+                  <g><rect x="144" y="60" width="36" height="30" rx="4" /><text x="162" y="75">E</text></g>
+                  <g><rect x="186" y="60" width="36" height="30" rx="4" /><text x="204" y="75">R</text></g>
+                  <g><rect x="228" y="60" width="36" height="30" rx="4" /><text x="246" y="75">T</text></g>
+                  <g class="key-wrong"><rect x="270" y="60" width="36" height="30" rx="4" /><text x="288" y="75">Y</text></g>
+                  <g><rect x="312" y="60" width="36" height="30" rx="4" /><text x="330" y="75">U</text></g>
+                  <g><rect x="354" y="60" width="36" height="30" rx="4" /><text x="372" y="75">I</text></g>
+                  <g><rect x="396" y="60" width="36" height="30" rx="4" /><text x="414" y="75">O</text></g>
+                  <g><rect x="438" y="60" width="36" height="30" rx="4" /><text x="456" y="75">P</text></g>
+
+                  <g><rect x="74"  y="100" width="36" height="30" rx="4" /><text x="92"  y="115">A</text></g>
+                  <g><rect x="116" y="100" width="36" height="30" rx="4" /><text x="134" y="115">S</text></g>
+                  <g><rect x="158" y="100" width="36" height="30" rx="4" /><text x="176" y="115">D</text></g>
+                  <g><rect x="200" y="100" width="36" height="30" rx="4" /><text x="218" y="115">F</text></g>
+                  <g><rect x="242" y="100" width="36" height="30" rx="4" /><text x="260" y="115">G</text></g>
+                  <g><rect x="284" y="100" width="36" height="30" rx="4" /><text x="302" y="115">H</text></g>
+                  <g><rect x="326" y="100" width="36" height="30" rx="4" /><text x="344" y="115">J</text></g>
+                  <g><rect x="368" y="100" width="36" height="30" rx="4" /><text x="386" y="115">K</text></g>
+                  <g><rect x="410" y="100" width="36" height="30" rx="4" /><text x="428" y="115">L</text></g>
+                  <g><rect x="452" y="100" width="36" height="30" rx="4" /><text x="470" y="115">;</text></g>
+
+                  <g><rect x="88"  y="140" width="36" height="30" rx="4" /><text x="106" y="155">Z</text></g>
+                  <g><rect x="130" y="140" width="36" height="30" rx="4" /><text x="148" y="155">X</text></g>
+                  <g><rect x="172" y="140" width="36" height="30" rx="4" /><text x="190" y="155">C</text></g>
+                  <g><rect x="214" y="140" width="36" height="30" rx="4" /><text x="232" y="155">V</text></g>
+                  <g><rect x="256" y="140" width="36" height="30" rx="4" /><text x="274" y="155">B</text></g>
+                  <g><rect x="298" y="140" width="36" height="30" rx="4" /><text x="316" y="155">N</text></g>
+                  <g><rect x="340" y="140" width="36" height="30" rx="4" /><text x="358" y="155">M</text></g>
+                  <g><rect x="382" y="140" width="36" height="30" rx="4" /><text x="400" y="155">,</text></g>
+                  <g><rect x="424" y="140" width="36" height="30" rx="4" /><text x="442" y="155">.</text></g>
+                  <g><rect x="466" y="140" width="36" height="30" rx="4" /><text x="484" y="155">/</text></g>
+
+                  <g><rect x="170" y="180" width="240" height="30" rx="4" /></g>
+                </g>
+
+                <g class="fingers-anchors">
+                  <circle class="anchor-aura" cx="92"  cy="115" r="8" />
+                  <circle class="anchor-aura" cx="134" cy="115" r="8" />
+                  <circle class="anchor-aura" cx="176" cy="115" r="8" />
+                  <circle class="anchor-aura anchor-active-aura" cx="218" cy="115" r="9" />
+                  <circle class="anchor-aura" cx="344" cy="115" r="8" />
+                  <circle class="anchor-aura" cx="386" cy="115" r="8" />
+                  <circle class="anchor-aura" cx="428" cy="115" r="8" />
+                  <circle class="anchor-aura" cx="470" cy="115" r="8" />
+
+                  <circle cx="92"  cy="115" r="4" />
+                  <circle cx="134" cy="115" r="4" />
+                  <circle cx="176" cy="115" r="4" />
+                  <circle class="anchor-active" cx="218" cy="115" r="4.5" />
+                  <circle cx="344" cy="115" r="4" />
+                  <circle cx="386" cy="115" r="4" />
+                  <circle cx="428" cy="115" r="4" />
+                  <circle cx="470" cy="115" r="4" />
+                </g>
+
+                <g class="fingers-reach">
+                  <path d="M 218 110 Q 240 50 288 78" />
+                  <circle class="reach-end" cx="288" cy="75" r="2.4" />
+                </g>
+              </svg>
+            </div>
+
+            <figcaption class="fingers-event">
+              <span class="fingers-event-tag">cross-hand</span>
+              <span class="fingers-event-name">left index reached for <em>Y</em></span>
+              <span class="fingers-event-detail">ranked · drilled tomorrow</span>
+            </figcaption>
+          </figure>
+          <p class="fingers-aside">
+            Frames are processed <span class="tl-emph">on-device</span> and dropped — nothing leaves the Mac.
+          </p>
+        </div>
+      </section>
+
+      <section id="refusals" class="refusals-band" aria-labelledby="refusals-title">
+        <div class="refusals-inner">
+          <div class="refusals-head">
+            <span class="section-label">Refusals</span>
+            <h2 id="refusals-title">Your typing never leaves your Mac.</h2>
+            <p class="refusals-note">
+              GPL-3.0 on
+              <a href="https://github.com/nathankoerschner/TypingLens">GitHub</a>.
+              Line-for-line auditable.
+            </p>
           </div>
+          <ul class="refusals-list">
+            <li data-mark="01 ·">No account.</li>
+            <li data-mark="02 ·">No cloud sync.</li>
+            <li data-mark="03 ·">No keystroke upload, ever.</li>
+            <li data-mark="04 ·">No “AI coach” small talk.</li>
+            <li data-mark="05 ·">No dark patterns in the drill screen.</li>
+          </ul>
         </div>
-        <div class="feature-flow" aria-label="TypingLens qualities">
-          <article>
-            <h3>Local only by design</h3>
-            <p>Typing history stays on your Mac. No account, no sync, no telemetry.</p>
-          </article>
-          <article>
-            <h3>Shaped by your history</h3>
-            <p>Practice reflects the words and patterns you actually struggle with.</p>
-          </article>
-          <article>
-            <h3>Open source</h3>
-            <p>Licensed GPL-3.0, in the same spirit as Monkeytype.</p>
-          </article>
+      </section>
+
+      <section id="spec" class="spec-section" aria-labelledby="spec-title">
+        <div class="section-heading">
+          <span class="section-label">Spec sheet</span>
+          <h2 id="spec-title">Built on your Mac, for your Mac.</h2>
         </div>
+        <div class="spec-grid">
+          <div class="spec-lede">
+            <p>
+              A SwiftUI app for macOS 13 and up. TypingLens studies the words you
+              already type, and drills the ones you stall on. No account, no sync.
+            </p>
+            <div class="cta-row" aria-label="Mac app downloads">
+              <a
+                class="button primary"
+                href="https://github.com/nathankoerschner/TypingLens/releases/latest"
+              >
+                Download for Mac
+              </a>
+              <a
+                class="button secondary"
+                href="https://github.com/nathankoerschner/TypingLens"
+              >
+                View on GitHub
+              </a>
+            </div>
+          </div>
+          <dl class="spec">
+            <div class="row"><dt>Source</dt><dd>your keystrokes, <span class="tl-emph">on-device</span></dd></div>
+            <div class="row"><dt>Storage</dt><dd>~/Library/Application&nbsp;Support · SQLite</dd></div>
+            <div class="row"><dt>Network</dt><dd><span class="tl-emph">none</span></dd></div>
+            <div class="row"><dt>Telemetry</dt><dd><span class="tl-emph">none</span></dd></div>
+            <div class="row"><dt>Accounts</dt><dd><span class="tl-emph">none</span></dd></div>
+            <div class="row"><dt>License</dt><dd>GPL-3.0 on GitHub</dd></div>
+            <div class="row"><dt>Runtime</dt><dd>SwiftUI · macOS 13+</dd></div>
+            <div class="row"><dt>Release</dt><dd><span class="tl-muted">see /releases/latest</span></dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="positioning-section" aria-label="Positioning">
+        <span class="section-label">Different problem</span>
+        <p>
+          Typing apps and typing tests measure how fast you can type
+          <em>their</em> words. TypingLens measures how fast you type
+          your own — and drills the words, bigrams, and finger habits
+          <em>you</em> actually stall on.
+        </p>
+      </section>
+
+      <section class="closing-line" aria-label="Closing">
+        <p>
+          The goal isn't faster typing. <em>It's never noticing your hands.</em>
+        </p>
       </section>
     </main>
 

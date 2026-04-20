@@ -1,0 +1,219 @@
+.fingers-section {
+  border-top: 1px solid var(--line);
+  padding: var(--section-y) 0;
+}
+
+.fingers-stage {
+  display: grid;
+  justify-items: start;
+  gap: 0.95rem;
+}
+
+.fingers-aside {
+  margin: 0;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  max-width: 58rem;
+}
+
+.fingers-aside .tl-emph {
+  color: var(--accent-strong);
+}
+
+.fingers-figure {
+  margin: 0;
+  width: 100%;
+  max-width: 58rem;
+  padding: clamp(1rem, 1.8vw, 1.4rem);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper-alt) 55%, transparent),
+      var(--surface) 75%
+    );
+  box-shadow: 0 22px 50px color-mix(in srgb, var(--ink) 7%, transparent);
+  display: grid;
+  gap: 0.85rem;
+}
+
+.fingers-frame-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+.fingers-frame-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 18%, transparent);
+  animation: fingers-pulse 2.4s ease-in-out infinite;
+}
+
+.fingers-frame-mode {
+  margin-left: auto;
+  color: var(--accent-strong);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+}
+
+.fingers-figure-canvas {
+  position: relative;
+  border-radius: 8px;
+  background:
+    radial-gradient(
+      ellipse at 50% 35%,
+      color-mix(in srgb, var(--accent-soft) 55%, transparent),
+      transparent 65%
+    ),
+    color-mix(in srgb, var(--paper-alt) 35%, var(--surface));
+  border: 1px solid var(--rule);
+  padding: 0.4rem 0.4rem 0.2rem;
+  overflow: hidden;
+}
+
+.fingers-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.fingers-svg .fingers-frame-marks {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent-strong) 70%, transparent);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+.fingers-svg .fingers-keys rect {
+  fill: var(--surface);
+  stroke: color-mix(in srgb, var(--ink) 14%, transparent);
+  stroke-width: 1;
+}
+
+.fingers-svg .fingers-keys text {
+  fill: color-mix(in srgb, var(--ink) 62%, transparent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  letter-spacing: 0.02em;
+}
+
+.fingers-svg .key-wrong rect {
+  fill: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  stroke: color-mix(in srgb, var(--warn) 55%, transparent);
+}
+
+.fingers-svg .key-wrong text {
+  fill: var(--warn);
+  font-weight: 500;
+}
+
+.fingers-svg .fingers-anchors circle {
+  fill: var(--accent);
+  opacity: 0.85;
+}
+
+.fingers-svg .fingers-anchors .anchor-aura {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.8;
+  opacity: 0.25;
+}
+
+.fingers-svg .fingers-anchors .anchor-active {
+  fill: var(--warn);
+  opacity: 1;
+}
+
+.fingers-svg .fingers-anchors .anchor-active-aura {
+  stroke: var(--warn);
+  opacity: 0.35;
+}
+
+.fingers-svg .fingers-reach path {
+  fill: none;
+  stroke: var(--warn);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 3;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.fingers-svg .fingers-reach .reach-end {
+  fill: var(--warn);
+}
+
+.fingers-event {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.fingers-event-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  color: var(--warn);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fingers-event-name {
+  color: var(--ink);
+}
+
+.fingers-event-name em {
+  font-style: normal;
+  color: var(--warn);
+}
+
+.fingers-event-detail {
+  margin-left: auto;
+  color: var(--quiet);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@keyframes fingers-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (max-width: 640px) {
+  .fingers-event-detail {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fingers-frame-dot {
+    animation: none;
+  }
+}
