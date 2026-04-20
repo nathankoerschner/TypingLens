@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; form-action 'none';"
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="The TypingLens camera attachment — a clip-on document camera for MacBook Air/Pro. An interactive 3D view of the physical mount."
+    />
+    <meta property="og:title" content="TypingLens — Camera attachment" />
+    <meta
+      property="og:description"
+      content="A clip-on document camera for MacBook Air/Pro. Interactive 3D preview of the mount."
+    />
+    <link rel="icon" href="/typing-lens-mark.png" type="image/png" />
+    <title>TypingLens — Camera attachment</title>
+  </head>
+  <body>
+    <header class="site-header" aria-label="TypingLens">
+      <a class="brand" href="./index.html" aria-label="TypingLens home">
+        <img src="/typing-lens-mark.png" width="34" height="34" alt="" />
+        <span>TypingLens</span>
+      </a>
+      <div class="header-actions">
+        <nav aria-label="Primary">
+          <a href="./camera.html" aria-current="page">Camera</a>
+        </nav>
+        <a class="github-link" href="https://github.com/nathankoerschner/TypingLens" aria-label="GitHub repository">
+          <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 3.86c.68.003 1.36.092 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+            />
+          </svg>
+        </a>
+        <a
+          class="button primary header-cta"
+          href="https://github.com/nathankoerschner/TypingLens/releases/latest"
+        >
+          Download for Mac
+        </a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="camera-hero" aria-labelledby="camera-title">
+        <div class="camera-kicker">
+          <span class="eyebrow">Camera · attachment</span>
+          <h1 id="camera-title">The part that understands your hands.</h1>
+          <p class="camera-lede">
+            A clip-on document camera for MacBook Air &amp; Pro. It perches on
+            the lid, points down at the keyboard, and feeds the fingering
+            tracker — so TypingLens can see which finger hit which key.
+          </p>
+        </div>
+
+        <figure class="camera-stage" aria-label="Interactive 3D preview of the camera attachment">
+          <div class="camera-stage-head" aria-hidden="true">
+            <span class="camera-stage-dot"></span>
+            <span>tinkercad · model</span>
+            <span class="camera-stage-mode">drag · scroll · zoom</span>
+          </div>
+
+          <div id="camera-viewport" class="camera-viewport" role="img" aria-label="3D model of the camera attachment, drag to rotate">
+            <canvas id="camera-canvas"></canvas>
+            <div class="camera-status" id="camera-status" aria-live="polite">
+              <span class="camera-status-dot"></span>
+              <span class="camera-status-label">loading model…</span>
+            </div>
+            <noscript>
+              <div class="camera-fallback">
+                Enable JavaScript to view the 3D model.
+              </div>
+            </noscript>
+          </div>
+
+          <div class="camera-stage-foot" aria-hidden="true">
+            <div class="camera-stage-meta">
+              <span>source</span>
+              <b>tinker.obj</b>
+            </div>
+            <div class="camera-stage-meta">
+              <span>geometry</span>
+              <b id="camera-tri-count">—</b>
+            </div>
+            <div class="camera-stage-meta">
+              <span>bounds</span>
+              <b id="camera-bounds">—</b>
+            </div>
+          </div>
+        </figure>
+
+        <ul class="camera-controls-hint" aria-label="Controls">
+          <li><b>Drag</b> to orbit</li>
+          <li><b>Scroll</b> to zoom</li>
+          <li><b>Shift · drag</b> to pan</li>
+          <li><b>R</b> to reset</li>
+        </ul>
+      </section>
+
+      <section class="camera-release" aria-label="Availability">
+        <span class="section-label">Soon</span>
+        <h2>The full kit, on sale shortly.</h2>
+        <p>
+          A printed mount, and a mirror, — assembled,
+           shipped in a box. For anyone who'd rather not own a printer.
+        </p>
+        <p class="camera-release-meta" aria-hidden="true">
+          <span>release</span><b>soon</b>
+        </p>
+      </section>
+
+      <section class="camera-spec">
+        <div class="section-heading">
+          <span class="section-label">Part sheet</span>
+          <h2>A clip, a hinge, a lens.</h2>
+          <p>
+            A three-piece print that doesn't modify your Mac — it braces on the
+            lid, pivots forward, and aims a camera down at the deck. The hinge
+            angle is what matters: too shallow and you miss the home row, too
+            steep and the thumbs fall off the frame.
+          </p>
+        </div>
+        <dl class="spec">
+          <div class="row"><dt>Fit</dt><dd>MacBook&nbsp;Air&nbsp;13&quot; · Pro&nbsp;14&quot;/16&quot;</dd></div>
+          <div class="row"><dt>Mount</dt><dd>friction clip · <span class="tl-emph">no adhesives</span></dd></div>
+          <div class="row"><dt>Print</dt><dd>PLA · 0.2mm · no supports</dd></div>
+          <div class="row"><dt>Camera</dt><dd>any 20&nbsp;×&nbsp;20&nbsp;mm USB-C module</dd></div>
+          <div class="row"><dt>Aim</dt><dd>pitched ~62° toward the home row</dd></div>
+          <div class="row"><dt>License</dt><dd>GPL-3.0 · .obj on GitHub</dd></div>
+        </dl>
+      </section>
+
+      <section class="closing-line" aria-label="Closing">
+        <p>
+          A small plastic thing so the app can see. <em>Nothing leaves the Mac.</em>
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand muted" href="./index.html" aria-label="TypingLens home">
+          <img src="/typing-lens-mark.png" width="24" height="24" alt="" />
+          <span>TypingLens</span>
+        </a>
+        <span>A typing coach for proficient typists</span>
+      </div>
+      <nav aria-label="Footer">
+        <a href="https://github.com/nathankoerschner/TypingLens/releases/latest">Releases</a>
+        <a href="https://github.com/nathankoerschner/TypingLens">GitHub</a>
+      </nav>
+    </footer>
+
+    <script type="module" src="/src/camera/main.ts"></script>
+  </body>
+</html>

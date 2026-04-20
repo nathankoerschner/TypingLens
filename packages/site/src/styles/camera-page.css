@@ -1,0 +1,425 @@
+.camera-hero {
+  position: relative;
+  padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(2.5rem, 5vw, 4rem);
+  display: grid;
+  gap: clamp(1.75rem, 3.5vw, 2.75rem);
+  justify-items: center;
+  text-align: center;
+  width: min(var(--max), calc(100% - (var(--gutter) * 2)));
+  margin-inline: auto;
+}
+
+.camera-kicker {
+  display: grid;
+  gap: 1rem;
+  max-width: 58rem;
+  justify-items: center;
+}
+
+.camera-kicker .eyebrow {
+  justify-self: center;
+}
+
+.camera-kicker h1 {
+  max-width: 18ch;
+  font-size: clamp(2.55rem, 6.2vw, 4.25rem);
+  line-height: 0.98;
+}
+
+.camera-lede {
+  max-width: 42rem;
+  font-size: 1.04rem;
+}
+
+.camera-stage {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 64rem;
+  padding: clamp(1rem, 1.6vw, 1.25rem);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      ellipse at 52% 18%,
+      color-mix(in srgb, var(--accent-soft) 58%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper-alt) 58%, transparent),
+      var(--surface) 72%
+    );
+  box-shadow:
+    0 28px 60px color-mix(in srgb, var(--ink) 8%, transparent),
+    0 2px 6px color-mix(in srgb, var(--ink) 3%, transparent);
+  display: grid;
+  gap: 0.85rem;
+}
+
+.camera-stage-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+.camera-stage-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+  animation: camera-pulse 2.4s ease-in-out infinite;
+}
+
+.camera-stage-mode {
+  margin-left: auto;
+  color: var(--accent-strong);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+}
+
+.camera-viewport {
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background:
+    radial-gradient(
+      ellipse at 50% 120%,
+      color-mix(in srgb, var(--ink) 9%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 50% 35%,
+      color-mix(in srgb, var(--accent-soft) 45%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper-alt) 28%, var(--surface)),
+      var(--surface)
+    );
+  overflow: hidden;
+  aspect-ratio: 16 / 11;
+  min-height: 30rem;
+  background-image:
+    radial-gradient(
+      ellipse at 50% 120%,
+      color-mix(in srgb, var(--ink) 9%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 50% 35%,
+      color-mix(in srgb, var(--accent-soft) 45%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper-alt) 28%, var(--surface)),
+      var(--surface)
+    ),
+    linear-gradient(0deg, var(--rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+  background-size:
+    auto, auto, auto,
+    32px 32px,
+    32px 32px;
+  background-position:
+    center, center, center,
+    center center,
+    center center;
+}
+
+.camera-viewport::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 50% 50%,
+      transparent 55%,
+      color-mix(in srgb, var(--ink) 8%, transparent) 100%
+    );
+}
+
+.camera-viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.camera-viewport canvas:active {
+  cursor: grabbing;
+}
+
+.camera-status {
+  position: absolute;
+  left: 0.9rem;
+  top: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.35s ease;
+}
+
+.camera-status[data-state="ready"] {
+  opacity: 0;
+}
+
+.camera-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: camera-pulse 1.4s ease-in-out infinite;
+}
+
+.camera-status[data-state="error"] .camera-status-dot {
+  background: var(--warn);
+  animation: none;
+}
+
+.camera-status[data-state="error"] {
+  color: var(--warn);
+  opacity: 1;
+}
+
+.camera-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.camera-stage-foot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem 0.2rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.camera-stage-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem 0.35rem;
+  font-family: var(--font-mono);
+}
+
+.camera-stage-meta span {
+  color: var(--quiet);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.camera-stage-meta b {
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.camera-controls-hint {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.camera-controls-hint li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.03em;
+}
+
+.camera-controls-hint b {
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+}
+
+.camera-spec {
+  border-top: 1px solid var(--line);
+  padding: var(--section-y) 0;
+  display: grid;
+  justify-items: center;
+  gap: clamp(2rem, 4vw, 3rem);
+  width: min(var(--max), calc(100% - (var(--gutter) * 2)));
+  margin-inline: auto;
+  text-align: center;
+}
+
+.camera-release {
+  border-top: 1px solid var(--line);
+  padding: var(--section-y) 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  width: min(var(--max), calc(100% - (var(--gutter) * 2)));
+  margin-inline: auto;
+  text-align: center;
+}
+
+.camera-release .section-label {
+  margin-bottom: 0.4rem;
+}
+
+.camera-release h2 {
+  max-width: 22ch;
+  font-size: clamp(1.95rem, 4.2vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.camera-release p {
+  max-width: 46ch;
+  font-family: var(--font-serif);
+  font-size: clamp(1.05rem, 1.6vw, 1.22rem);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.camera-release .camera-release-meta {
+  margin-top: 0.6rem;
+  max-width: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 42%, var(--surface));
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.camera-release .camera-release-meta span {
+  color: var(--quiet);
+}
+
+.camera-release .camera-release-meta b {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.camera-spec .section-heading {
+  margin-bottom: 0;
+  justify-items: center;
+}
+
+.camera-spec .section-heading h2 {
+  max-width: 18ch;
+}
+
+.camera-spec .section-heading p {
+  max-width: 42rem;
+}
+
+.camera-spec .section-label {
+  justify-self: center;
+}
+
+.camera-spec .spec {
+  width: 100%;
+  max-width: 44rem;
+  text-align: left;
+}
+
+.site-header nav a[aria-current="page"] {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 1.5px;
+}
+
+@keyframes camera-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-stage-dot,
+  .camera-status-dot {
+    animation: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .camera-spec {
+    grid-template-columns: 1fr;
+  }
+
+  .camera-viewport {
+    min-height: 18rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .camera-stage-foot {
+    grid-template-columns: 1fr;
+  }
+
+  .camera-stage-meta {
+    padding: 0.4rem 0.4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .camera-stage-meta:last-child {
+    border-bottom: 0;
+  }
+
+  .camera-controls-hint li {
+    font-size: 0.68rem;
+  }
+}
